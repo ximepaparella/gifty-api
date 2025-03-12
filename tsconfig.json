@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "CommonJS",
+    "lib": ["ES2018", "DOM"],
+    "outDir": "./dist",
+    "rootDir": ".",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@modules/*": ["src/modules/*"],
+      "@shared/*": ["src/shared/*"],
+      "@validation/*": ["src/shared/application/validation/*"],
+      "@errors/*": ["src/shared/infrastructure/errors/*"],
+      "@middleware/*": ["src/shared/infrastructure/middleware/*"],
+      "@logging/*": ["src/shared/infrastructure/logging/*"],
+      "@database/*": ["src/shared/infrastructure/database/*"],
+      "@cache/*": ["src/shared/infrastructure/cache/*"],
+      "@user-model": ["src/modules/user/infrastructure/user.model"],
+      "@user-repository": ["src/modules/user/infrastructure/user.repository"],
+      "@user-service": ["src/modules/user/application/user.service"],
+      "@user-controller": ["src/modules/user/interface/user.controller"],
+      "@role-model": ["src/modules/role/infrastructure/role.model"],
+      "@role-repository": ["src/modules/role/infrastructure/role.repository"],
+      "@role-service": ["src/modules/role/application/role.service"],
+      "@role-controller": ["src/modules/role/interface/role.controller"],
+      "@utils/*": ["src/shared/utils/*"]
+    },
+    "typeRoots": ["./node_modules/@types", "./src/types"]
+  },
+  "include": ["src/**/*", "server.ts"],
+  "exclude": ["node_modules", "dist"]
+} 
