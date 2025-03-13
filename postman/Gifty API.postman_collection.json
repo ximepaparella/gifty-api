@@ -282,14 +282,21 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"My Store\",\n    \"ownerId\": \"{{userId}}\",\n    \"email\": \"store@example.com\",\n    \"phone\": \"1234567890\",\n    \"address\": \"123 Main St\"\n}"
+							"raw": "{\n    \"name\": \"My Store\",\n    \"ownerId\": \"{{userId}}\",\n    \"email\": \"store@example.com\",\n    \"phone\": \"+1234567890\",\n    \"address\": \"123 Store St\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
-							"raw": "{{base_url}}/stores",
+							"raw": "{{base_url}}/api/v1/stores",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
+								"api",
+								"v1",
 								"stores"
 							]
 						}
@@ -318,11 +325,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/stores",
+							"raw": "{{base_url}}/api/v1/stores",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
+								"api",
+								"v1",
 								"stores"
 							]
 						}
@@ -351,11 +360,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/stores/{{storeId}}",
+							"raw": "{{base_url}}/api/v1/stores/{{storeId}}",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
+								"api",
+								"v1",
 								"stores",
 								"{{storeId}}"
 							]
@@ -391,14 +402,21 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Updated Store Name\",\n    \"email\": \"updated@example.com\",\n    \"phone\": \"0987654321\",\n    \"address\": \"456 New St\"\n}"
+							"raw": "{\n    \"name\": \"Updated Store\",\n    \"email\": \"updated@example.com\",\n    \"phone\": \"+0987654321\",\n    \"address\": \"456 Updated St\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
-							"raw": "{{base_url}}/stores/{{storeId}}",
+							"raw": "{{base_url}}/api/v1/stores/{{storeId}}",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
+								"api",
+								"v1",
 								"stores",
 								"{{storeId}}"
 							]
@@ -428,11 +446,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/stores/{{storeId}}",
+							"raw": "{{base_url}}/api/v1/stores/{{storeId}}",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
+								"api",
+								"v1",
 								"stores",
 								"{{storeId}}"
 							]
@@ -462,17 +482,192 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/stores/{{userId}}",
+							"raw": "{{base_url}}/api/v1/stores/owner/{{userId}}",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
+								"api",
+								"v1",
 								"stores",
+								"owner",
 								"{{userId}}"
 							]
 						}
 					},
 					"response": []
+				}
+			]
+		},
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Create Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"storeId\": \"{{storeId}}\",\n    \"name\": \"New Product\",\n    \"description\": \"Product description\",\n    \"price\": 99.99,\n    \"isActive\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Product by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/{{productId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"{{productId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Product\",\n    \"description\": \"Updated description\",\n    \"price\": 149.99,\n    \"isActive\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/{{productId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"{{productId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Product",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/{{productId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"{{productId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Products by Store ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/store/{{storeId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"store",
+								"{{storeId}}"
+							]
+						}
+					}
 				}
 			]
 		}

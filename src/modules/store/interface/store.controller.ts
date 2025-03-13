@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { StoreService } from '../application/store.service';
+import { validateStore } from '../domain/store.schema';
 import catchAsync from '@utils/catchAsync';
 import { IStore } from '../domain/store.entity';
 

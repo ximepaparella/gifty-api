@@ -3,6 +3,28 @@ import swaggerUi from 'swagger-ui-express';
 import { Express } from 'express';
 import { storePaths } from './paths/store.paths';
 import { storeSchemas } from './schemas/store.schema';
+import { userSwagger } from '@modules/user/interface/user.swagger';
+import { authSwagger } from '@modules/user/interface/auth.swagger';
+import { productSwagger } from '@modules/product/interface/product.swagger';
+
+// Define Error schema that's referenced in responses
+const errorSchema = {
+  Error: {
+    type: 'object',
+    properties: {
+      status: {
+        type: 'string',
+        description: 'Error status',
+        example: 'error'
+      },
+      message: {
+        type: 'string',
+        description: 'Error message',
+        example: 'Error message description'
+      }
+    }
+  }
+};
 
 /**
  * Swagger configuration options
@@ -25,16 +47,8 @@ const swaggerOptions: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: '/api/v1',
-        description: 'API v1'
-      },
-      {
-        url: 'http://localhost:3000/api/v1',
+        url: 'http://localhost:3000',
         description: 'Development server'
-      },
-      {
-        url: 'https://api.gifty-api.com/api/v1',
-        description: 'Production server'
       }
     ],
     components: {
@@ -46,165 +60,11 @@ const swaggerOptions: swaggerJsdoc.Options = {
         }
       },
       schemas: {
+        ...errorSchema,
         ...storeSchemas,
-        User: {
-          type: 'object',
-          required: ['name', 'email', 'password', 'role'],
-          properties: {
-            id: {
-              type: 'string',
-              description: 'User ID',
-              example: '60d21b4667d0d8992e610c85'
-            },
-            name: {
-              type: 'string',
-              description: 'User name',
-              example: 'John Doe'
-            },
-            email: {
-              type: 'string',
-              format: 'email',
-              description: 'User email',
-              example: 'user@example.com'
-            },
-            role: {
-              type: 'string',
-              enum: ['admin', 'store_manager', 'customer'],
-              description: 'User role',
-              example: 'customer'
-            },
-            createdAt: {
-              type: 'string',
-              format: 'date-time',
-              description: 'Creation timestamp',
-              example: '2023-06-21T15:24:38.235Z'
-            },
-            updatedAt: {
-              type: 'string',
-              format: 'date-time',
-              description: 'Last update timestamp',
-              example: '2023-06-21T15:24:38.235Z'
-            }
-          }
-        },
-        GiftCard: {
-          type: 'object',
-          required: ['code', 'amount', 'currency'],
-          properties: {
-            id: {
-              type: 'string',
-              description: 'Gift card ID',
-              example: '60d21b4667d0d8992e610c86'
-            },
-            code: {
-              type: 'string',
-              description: 'Gift card code',
-              example: 'GIFT123'
-            },
-            amount: {
-              type: 'number',
-              description: 'Gift card amount',
-              example: 50
-            },
-            currency: {
-              type: 'string',
-              description: 'Gift card currency',
-              example: 'USD'
-            },
-            expiryDate: {
-              type: 'string',
-              format: 'date-time',
-              description: 'Expiry date',
-              example: '2024-12-31T23:59:59.999Z'
-            },
-            isActive: {
-              type: 'boolean',
-              description: 'Whether the gift card is active',
-              example: true
-            },
-            createdAt: {
-              type: 'string',
-              format: 'date-time',
-              description: 'Creation timestamp',
-              example: '2023-06-21T15:24:38.235Z'
-            }
-          }
-        },
-        Transaction: {
-          type: 'object',
-          properties: {
-            id: {
-              type: 'string',
-              description: 'Transaction ID',
-              example: '60d21b4667d0d8992e610c87'
-            },
-            giftCardId: {
-              type: 'string',
-              description: 'Gift card ID',
-              example: '60d21b4667d0d8992e610c86'
-            },
-            userId: {
-              type: 'string',
-              description: 'User ID',
-              example: '60d21b4667d0d8992e610c85'
-            },
-            amount: {
-              type: 'number',
-              description: 'Transaction amount',
-              example: 50
-            },
-            currency: {
-              type: 'string',
-              description: 'Transaction currency',
-              example: 'USD'
-            },
-            createdAt: {
-              type: 'string',
-              format: 'date-time',
-              description: 'Creation timestamp',
-              example: '2023-06-21T15:24:38.235Z'
-            }
-          }
-        },
-        Error: {
-          type: 'object',
-          properties: {
-            status: {
-              type: 'string',
-              description: 'Error status',
-              example: 'error'
-            },
-            code: {
-              type: 'integer',
-              description: 'HTTP status code',
-              example: 400
-            },
-            message: {
-              type: 'string',
-              description: 'Error message',
-              example: 'Error message description'
-            },
-            errors: {
-              type: 'array',
-              description: 'List of validation errors',
-              items: {
-                type: 'object',
-                properties: {
-                  field: {
-                    type: 'string',
-                    description: 'Field with error',
-                    example: 'email'
-                  },
-                  message: {
-                    type: 'string',
-                    description: 'Error message for the field',
-                    example: 'Invalid email format'
-                  }
-                }
-              }
-            }
-          }
-        }
+        ...userSwagger.components.schemas,
+        ...authSwagger.components.schemas,
+        ...productSwagger.components.schemas
       },
       responses: {
         UnauthorizedError: {
@@ -250,7 +110,7 @@ const swaggerOptions: swaggerJsdoc.Options = {
           }
         },
         ValidationError: {
-          description: 'Validation error',
+          description: 'Invalid input data',
           content: {
             'application/json': {
               schema: {
@@ -258,27 +118,54 @@ const swaggerOptions: swaggerJsdoc.Options = {
               },
               example: {
                 status: 'fail',
-                message: 'Validation failed',
-                errors: [
-                  {
-                    field: 'email',
-                    message: 'Invalid email format'
-                  }
-                ]
+                message: 'Validation error'
               }
             }
           }
         }
-      },
-      paths: {
-        ...storePaths,
       }
     },
-    security: [
-      {
-        bearerAuth: []
-      }
-    ],
+    paths: {
+      '/api/v1/auth/login': authSwagger.paths['/auth/login'],
+      '/api/v1/auth/register': authSwagger.paths['/auth/register'],
+      '/api/v1/auth/forgot-password': authSwagger.paths['/auth/forgot-password'],
+      '/api/v1/auth/reset-password': authSwagger.paths['/auth/reset-password'],
+      '/api/v1/users': userSwagger.paths['/users'],
+      '/api/v1/users/{id}': userSwagger.paths['/users/{id}'],
+      '/api/v1/users/me': userSwagger.paths['/users/me'],
+      '/api/v1/users/setup-admin': userSwagger.paths['/users/setup-admin'],
+      '/api/v1/stores': {
+        ...storePaths['/stores'],
+        get: {
+          ...storePaths['/stores'].get,
+          responses: {
+            200: {
+              description: 'List of stores',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      status: { type: 'string', example: 'success' },
+                      data: {
+                        type: 'array',
+                        items: { $ref: '#/components/schemas/Store' }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            401: { $ref: '#/components/responses/UnauthorizedError' }
+          }
+        }
+      },
+      '/api/v1/stores/{id}': storePaths['/stores/{id}'],
+      '/api/v1/stores/owner/{ownerId}': storePaths['/stores/owner/{ownerId}'],
+      '/api/v1/products': productSwagger.paths['/products'],
+      '/api/v1/products/{id}': productSwagger.paths['/products/{id}'],
+      '/api/v1/products/store/{storeId}': productSwagger.paths['/products/store/{storeId}']
+    },
     tags: [
       {
         name: 'Auth',
@@ -289,40 +176,37 @@ const swaggerOptions: swaggerJsdoc.Options = {
         description: 'User management endpoints'
       },
       {
-        name: 'Gift Cards',
-        description: 'Gift card management endpoints'
+        name: 'Stores',
+        description: 'Store management endpoints'
       },
       {
-        name: 'Transactions',
-        description: 'Transaction management endpoints'
+        name: 'Products',
+        description: 'Product management endpoints'
       }
     ]
   },
-  apis: [
-    './src/modules/**/interface/*.routes.ts',
-    './src/modules/**/interface/*.swagger.ts'
-  ]
+  apis: []  // We're defining everything in the definition
 };
 
 /**
- * Swagger specification
- */
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-
-/**
- * Initialize Swagger documentation
- * @param app Express application
+ * Sets up Swagger documentation for the API
  */
 export const setupSwagger = (app: Express): void => {
-  // Serve Swagger UI
+  const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
+  // Debug: Log the available schemas
+  console.log('Available schemas:', Object.keys(swaggerSpec.components.schemas));
+  console.log('Available paths:', Object.keys(swaggerSpec.paths));
+
   app.use('/api-docs', swaggerUi.serve);
   app.get('/api-docs', swaggerUi.setup(swaggerSpec, {
     explorer: true,
     customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'Gifty API Documentation'
+    customSiteTitle: 'Gifty API Documentation',
+    customfavIcon: '/assets/favicon.ico'
   }));
 
-  // Serve Swagger spec as JSON
+  // Also serve swagger spec as JSON if needed
   app.get('/swagger.json', (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(swaggerSpec);

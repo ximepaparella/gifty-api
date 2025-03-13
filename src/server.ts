@@ -4,20 +4,22 @@ import './bootstrap';
 import express, { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import swaggerUi from 'swagger-ui-express';
-import swaggerJsdoc from 'swagger-jsdoc';
 import passport from 'passport';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 
 import { connectDatabase } from '@shared/infrastructure/database/connection';
 import logger from '@shared/infrastructure/logging/logger';
 import { initCloudinary } from '@shared/infrastructure/services/cloudinary.config';
 import { AppError } from '@shared/types/appError';
+import { errorHandler as globalErrorHandler } from '@shared/infrastructure/errors/errorHandler';
+import { setupSwagger } from '@shared/infrastructure/swagger/swagger';
 
 // Import routes
 import userRoutes from '@modules/user/interface/user.routes';
 import passwordResetRoutes from '@modules/user/interface/passwordReset.routes';
-import storeRoutes from '@modules/store/interface/store.routes';
+import { storeRoutes } from '@modules/store/interface/store.routes';
+import { productRoutes } from '@modules/product/interface/product.routes';
 
 dotenv.config();
 
@@ -29,79 +31,14 @@ app.use(helmet());
 app.use(express.json());
 app.use(passport.initialize());
 
-// Swagger configuration
-const swaggerOptions = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'Gifty API',
-      version: '1.0.0',
-      description: 'Gift Voucher API with Hexagonal Architecture',
-      contact: {
-        name: 'Gifty Tech Team',
-        email: 'tech@gifty.com'
-      }
-    },
-    servers: [
-      {
-        url: 'http://localhost:3000',
-        description: 'Development server'
-      }
-    ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT'
-        }
-      }
-    },
-    security: [{
-      bearerAuth: []
-    }],
-    tags: [
-      {
-        name: 'Auth',
-        description: 'Authentication endpoints'
-      },
-      {
-        name: 'Users',
-        description: 'User management endpoints'
-      },
-      {
-        name: 'Roles',
-        description: 'Role management endpoints'
-      }
-    ]
-  },
-  apis: [
-    './src/modules/**/*.routes.ts',
-    './src/modules/**/*.swagger.ts'
-  ]
-};
-
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-
-// Serve Swagger docs
-app.use('/api-docs', swaggerUi.serve);
-app.get('/api-docs', swaggerUi.setup(swaggerSpec, {
-  explorer: true,
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Gifty API Documentation',
-  customfavIcon: '/assets/favicon.ico'
-}));
-
-// Also serve swagger spec as JSON if needed
-app.get('/swagger.json', (req: Request, res: Response) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.send(swaggerSpec);
-});
-
 // Routes
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/auth', passwordResetRoutes);
 app.use('/api/v1/stores', storeRoutes);
+app.use('/api/v1/products', productRoutes);
+
+// Setup Swagger documentation
+setupSwagger(app);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -127,23 +64,26 @@ const errorHandler: ErrorRequestHandler = (err: AppError, req: Request, res: Res
   });
 };
 
-app.use(errorHandler);
+app.use(globalErrorHandler);
 
-const PORT = process.env.PORT || 3000;
+// Database connection
+const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+  throw new Error('MONGO_URI environment variable is not defined');
+}
 
-const startServer = async (): Promise<void> => {
-  try {
-    await connectDatabase();
-    initCloudinary();
+mongoose
+  .connect(MONGO_URI)
+  .then(() => {
+    console.log('Connected to MongoDB');
+    const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
-      logger.info(`Server is running on port ${PORT}`);
+      console.log(`Server is running on port ${PORT}`);
     });
-  } catch (error) {
-    logger.error('Failed to start server:', error);
+  })
+  .catch((error) => {
+    console.error('Error connecting to MongoDB:', error);
     process.exit(1);
-  }
-};
-
-startServer();
+  });
 
 export default app; 
