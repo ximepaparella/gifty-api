@@ -58,11 +58,11 @@ export class StoreService {
 
     // Create a clean object with only the fields we want to validate
     const cleanData = {
-      name: storeData.name || existingStore.name,
-      email: storeData.email || existingStore.email,
-      phone: storeData.phone || existingStore.phone,
-      address: storeData.address || existingStore.address,
-      ownerId: storeData.ownerId || existingStore.ownerId.toString()
+      name: storeData.name ?? existingStore.name,
+      email: storeData.email ?? existingStore.email,
+      phone: storeData.phone ?? existingStore.phone,
+      address: storeData.address ?? existingStore.address,
+      ownerId: storeData.ownerId ?? existingStore.ownerId.toString()
     };
 
     const { error } = validateStore(cleanData);
