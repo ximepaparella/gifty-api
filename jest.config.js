@@ -1,0 +1,40 @@
+module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  roots: ['<rootDir>/tests', '<rootDir>/src'],
+  transform: {
+    '^.+\\.tsx?$': 'ts-jest',
+  },
+  moduleNameMapper: {
+    '@modules/(.*)': '<rootDir>/src/modules/$1',
+    '@shared/(.*)': '<rootDir>/src/shared/$1',
+    '@validation/(.*)': '<rootDir>/src/shared/application/validation/$1',
+    '@errors/(.*)': '<rootDir>/src/shared/infrastructure/errors/$1',
+    '@middleware/(.*)': '<rootDir>/src/shared/infrastructure/middleware/$1',
+    '@logging/(.*)': '<rootDir>/src/shared/infrastructure/logging/$1',
+    '@database/(.*)': '<rootDir>/src/shared/infrastructure/database/$1',
+    '@cache/(.*)': '<rootDir>/src/shared/infrastructure/cache/$1',
+    '@user-model': '<rootDir>/src/modules/user/infrastructure/user.model',
+    '@user-repository': '<rootDir>/src/modules/user/infrastructure/user.repository',
+    '@user-service': '<rootDir>/src/modules/user/application/user.service',
+    '@user-controller': '<rootDir>/src/modules/user/interface/user.controller',
+    '@utils/(.*)': '<rootDir>/src/shared/utils/$1',
+  },
+  moduleDirectories: ['node_modules', 'src'],
+  testMatch: ['**/__tests__/**/*.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
+  collectCoverageFrom: [
+    'src/**/*.{ts,tsx}',
+    '!src/**/*.d.ts',
+    '!src/types/**',
+    '!src/**/index.ts',
+  ],
+  coverageThreshold: {
+    global: {
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70,
+    },
+  },
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
+}; 

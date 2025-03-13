@@ -1,0 +1,24 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["jest", "node"],
+    "baseUrl": "../",
+    "paths": {
+      "@modules/*": ["src/modules/*"],
+      "@shared/*": ["src/shared/*"],
+      "@validation/*": ["src/shared/application/validation/*"],
+      "@errors/*": ["src/shared/infrastructure/errors/*"],
+      "@middleware/*": ["src/shared/infrastructure/middleware/*"],
+      "@logging/*": ["src/shared/infrastructure/logging/*"],
+      "@database/*": ["src/shared/infrastructure/database/*"],
+      "@cache/*": ["src/shared/infrastructure/cache/*"],
+      "@user-model": ["src/modules/user/infrastructure/user.model"],
+      "@user-repository": ["src/modules/user/infrastructure/user.repository"],
+      "@user-service": ["src/modules/user/application/user.service"],
+      "@user-controller": ["src/modules/user/interface/user.controller"],
+      "@utils/*": ["src/shared/utils/*"]
+    }
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["node_modules"]
+} 
