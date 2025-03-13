@@ -14,12 +14,14 @@ router
   .get(controller.getProducts)
   .post(controller.createProduct);
 
+  
+router.get('/store/:storeId', controller.getProductsByStoreId);
+
 router
   .route('/:id')
   .get(controller.getProductById)
   .put(controller.updateProduct)
   .delete(controller.deleteProduct);
 
-router.get('/store/:storeId', controller.getProductsByStoreId);
 
 export const productRoutes = router; 

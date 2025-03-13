@@ -24,6 +24,12 @@ export class ProductController {
 
   getProductById = handleAsync(async (req: Request, res: Response) => {
     const product = await this.service.getProductById(req.params.id);
+    if (!product) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Product not found'
+      });
+    }
     res.status(200).json({
       status: 'success',
       data: product
@@ -48,6 +54,12 @@ export class ProductController {
 
   deleteProduct = handleAsync(async (req: Request, res: Response) => {
     const product = await this.service.deleteProduct(req.params.id);
+    if (!product) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Product not found'
+      });
+    }
     res.status(200).json({
       status: 'success',
       data: product
