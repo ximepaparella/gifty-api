@@ -31,6 +31,9 @@ app.use('/api/v1/users', userRoutes);
 import passwordResetRoutes from './src/modules/user/interface/passwordReset.routes';
 app.use('/api/v1/auth', passwordResetRoutes);
 
+import storeRoutes from './src/modules/store/interface/store.routes';
+app.use('/api/v1/stores', storeRoutes);
+
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
