@@ -8,16 +8,23 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import passport from 'passport';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 
 import { connectDatabase } from '@shared/infrastructure/database/connection';
 import logger from '@shared/infrastructure/logging/logger';
 import { initCloudinary } from '@shared/infrastructure/services/cloudinary.config';
 import { AppError } from '@shared/types/appError';
+import { errorHandler as globalErrorHandler } from '@shared/infrastructure/errors/errorHandler';
 
 // Import routes
 import userRoutes from '@modules/user/interface/user.routes';
 import passwordResetRoutes from '@modules/user/interface/passwordReset.routes';
-import storeRoutes from '@modules/store/interface/store.routes';
+import { storeRoutes } from '@modules/store/interface/store.routes';
+import { productRoutes } from '@modules/product/interface/product.routes';
+
+// Import swagger docs
+import { storeSwagger } from '@modules/store/interface/store.swagger';
+import { productSwagger } from '@modules/product/interface/product.swagger';
 
 dotenv.config();
 
@@ -54,6 +61,113 @@ const swaggerOptions = {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT'
+        }
+      },
+      schemas: {
+        User: {
+          type: 'object',
+          properties: {
+            _id: { type: 'string', example: '507f1f77bcf86cd799439011' },
+            name: { type: 'string', example: 'John Doe' },
+            email: { type: 'string', format: 'email', example: 'john@example.com' },
+            password: { type: 'string', format: 'password' },
+            role: { type: 'string', enum: ['user', 'admin'], example: 'user' },
+            isActive: { type: 'boolean', example: true },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' }
+          }
+        },
+        LoginInput: {
+          type: 'object',
+          required: ['email', 'password'],
+          properties: {
+            email: { type: 'string', format: 'email', example: 'john@example.com' },
+            password: { type: 'string', format: 'password', example: 'password123' }
+          }
+        },
+        RegisterInput: {
+          type: 'object',
+          required: ['name', 'email', 'password'],
+          properties: {
+            name: { type: 'string', example: 'John Doe' },
+            email: { type: 'string', format: 'email', example: 'john@example.com' },
+            password: { type: 'string', format: 'password', example: 'password123' }
+          }
+        },
+        PasswordResetRequest: {
+          type: 'object',
+          required: ['email'],
+          properties: {
+            email: { type: 'string', format: 'email', example: 'john@example.com' }
+          }
+        },
+        PasswordReset: {
+          type: 'object',
+          required: ['token', 'password'],
+          properties: {
+            token: { type: 'string' },
+            password: { type: 'string', format: 'password', example: 'newpassword123' }
+          }
+        },
+        ...storeSwagger.components.schemas,
+        ...productSwagger.components.schemas
+      },
+      responses: {
+        UnauthorizedError: {
+          description: 'Authentication information is missing or invalid',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: { type: 'string', example: 'error' },
+                  message: { type: 'string', example: 'Unauthorized' }
+                }
+              }
+            }
+          }
+        },
+        ValidationError: {
+          description: 'Invalid input data',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: { type: 'string', example: 'error' },
+                  message: { type: 'string', example: 'Validation error' }
+                }
+              }
+            }
+          }
+        },
+        NotFoundError: {
+          description: 'The requested resource was not found',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: { type: 'string', example: 'error' },
+                  message: { type: 'string', example: 'Resource not found' }
+                }
+              }
+            }
+          }
+        },
+        ForbiddenError: {
+          description: 'The user does not have permission to perform this action',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: { type: 'string', example: 'error' },
+                  message: { type: 'string', example: 'Forbidden' }
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -102,6 +216,7 @@ app.get('/swagger.json', (req: Request, res: Response) => {
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/auth', passwordResetRoutes);
 app.use('/api/v1/stores', storeRoutes);
+app.use('/api/v1/products', productRoutes);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -127,23 +242,26 @@ const errorHandler: ErrorRequestHandler = (err: AppError, req: Request, res: Res
   });
 };
 
-app.use(errorHandler);
+app.use(globalErrorHandler);
 
-const PORT = process.env.PORT || 3000;
+// Database connection
+const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+  throw new Error('MONGO_URI environment variable is not defined');
+}
 
-const startServer = async (): Promise<void> => {
-  try {
-    await connectDatabase();
-    initCloudinary();
+mongoose
+  .connect(MONGO_URI)
+  .then(() => {
+    console.log('Connected to MongoDB');
+    const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
-      logger.info(`Server is running on port ${PORT}`);
+      console.log(`Server is running on port ${PORT}`);
     });
-  } catch (error) {
-    logger.error('Failed to start server:', error);
+  })
+  .catch((error) => {
+    console.error('Error connecting to MongoDB:', error);
     process.exit(1);
-  }
-};
-
-startServer();
+  });
 
 export default app; 

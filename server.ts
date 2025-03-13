@@ -8,6 +8,13 @@ import logger from '@shared/infrastructure/logging/logger';
 import { initCloudinary } from './src/shared/infrastructure/services/cloudinary.config';
 import { AppError } from '@shared/types/appError';
 import { setupSwagger } from './src/shared/infrastructure/swagger/swagger';
+import mongoose from 'mongoose';
+import swaggerUi from 'swagger-ui-express';
+import { errorHandler as globalErrorHandler } from '@shared/infrastructure/errors/errorHandler';
+import { storeRoutes } from '@modules/store/interface/store.routes';
+import { storeSwagger } from '@modules/store/interface/store.swagger';
+import { productRoutes } from '@modules/product/interface/product.routes';
+import { productSwagger } from '@modules/product/interface/product.swagger';
 
 // Load environment variables
 dotenv.config();
@@ -31,8 +38,8 @@ app.use('/api/v1/users', userRoutes);
 import passwordResetRoutes from './src/modules/user/interface/passwordReset.routes';
 app.use('/api/v1/auth', passwordResetRoutes);
 
-import storeRoutes from './src/modules/store/interface/store.routes';
 app.use('/api/v1/stores', storeRoutes);
+app.use('/api/v1/products', productRoutes);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -40,30 +47,48 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 // Error handling middleware
-app.use((err: Error | AppError, req: Request, res: Response, next: NextFunction): void => {
-  logger.error('Error:', err);
-  
-  if ('isOperational' in err && err.isOperational) {
-    res.status((err as AppError).statusCode).json({
-      status: (err as AppError).status,
-      message: err.message
-    });
-    return;
+app.use(globalErrorHandler);
+
+// Swagger documentation
+const swaggerDocument = {
+  openapi: '3.0.0',
+  info: {
+    title: 'Gifty API',
+    version: '1.0.0',
+    description: 'API documentation for Gifty'
+  },
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT'
+      }
+    },
+    ...storeSwagger.components,
+    ...productSwagger.components
+  },
+  paths: {
+    ...storeSwagger.paths,
+    ...productSwagger.paths
   }
+};
 
-  // Programming or other unknown error
-  res.status(500).json({
-    status: 'error',
-    message: 'Something went wrong!'
-  });
-});
-
-const PORT = process.env.PORT || 3000;
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 const startServer = async (): Promise<void> => {
   try {
     await connectDatabase();
     initCloudinary();
+    const MONGO_URI = process.env.MONGO_URI;
+    if (!MONGO_URI) {
+      logger.error('MONGO_URI environment variable is not defined');
+      process.exit(1);
+    }
+
+    await mongoose.connect(MONGO_URI);
+    logger.info('Connected to MongoDB');
+    const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       logger.info(`Server is running on port ${PORT}`);
       logger.info(`API Documentation available at http://localhost:${PORT}/api-docs`);

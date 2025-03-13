@@ -23,5 +23,9 @@ moduleAlias.addAliases({
   '@store-model': path.resolve(__dirname, 'modules/store/infrastructure/store.model'),
   '@store-repository': path.resolve(__dirname, 'modules/store/infrastructure/store.repository'),
   '@store-service': path.resolve(__dirname, 'modules/store/application/store.service'),
-  '@store-controller': path.resolve(__dirname, 'modules/store/interface/store.controller')
+  '@store-controller': path.resolve(__dirname, 'modules/store/interface/store.controller'),
+  '@product-model': path.resolve(__dirname, 'modules/product/infrastructure/product.model'),
+  '@product-repository': path.resolve(__dirname, 'modules/product/infrastructure/product.repository'),
+  '@product-service': path.resolve(__dirname, 'modules/product/application/product.service'),
+  '@product-controller': path.resolve(__dirname, 'modules/product/interface/product.controller')
 }); 

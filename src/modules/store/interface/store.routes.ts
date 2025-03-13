@@ -1,9 +1,9 @@
-import express from 'express';
+import { Router } from 'express';
 import { StoreController } from './store.controller';
 import { authenticate } from '@shared/infrastructure/middleware/auth';
 import { authorize } from '@shared/infrastructure/middleware/authorize';
 
-const router = express.Router();
+const router = Router();
 const storeController = new StoreController();
 
 router
@@ -21,4 +21,4 @@ router
   .put(authenticate, storeController.updateStore)
   .delete(authenticate, authorize(['admin']), storeController.deleteStore);
 
-export default router; 
+export const storeRoutes = router; 
