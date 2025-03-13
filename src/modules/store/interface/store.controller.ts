@@ -14,6 +14,13 @@ export class StoreController {
   }
 
   createStore = catchAsync(async (req: Request, res: Response) => {
+    const { error } = validateStore(req.body);
+    if (error) {
+      return res.status(400).json({
+        status: 'error',
+        message: error.details[0].message
+      });
+    }
     const store = await this.service.createStore(req.body as CreateStoreBody);
     res.status(201).json({
       status: 'success',
