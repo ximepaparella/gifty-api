@@ -38,6 +38,12 @@ export class StoreController {
 
   getStoreById = catchAsync(async (req: Request, res: Response) => {
     const store = await this.service.getStoreById(req.params.id);
+    if (!store) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Store not found'
+      });
+    }
     res.status(200).json({
       status: 'success',
       data: store
