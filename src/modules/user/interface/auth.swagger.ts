@@ -236,4 +236,184 @@
  *                 message:
  *                   type: string
  *                   example: User not found
- */ 
+ */
+
+export const authSwagger = {
+  paths: {
+    '/auth/login': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Login user',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/LoginInput'
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Login successful',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string', example: 'success' },
+                    token: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }
+                  }
+                }
+              }
+            }
+          },
+          401: {
+            $ref: '#/components/responses/UnauthorizedError'
+          }
+        }
+      }
+    },
+    '/auth/register': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Register new user',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/RegisterInput'
+              }
+            }
+          }
+        },
+        responses: {
+          201: {
+            description: 'User registered successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string', example: 'success' },
+                    data: {
+                      $ref: '#/components/schemas/User'
+                    }
+                  }
+                }
+              }
+            }
+          },
+          400: {
+            $ref: '#/components/responses/ValidationError'
+          }
+        }
+      }
+    },
+    '/auth/forgot-password': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Request password reset',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/PasswordResetRequest'
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Password reset email sent',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string', example: 'success' },
+                    message: { type: 'string', example: 'Password reset email sent' }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/auth/reset-password': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Reset password',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/PasswordReset'
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Password reset successful',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string', example: 'success' },
+                    message: { type: 'string', example: 'Password reset successful' }
+                  }
+                }
+              }
+            }
+          },
+          400: {
+            $ref: '#/components/responses/ValidationError'
+          }
+        }
+      }
+    }
+  },
+  components: {
+    schemas: {
+      LoginInput: {
+        type: 'object',
+        required: ['email', 'password'],
+        properties: {
+          email: { type: 'string', format: 'email', example: 'john@example.com' },
+          password: { type: 'string', format: 'password', example: 'password123' }
+        }
+      },
+      RegisterInput: {
+        type: 'object',
+        required: ['name', 'email', 'password'],
+        properties: {
+          name: { type: 'string', example: 'John Doe' },
+          email: { type: 'string', format: 'email', example: 'john@example.com' },
+          password: { type: 'string', format: 'password', example: 'password123' }
+        }
+      },
+      PasswordResetRequest: {
+        type: 'object',
+        required: ['email'],
+        properties: {
+          email: { type: 'string', format: 'email', example: 'john@example.com' }
+        }
+      },
+      PasswordReset: {
+        type: 'object',
+        required: ['token', 'password'],
+        properties: {
+          token: { type: 'string', example: 'reset-token-123' },
+          password: { type: 'string', format: 'password', example: 'newpassword123' }
+        }
+      }
+    }
+  }
+} as const; 

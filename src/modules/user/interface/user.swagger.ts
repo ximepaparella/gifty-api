@@ -333,4 +333,189 @@
  *                 message:
  *                   type: string
  *                   example: Setup already completed. Cannot create another admin through this endpoint.
- */ 
+ */
+
+export const userSwagger = {
+  paths: {
+    '/users': {
+      get: {
+        tags: ['Users'],
+        summary: 'Get all users',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: 'List of users',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string', example: 'success' },
+                    data: {
+                      type: 'array',
+                      items: { $ref: '#/components/schemas/User' }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          401: {
+            $ref: '#/components/responses/UnauthorizedError'
+          }
+        }
+      }
+    },
+    '/users/{id}': {
+      get: {
+        tags: ['Users'],
+        summary: 'Get user by ID',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+            description: 'User ID'
+          }
+        ],
+        responses: {
+          200: {
+            description: 'User details',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string', example: 'success' },
+                    data: {
+                      $ref: '#/components/schemas/User'
+                    }
+                  }
+                }
+              }
+            }
+          },
+          401: {
+            $ref: '#/components/responses/UnauthorizedError'
+          },
+          404: {
+            $ref: '#/components/responses/NotFoundError'
+          }
+        }
+      },
+      put: {
+        tags: ['Users'],
+        summary: 'Update user',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+            description: 'User ID'
+          }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', example: 'John Doe' },
+                  email: { type: 'string', format: 'email', example: 'john@example.com' },
+                  password: { type: 'string', format: 'password', example: 'newpassword123' }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'User updated successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string', example: 'success' },
+                    data: {
+                      $ref: '#/components/schemas/User'
+                    }
+                  }
+                }
+              }
+            }
+          },
+          401: {
+            $ref: '#/components/responses/UnauthorizedError'
+          },
+          404: {
+            $ref: '#/components/responses/NotFoundError'
+          }
+        }
+      },
+      delete: {
+        tags: ['Users'],
+        summary: 'Delete user',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+            description: 'User ID'
+          }
+        ],
+        responses: {
+          200: {
+            description: 'User deleted successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string', example: 'success' },
+                    data: {
+                      $ref: '#/components/schemas/User'
+                    }
+                  }
+                }
+              }
+            }
+          },
+          401: {
+            $ref: '#/components/responses/UnauthorizedError'
+          },
+          403: {
+            $ref: '#/components/responses/ForbiddenError'
+          },
+          404: {
+            $ref: '#/components/responses/NotFoundError'
+          }
+        }
+      }
+    }
+  },
+  components: {
+    schemas: {
+      User: {
+        type: 'object',
+        properties: {
+          _id: { type: 'string', example: '507f1f77bcf86cd799439011' },
+          name: { type: 'string', example: 'John Doe' },
+          email: { type: 'string', format: 'email', example: 'john@example.com' },
+          password: { type: 'string', format: 'password' },
+          role: { type: 'string', enum: ['user', 'admin'], example: 'user' },
+          isActive: { type: 'boolean', example: true },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
+        }
+      }
+    }
+  }
+} as const; 
