@@ -17,6 +17,7 @@ import { AppError } from '@shared/types/appError';
 // Import routes
 import userRoutes from '@modules/user/interface/user.routes';
 import passwordResetRoutes from '@modules/user/interface/passwordReset.routes';
+import storeRoutes from '@modules/store/interface/store.routes';
 
 dotenv.config();
 
@@ -98,8 +99,9 @@ app.get('/swagger.json', (req: Request, res: Response) => {
 });
 
 // Routes
-app.use('/api/users', userRoutes);
-app.use('/api/auth', passwordResetRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/auth', passwordResetRoutes);
+app.use('/api/v1/stores', storeRoutes);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {

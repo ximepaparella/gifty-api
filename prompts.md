@@ -275,10 +275,11 @@ As an expert Software Architect i need you to create our API For the Gifty Proje
 ## Folder Structure (Screaming Architecture):
 /src
    ├── modules 
-      │ ├── application 
-      │ ├── domain 
-      │ ├── infrastructure
-      │ ├── interface
+      │ ├── entinty
+         │ ├── application 
+         │ ├── domain 
+         │ ├── infrastructure
+         │ ├── interface
    ├── shared
       │ ├── infrastructure
       │ ├── types
@@ -324,6 +325,8 @@ As an expert Software Architect i need you to create our API For the Gifty Proje
 Do you have any doubts?
 
 **Prompt 2:**
+
+
 
 **Prompt 3:**
 

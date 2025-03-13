@@ -1,6 +1,8 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { Express } from 'express';
+import { storePaths } from './paths/store.paths';
+import { storeSchemas } from './schemas/store.schema';
 
 /**
  * Swagger configuration options
@@ -11,7 +13,7 @@ const swaggerOptions: swaggerJsdoc.Options = {
     info: {
       title: 'Gifty API',
       version: '1.0.0',
-      description: 'A modern, TypeScript-based RESTful API for gift card management',
+      description: 'API for the Gifty gift vouchers platform',
       contact: {
         name: 'Gifty API Team',
         email: 'support@gifty-api.com'
@@ -22,6 +24,10 @@ const swaggerOptions: swaggerJsdoc.Options = {
       }
     },
     servers: [
+      {
+        url: '/api/v1',
+        description: 'API v1'
+      },
       {
         url: 'http://localhost:3000/api/v1',
         description: 'Development server'
@@ -40,6 +46,7 @@ const swaggerOptions: swaggerJsdoc.Options = {
         }
       },
       schemas: {
+        ...storeSchemas,
         User: {
           type: 'object',
           required: ['name', 'email', 'password', 'role'],
@@ -262,6 +269,9 @@ const swaggerOptions: swaggerJsdoc.Options = {
             }
           }
         }
+      },
+      paths: {
+        ...storePaths,
       }
     },
     security: [
