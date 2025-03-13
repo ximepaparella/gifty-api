@@ -21,7 +21,7 @@ StoreSchema.index({ email: 1 }, { unique: true });
 export const validateStore = (store: any) => {
   const schema = Joi.object({
     name: Joi.string().required(),
-    ownerId: Joi.string().required(),
+    ownerId: Joi.string().pattern(/^[0-9a-fA-F]{24}$/).required(),
     email: Joi.string().email().required(),
     phone: Joi.string().required(),
     address: Joi.string().required()
