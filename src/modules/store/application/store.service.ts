@@ -56,13 +56,16 @@ export class StoreService {
       throw notFoundError('Store not found');
     }
 
-    const dataToValidate = {
-      ...existingStore,
-      ...storeData,
-      ownerId: storeData.ownerId || existingStore.ownerId.toString()
+    // Create a clean object with only the fields we want to validate
+    const cleanData = {
+      name: storeData.name ?? existingStore.name,
+      email: storeData.email ?? existingStore.email,
+      phone: storeData.phone ?? existingStore.phone,
+      address: storeData.address ?? existingStore.address,
+      ownerId: storeData.ownerId ?? existingStore.ownerId.toString()
     };
 
-    const { error } = validateStore(dataToValidate);
+    const { error } = validateStore(cleanData);
     if (error) {
       logger.error(`Error updating store: ${error.details[0].message}`);
       throw validationError(error.details[0].message);
