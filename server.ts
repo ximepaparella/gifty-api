@@ -1,14 +1,13 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import swaggerUi from 'swagger-ui-express';
-import swaggerJsdoc from 'swagger-jsdoc';
 import passport from 'passport';
 import dotenv from 'dotenv';
 import { connectDatabase } from '@database/connection';
 import logger from '@shared/infrastructure/logging/logger';
 import { initCloudinary } from './src/shared/infrastructure/services/cloudinary.config';
 import { AppError } from '@shared/types/appError';
+import { setupSwagger } from './src/shared/infrastructure/swagger/swagger';
 
 // Load environment variables
 dotenv.config();
@@ -21,82 +20,8 @@ app.use(helmet());
 app.use(express.json());
 app.use(passport.initialize());
 
-// Swagger configuration
-const swaggerOptions = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'Gifty Core API',
-      version: '1.0.0',
-      description: 'Gift Vouchers API with Hexagonal Architecture',
-      contact: {
-        name: 'Estudio equis',
-        email: 'info@estudioequis.com.ar'
-      }
-    },
-    servers: [
-      {
-        url: 'http://localhost:3000',
-        description: 'Development server'
-      }
-    ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT'
-        }
-      }
-    },
-    security: [{
-      bearerAuth: []
-    }],
-    tags: [
-      {
-        name: 'Auth',
-        description: 'Authentication endpoints'
-      },
-      {
-        name: 'Users',
-        description: 'User management endpoints'
-      },
-      {
-        name: 'Roles',
-        description: 'Role management endpoints'
-      },
-      {
-        name: 'PropertyTypes',
-        description: 'Property type management endpoints'
-      },
-      {
-        name: 'Amenities',
-        description: 'Amenity management endpoints'
-      }
-    ]
-  },
-  apis: [
-    './src/modules/**/*.routes.ts',
-    './src/modules/**/*.swagger.ts'
-  ]
-};
-
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-
-// Serve Swagger docs
-app.use('/api-docs', swaggerUi.serve);
-app.get('/api-docs', swaggerUi.setup(swaggerSpec, {
-  explorer: true,
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Gifty Core API Documentation',
-  customfavIcon: '/assets/favicon.ico'
-}));
-
-// Also serve swagger spec as JSON if needed
-app.get('/swagger.json', (req: Request, res: Response) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.send(swaggerSpec);
-});
+// Setup Swagger documentation
+setupSwagger(app);
 
 // Routes
 import userRoutes from './src/modules/user/interface/user.routes';
@@ -138,6 +63,7 @@ const startServer = async (): Promise<void> => {
     initCloudinary();
     app.listen(PORT, () => {
       logger.info(`Server is running on port ${PORT}`);
+      logger.info(`API Documentation available at http://localhost:${PORT}/api-docs`);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);
