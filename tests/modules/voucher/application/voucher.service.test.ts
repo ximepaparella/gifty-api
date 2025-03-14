@@ -16,10 +16,10 @@ describe('Voucher Service', () => {
     expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
     isRedeemed: false,
     status: 'active',
-    sender_name: 'Test Sender',
-    sender_email: 'sender@test.com',
-    receiver_name: 'Test Receiver',
-    receiver_email: 'receiver@test.com',
+    senderName: 'Test Sender',
+    senderEmail: 'sender@test.com',
+    receiverName: 'Test Receiver',
+    receiverEmail: 'receiver@test.com',
     message: 'Test message',
     template: 'birthday',
     createdAt: new Date(),
@@ -109,13 +109,13 @@ describe('Voucher Service', () => {
   });
 
   describe('getVouchersByCustomerEmail', () => {
-    it('should return vouchers by customer email', async () => {
+    it('should get vouchers by customer email', async () => {
       const vouchers = [mockVoucher];
       mockVoucherRepository.findByCustomerEmail.mockResolvedValue(vouchers);
 
-      const result = await voucherService.getVouchersByCustomerEmail(mockVoucher.receiver_email);
-      
-      expect(mockVoucherRepository.findByCustomerEmail).toHaveBeenCalledWith(mockVoucher.receiver_email);
+      const result = await voucherService.getVouchersByCustomerEmail(mockVoucher.receiverEmail);
+
+      expect(mockVoucherRepository.findByCustomerEmail).toHaveBeenCalledWith(mockVoucher.receiverEmail);
       expect(result).toEqual(vouchers);
     });
   });
@@ -127,10 +127,10 @@ describe('Voucher Service', () => {
         productId: mockVoucher.productId.toString(),
         amount: mockVoucher.amount,
         expirationDate: mockVoucher.expirationDate,
-        sender_name: mockVoucher.sender_name,
-        sender_email: mockVoucher.sender_email,
-        receiver_name: mockVoucher.receiver_name,
-        receiver_email: mockVoucher.receiver_email,
+        senderName: mockVoucher.senderName,
+        senderEmail: mockVoucher.senderEmail,
+        receiverName: mockVoucher.receiverName,
+        receiverEmail: mockVoucher.receiverEmail,
         message: mockVoucher.message,
         template: mockVoucher.template
       };
@@ -151,10 +151,10 @@ describe('Voucher Service', () => {
         productId: mockVoucher.productId.toString(),
         amount: mockVoucher.amount,
         expirationDate: pastDate,
-        sender_name: mockVoucher.sender_name,
-        sender_email: mockVoucher.sender_email,
-        receiver_name: mockVoucher.receiver_name,
-        receiver_email: mockVoucher.receiver_email,
+        senderName: mockVoucher.senderName,
+        senderEmail: mockVoucher.senderEmail,
+        receiverName: mockVoucher.receiverName,
+        receiverEmail: mockVoucher.receiverEmail,
         message: mockVoucher.message,
         template: mockVoucher.template
       };
@@ -167,9 +167,12 @@ describe('Voucher Service', () => {
 
   describe('updateVoucher', () => {
     it('should update an existing voucher', async () => {
-      const updateData = {
-        message: 'Updated message',
-        status: 'active'
+      const updateData: Partial<IVoucherInput> = {
+        senderName: mockVoucher.senderName,
+        senderEmail: mockVoucher.senderEmail,
+        receiverName: mockVoucher.receiverName,
+        receiverEmail: mockVoucher.receiverEmail,
+        message: 'Updated message'
       };
       
       const updatedVoucher = { ...mockVoucher, ...updateData };

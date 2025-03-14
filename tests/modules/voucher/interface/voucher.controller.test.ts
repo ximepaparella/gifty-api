@@ -25,10 +25,10 @@ describe('Voucher Controller', () => {
     isRedeemed: false,
     status: 'active',
     qrCode: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA',
-    sender_name: 'Test Sender',
-    sender_email: 'sender@test.com',
-    receiver_name: 'Test Receiver',
-    receiver_email: 'receiver@test.com',
+    senderName: 'Test Sender',
+    senderEmail: 'sender@test.com',
+    receiverName: 'Test Receiver',
+    receiverEmail: 'receiver@test.com',
     message: 'Test message',
     template: 'birthday',
     createdAt: new Date(),
@@ -170,7 +170,7 @@ describe('Voucher Controller', () => {
   describe('getVouchersByCustomerEmail', () => {
     it('should get vouchers by customer email successfully', async () => {
       const vouchers: IVoucher[] = [mockVoucher];
-      mockRequest.params = { email: mockVoucher.receiver_email };
+      mockRequest.params = { email: mockVoucher.receiverEmail };
       mockVoucherService.getVouchersByCustomerEmail.mockResolvedValue(vouchers);
 
       await voucherController.getVouchersByCustomerEmail(mockRequest as Request, mockResponse as Response, mockNext);
@@ -180,7 +180,7 @@ describe('Voucher Controller', () => {
         success: true,
         data: vouchers
       });
-      expect(mockVoucherService.getVouchersByCustomerEmail).toHaveBeenCalledWith(mockVoucher.receiver_email);
+      expect(mockVoucherService.getVouchersByCustomerEmail).toHaveBeenCalledWith(mockVoucher.receiverEmail);
     });
 
     it('should handle errors when retrieving vouchers by customer email fails', async () => {
@@ -205,10 +205,10 @@ describe('Voucher Controller', () => {
         amount: mockVoucher.amount,
         expirationDate: mockVoucher.expirationDate,
         qrCode: mockVoucher.qrCode!,
-        sender_name: mockVoucher.sender_name,
-        sender_email: mockVoucher.sender_email,
-        receiver_name: mockVoucher.receiver_name,
-        receiver_email: mockVoucher.receiver_email,
+        senderName: mockVoucher.senderName,
+        senderEmail: mockVoucher.senderEmail,
+        receiverName: mockVoucher.receiverName,
+        receiverEmail: mockVoucher.receiverEmail,
         message: mockVoucher.message,
         template: mockVoucher.template
       };
@@ -232,10 +232,10 @@ describe('Voucher Controller', () => {
         productId: mockVoucher.productId.toString(),
         amount: mockVoucher.amount,
         expirationDate: mockVoucher.expirationDate,
-        sender_name: mockVoucher.sender_name,
-        sender_email: mockVoucher.sender_email,
-        receiver_name: mockVoucher.receiver_name,
-        receiver_email: mockVoucher.receiver_email,
+        senderName: mockVoucher.senderName,
+        senderEmail: mockVoucher.senderEmail,
+        receiverName: mockVoucher.receiverName,
+        receiverEmail: mockVoucher.receiverEmail,
         message: mockVoucher.message,
         template: mockVoucher.template
       };

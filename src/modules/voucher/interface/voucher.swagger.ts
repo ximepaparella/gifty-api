@@ -46,22 +46,22 @@ export const voucherSwagger = {
             description: 'Date when the voucher was redeemed',
             example: null,
           },
-          sender_name: {
+          senderName: {
             type: 'string',
             description: 'Name of the person who sent the voucher',
             example: 'John Doe',
           },
-          sender_email: {
+          senderEmail: {
             type: 'string',
             description: 'Email of the person who sent the voucher',
             example: 'john.doe@example.com',
           },
-          receiver_name: {
+          receiverName: {
             type: 'string',
             description: 'Name of the person who received the voucher',
             example: 'Jane Smith',
           },
-          receiver_email: {
+          receiverEmail: {
             type: 'string',
             description: 'Email of the person who received the voucher',
             example: 'jane.smith@example.com',
@@ -96,10 +96,10 @@ export const voucherSwagger = {
           'productId',
           'amount',
           'expirationDate',
-          'sender_name',
-          'sender_email',
-          'receiver_name',
-          'receiver_email',
+          'senderName',
+          'senderEmail',
+          'receiverName',
+          'receiverEmail',
           'message',
           'template',
         ],
@@ -128,22 +128,22 @@ export const voucherSwagger = {
             description: 'Date when the voucher expires',
             example: '2023-12-31T23:59:59Z',
           },
-          sender_name: {
+          senderName: {
             type: 'string',
             description: 'Name of the person who sent the voucher',
             example: 'John Doe',
           },
-          sender_email: {
+          senderEmail: {
             type: 'string',
             description: 'Email of the person who sent the voucher',
             example: 'john.doe@example.com',
           },
-          receiver_name: {
+          receiverName: {
             type: 'string',
             description: 'Name of the person who received the voucher',
             example: 'Jane Smith',
           },
-          receiver_email: {
+          receiverEmail: {
             type: 'string',
             description: 'Email of the person who received the voucher',
             example: 'jane.smith@example.com',
@@ -165,10 +165,10 @@ export const voucherSwagger = {
           'productId',
           'amount',
           'expirationDate',
-          'sender_name',
-          'sender_email',
-          'receiver_name',
-          'receiver_email',
+          'senderName',
+          'senderEmail',
+          'receiverName',
+          'receiverEmail',
           'message',
           'template',
         ],

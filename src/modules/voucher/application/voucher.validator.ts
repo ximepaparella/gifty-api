@@ -37,23 +37,23 @@ export const validateVoucher = (voucherData: IVoucherInput): string[] => {
     }
   }
 
-  if (!voucherData.sender_name) {
+  if (!voucherData.senderName) {
     errors.push('Sender name is required');
   }
 
-  if (!voucherData.sender_email) {
+  if (!voucherData.senderEmail) {
     errors.push('Sender email is required');
-  } else if (!isValidEmail(voucherData.sender_email)) {
+  } else if (!isValidEmail(voucherData.senderEmail)) {
     errors.push('Sender email is invalid');
   }
 
-  if (!voucherData.receiver_name) {
+  if (!voucherData.receiverName) {
     errors.push('Receiver name is required');
   }
 
-  if (!voucherData.receiver_email) {
+  if (!voucherData.receiverEmail) {
     errors.push('Receiver email is required');
-  } else if (!isValidEmail(voucherData.receiver_email)) {
+  } else if (!isValidEmail(voucherData.receiverEmail)) {
     errors.push('Receiver email is invalid');
   }
 

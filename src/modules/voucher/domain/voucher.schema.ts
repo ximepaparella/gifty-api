@@ -13,10 +13,10 @@ export interface IVoucherDocument extends Document {
   amount: number;
   expirationDate: Date;
   qrCode: string;
-  sender_name: string;
-  sender_email: string;
-  receiver_name: string;
-  receiver_email: string;
+  senderName: string;
+  senderEmail: string;
+  receiverName: string;
+  receiverEmail: string;
   message: string;
   template: string;
   createdAt: Date;
@@ -79,23 +79,23 @@ const VoucherSchema = new Schema<IVoucherDocument>(
       type: String, 
       required: [true, 'QR code is required']
     },
-    sender_name: {
+    senderName: {
       type: String,
       required: [true, 'Sender name is required'],
       trim: true
     },
-    sender_email: {
+    senderEmail: {
       type: String,
       required: [true, 'Sender email is required'],
       trim: true,
       match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email address']
     },
-    receiver_name: {
+    receiverName: {
       type: String,
       required: [true, 'Receiver name is required'],
       trim: true
     },
-    receiver_email: {
+    receiverEmail: {
       type: String,
       required: [true, 'Receiver email is required'],
       trim: true,
@@ -123,7 +123,7 @@ VoucherSchema.index({ code: 1, isRedeemed: 1 }); // For fast lookups during rede
 VoucherSchema.index({ code: 1, status: 1 }); // For fast lookups during redemption
 VoucherSchema.index({ customerId: 1, status: 1 }); // Fetch vouchers for a user by status
 VoucherSchema.index({ storeId: 1, status: 1 }); // Fetch all active vouchers for a store
-VoucherSchema.index({ receiver_email: 1, status: 1 }); // Fetch vouchers by receiver email and status
+VoucherSchema.index({ receiverEmail: 1, status: 1 }); // Fetch vouchers by receiver email and status
 
 // Do not use TTL index for auto-expiration as we want to keep expired vouchers
 // Instead, add a normal index on expirationDate for filtering

@@ -51,19 +51,19 @@ const VoucherSchema: Schema = new Schema(
     qrCode: {
       type: String,
     },
-    sender_name: {
+    senderName: {
       type: String,
       required: true,
     },
-    sender_email: {
+    senderEmail: {
       type: String,
       required: true,
     },
-    receiver_name: {
+    receiverName: {
       type: String,
       required: true,
     },
-    receiver_email: {
+    receiverEmail: {
       type: String,
       required: true,
     },

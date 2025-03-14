@@ -12,10 +12,10 @@ export interface IVoucher {
   redeemedAt?: Date;
   status?: string;
   qrCode?: string;
-  sender_name: string;
-  sender_email: string;
-  receiver_name: string;
-  receiver_email: string;
+  senderName: string;
+  senderEmail: string;
+  receiverName: string;
+  receiverEmail: string;
   message: string;
   template: 'birthday' | 'christmas' | 'valentine' | 'general' | 'template1';
   createdAt?: Date;
@@ -31,10 +31,10 @@ export interface IVoucherInput {
   amount: number;
   expirationDate: Date;
   qrCode?: string;
-  sender_name: string;
-  sender_email: string;
-  receiver_name: string;
-  receiver_email: string;
+  senderName: string;
+  senderEmail: string;
+  receiverName: string;
+  receiverEmail: string;
   message: string;
   template: 'birthday' | 'christmas' | 'valentine' | 'general' | 'template1';
 }

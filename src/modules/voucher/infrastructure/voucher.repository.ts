@@ -21,7 +21,7 @@ export class VoucherRepository implements IVoucherRepository {
   }
 
   async findByCustomerEmail(email: string): Promise<IVoucher[]> {
-    return VoucherModel.find({ receiver_email: email }).lean();
+    return VoucherModel.find({ receiverEmail: email }).lean();
   }
 
   async create(voucherData: IVoucherInput): Promise<IVoucher> {

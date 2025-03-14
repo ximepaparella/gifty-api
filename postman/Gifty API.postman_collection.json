@@ -687,7 +687,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"storeId\": \"{{storeId}}\",\n    \"productId\": \"{{productId}}\",\n    \"amount\": 50,\n    \"expirationDate\": \"2024-12-31T23:59:59Z\",\n    \"sender_name\": \"John Doe\",\n    \"sender_email\": \"john.doe@example.com\",\n    \"receiver_name\": \"Jane Smith\",\n    \"receiver_email\": \"jane.smith@example.com\",\n    \"message\": \"Happy Birthday! Enjoy your gift!\",\n    \"template\": \"birthday\"\n}",
+							"raw": "{\n    \"storeId\": \"{{storeId}}\",\n    \"productId\": \"{{productId}}\",\n    \"amount\": 50,\n    \"expirationDate\": \"2024-12-31T23:59:59Z\",\n    \"senderName\": \"John Doe\",\n    \"senderEmail\": \"john.doe@example.com\",\n    \"receiverName\": \"Jane Smith\",\n    \"receiverEmail\": \"jane.smith@example.com\",\n    \"message\": \"Happy Birthday! Enjoy your gift!\",\n    \"template\": \"birthday\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
