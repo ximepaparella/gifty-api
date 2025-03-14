@@ -184,27 +184,10 @@ export class OrderService {
   }
 
   /**
-   * Resend voucher emails
+   * Helper method for email resend operations that handles common operations
+   * like checking if order exists, ensuring PDF is generated, and error handling
    */
-  async resendVoucherEmails(id: string): Promise<boolean> {
-    logger.info(`Resending voucher emails for order with ID ${id}`);
-    
-    // Check if order exists
-    const order = await this.orderRepository.findById(id);
-    if (!order) {
-      throw notFoundError('Order not found');
-    }
-    
-    // Send voucher emails
-    return this.sendVoucherEmails(id);
-  }
-
-  /**
-   * Resend voucher email only to the customer
-   */
-  async resendCustomerEmail(id: string): Promise<boolean> {
-    logger.info(`Resending customer voucher email for order with ID ${id}`);
-    
+  private async prepareOrderForEmailResend(id: string): Promise<{order: IOrder, pdfPath: string} | null> {
     // Check if order exists
     const order = await this.orderRepository.findById(id);
     if (!order) {
@@ -227,10 +210,57 @@ export class OrderService {
         }
       }
       
-      // Send email only to the customer
-      const result = await resendCustomerEmail(id, pdfPath);
+      return { order, pdfPath };
+    } catch (error: any) {
+      logger.error(`Error preparing order ${id} for email resend: ${error.message}`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Resend voucher emails
+   */
+  async resendVoucherEmails(id: string): Promise<boolean> {
+    logger.info(`Resending voucher emails for order with ID ${id}`);
+    
+    try {
+      const result = await this.prepareOrderForEmailResend(id);
+      if (!result) return false;
       
-      if (!result) {
+      // Send all emails
+      const emailResult = await sendAllVoucherEmails(id, result.pdfPath);
+      
+      if (!emailResult) {
+        throw new Error(`Failed to send emails for order ${id}`);
+      }
+      
+      // Update order to mark emails as sent
+      await this.orderRepository.update(id, {
+        emailsSent: true,
+        updatedAt: new Date()
+      } as any);
+      
+      return true;
+    } catch (error: any) {
+      logger.error(`Error sending voucher emails for order ${id}: ${error.message}`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Resend voucher email only to the customer
+   */
+  async resendCustomerEmail(id: string): Promise<boolean> {
+    logger.info(`Resending customer voucher email for order with ID ${id}`);
+    
+    try {
+      const result = await this.prepareOrderForEmailResend(id);
+      if (!result) return false;
+      
+      // Send email only to the customer
+      const emailResult = await resendCustomerEmail(id, result.pdfPath);
+      
+      if (!emailResult) {
         throw new Error(`Failed to send customer email for order ${id}`);
       }
       
@@ -247,32 +277,14 @@ export class OrderService {
   async resendReceiverEmail(id: string): Promise<boolean> {
     logger.info(`Resending receiver voucher email for order with ID ${id}`);
     
-    // Check if order exists
-    const order = await this.orderRepository.findById(id);
-    if (!order) {
-      throw notFoundError('Order not found');
-    }
-    
     try {
-      // Check if PDF exists
-      const pdfFilename = `voucher-${order.voucher.code}.pdf`;
-      const pdfPath = path.join(__dirname, '../../../../uploads/vouchers', pdfFilename);
-      
-      if (!fs.existsSync(pdfPath)) {
-        // Generate PDF if it doesn't exist
-        logger.info(`PDF doesn't exist, generating it for order ${id}`);
-        await this.generateVoucherPDF(id);
-        
-        // Check again if PDF exists
-        if (!fs.existsSync(pdfPath)) {
-          throw new Error(`PDF file could not be generated for order ${id}`);
-        }
-      }
+      const result = await this.prepareOrderForEmailResend(id);
+      if (!result) return false;
       
       // Send email only to the receiver
-      const result = await resendReceiverEmail(id, pdfPath);
+      const emailResult = await resendReceiverEmail(id, result.pdfPath);
       
-      if (!result) {
+      if (!emailResult) {
         throw new Error(`Failed to send receiver email for order ${id}`);
       }
       
@@ -289,32 +301,14 @@ export class OrderService {
   async resendStoreEmail(id: string): Promise<boolean> {
     logger.info(`Resending store voucher email for order with ID ${id}`);
     
-    // Check if order exists
-    const order = await this.orderRepository.findById(id);
-    if (!order) {
-      throw notFoundError('Order not found');
-    }
-    
     try {
-      // Check if PDF exists
-      const pdfFilename = `voucher-${order.voucher.code}.pdf`;
-      const pdfPath = path.join(__dirname, '../../../../uploads/vouchers', pdfFilename);
-      
-      if (!fs.existsSync(pdfPath)) {
-        // Generate PDF if it doesn't exist
-        logger.info(`PDF doesn't exist, generating it for order ${id}`);
-        await this.generateVoucherPDF(id);
-        
-        // Check again if PDF exists
-        if (!fs.existsSync(pdfPath)) {
-          throw new Error(`PDF file could not be generated for order ${id}`);
-        }
-      }
+      const result = await this.prepareOrderForEmailResend(id);
+      if (!result) return false;
       
       // Send email only to the store
-      const result = await resendStoreEmail(id, pdfPath);
+      const emailResult = await resendStoreEmail(id, result.pdfPath);
       
-      if (!result) {
+      if (!emailResult) {
         throw new Error(`Failed to send store email for order ${id}`);
       }
       
@@ -329,39 +323,22 @@ export class OrderService {
    * Send voucher emails to sender and receiver
    */
   private async sendVoucherEmails(orderId: string): Promise<boolean> {
-    const order = await this.orderRepository.findById(orderId);
-    if (!order) return false;
-    
     try {
-      // Check if PDF exists
-      const pdfFilename = `voucher-${order.voucher.code}.pdf`;
-      const pdfPath = path.join(__dirname, '../../../../uploads/vouchers', pdfFilename);
-      
-      if (!fs.existsSync(pdfPath)) {
-        // Generate PDF if it doesn't exist
-        logger.info(`PDF doesn't exist, generating it for order ${orderId}`);
-        await this.generateVoucherPDF(orderId);
-        
-        // Check again if PDF exists
-        if (!fs.existsSync(pdfPath)) {
-          throw new Error(`PDF file could not be generated for order ${orderId}`);
-        }
-      }
+      const result = await this.prepareOrderForEmailResend(orderId);
+      if (!result) return false;
       
       // Send all emails
-      const result = await sendAllVoucherEmails(orderId, pdfPath);
+      const emailResult = await sendAllVoucherEmails(orderId, result.pdfPath);
       
-      if (!result) {
+      if (!emailResult) {
         throw new Error(`Failed to send emails for order ${orderId}`);
       }
       
       // Update order to mark emails as sent
-      if (order._id) {
-        await this.orderRepository.update(order._id.toString(), {
-          emailsSent: true,
-          updatedAt: new Date()
-        } as any);
-      }
+      await this.orderRepository.update(orderId, {
+        emailsSent: true,
+        updatedAt: new Date()
+      } as any);
       
       return true;
     } catch (error: any) {
