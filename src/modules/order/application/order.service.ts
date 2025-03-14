@@ -11,6 +11,7 @@ import { generateRandomCode } from '@shared/utils/codeGenerator';
 import { AppError } from '@shared/types/appError';
 import mongoose from 'mongoose';
 import { sendAllVoucherEmails, resendCustomerEmail, resendReceiverEmail, resendStoreEmail } from '../utils/voucherEmails';
+import { generateVoucherRedemptionQRCode } from '@shared/utils/qrCodeGenerator';
 
 export class OrderService {
   constructor(private orderRepository: OrderRepository) {}
@@ -65,37 +66,47 @@ export class OrderService {
       orderData.voucher.code = generateRandomCode(10);
     }
     
-    // Set voucher status to active and isRedeemed to false
-    const orderToCreate: any = {
-      ...orderData,
-      voucher: {
-        ...orderData.voucher,
-        status: 'active' as const,
-        isRedeemed: false,
-        redeemedAt: null,
-        amount: orderData.paymentDetails.amount
-      },
-      emailsSent: false,
-      pdfGenerated: false,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    // Create the order
-    const newOrder = await this.orderRepository.create(orderToCreate);
-    
-    // Send voucher emails in the background
-    if (newOrder._id) {
-      this.sendVoucherEmails(newOrder._id.toString()).catch(err => {
-        logger.error(`Error sending voucher emails for order ${newOrder._id}: ${err.message}`);
-      });
+    try {
+      // Generate QR code for voucher redemption
+      logger.info(`Generating QR code for voucher with code: ${orderData.voucher.code}`);
+      const qrCodeDataUrl = await generateVoucherRedemptionQRCode(orderData.voucher.code);
       
-      this.generateVoucherPDF(newOrder._id.toString()).catch(err => {
-        logger.error(`Error generating voucher PDF for order ${newOrder._id}: ${err.message}`);
-      });
+      // Set voucher status to active and isRedeemed to false
+      const orderToCreate: any = {
+        ...orderData,
+        voucher: {
+          ...orderData.voucher,
+          status: 'active' as const,
+          isRedeemed: false,
+          redeemedAt: null,
+          amount: orderData.paymentDetails.amount,
+          qrCode: qrCodeDataUrl
+        },
+        emailsSent: false,
+        pdfGenerated: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      // Create the order
+      const newOrder = await this.orderRepository.create(orderToCreate);
+      
+      // Send voucher emails in the background
+      if (newOrder._id) {
+        this.sendVoucherEmails(newOrder._id.toString()).catch(err => {
+          logger.error(`Error sending voucher emails for order ${newOrder._id}: ${err.message}`);
+        });
+        
+        this.generateVoucherPDF(newOrder._id.toString()).catch(err => {
+          logger.error(`Error generating voucher PDF for order ${newOrder._id}: ${err.message}`);
+        });
+      }
+      
+      return newOrder;
+    } catch (error: any) {
+      logger.error(`Error during order creation: ${error.message}`, error);
+      throw new AppError(`Failed to create order: ${error.message}`, 500);
     }
-    
-    return newOrder;
   }
 
   /**

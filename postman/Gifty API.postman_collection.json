@@ -230,6 +230,33 @@
 			"response": []
 		  },
 		  {
+			"name": "Redeem Voucher by QR Code",
+			"request": {
+			  "method": "PUT",
+			  "header": [
+				{
+				  "key": "Authorization",
+				  "value": "Bearer {{token}}",
+				  "type": "text"
+				}
+			  ],
+			  "url": {
+				"raw": "{{base_url}}/api/v1/orders/voucher/:code/redeem",
+				"host": ["{{base_url}}"],
+				"path": ["api", "v1", "orders", "voucher", ":code", "redeem"],
+				"variable": [
+				  {
+					"key": "code",
+					"value": "{{voucher_code}}",
+					"description": "Voucher code from QR scan"
+				  }
+				]
+			  },
+			  "description": "Redeem a voucher by scanning its QR code. The QR code contains a URL with the voucher code, and this endpoint is used to process that redemption."
+			},
+			"response": []
+		  },
+		  {
 			"name": "Resend Voucher Emails",
 			"request": {
 			  "method": "POST",
@@ -253,6 +280,114 @@
 				]
 			  },
 			  "description": "Resend voucher emails for an order"
+			},
+			"response": []
+		  },
+		  {
+			"name": "Send Voucher Emails with PDFs",
+			"request": {
+			  "method": "POST",
+			  "header": [
+				{
+				  "key": "Authorization",
+				  "value": "Bearer {{token}}",
+				  "type": "text"
+				}
+			  ],
+			  "url": {
+				"raw": "{{base_url}}/api/v1/orders/:id/send-voucher-emails",
+				"host": ["{{base_url}}"],
+				"path": ["api", "v1", "orders", ":id", "send-voucher-emails"],
+				"variable": [
+				  {
+					"key": "id",
+					"value": "{{order_id}}",
+					"description": "ID of the order"
+				  }
+				]
+			  },
+			  "description": "Send all voucher emails with PDF attachments"
+			},
+			"response": []
+		  },
+		  {
+			"name": "Resend Customer Email",
+			"request": {
+			  "method": "POST",
+			  "header": [
+				{
+				  "key": "Authorization",
+				  "value": "Bearer {{token}}",
+				  "type": "text"
+				}
+			  ],
+			  "url": {
+				"raw": "{{base_url}}/api/v1/orders/:id/resend-customer-email",
+				"host": ["{{base_url}}"],
+				"path": ["api", "v1", "orders", ":id", "resend-customer-email"],
+				"variable": [
+				  {
+					"key": "id",
+					"value": "{{order_id}}",
+					"description": "ID of the order"
+				  }
+				]
+			  },
+			  "description": "Resend voucher email only to the customer with PDF attachment"
+			},
+			"response": []
+		  },
+		  {
+			"name": "Resend Receiver Email",
+			"request": {
+			  "method": "POST",
+			  "header": [
+				{
+				  "key": "Authorization",
+				  "value": "Bearer {{token}}",
+				  "type": "text"
+				}
+			  ],
+			  "url": {
+				"raw": "{{base_url}}/api/v1/orders/:id/resend-receiver-email",
+				"host": ["{{base_url}}"],
+				"path": ["api", "v1", "orders", ":id", "resend-receiver-email"],
+				"variable": [
+				  {
+					"key": "id",
+					"value": "{{order_id}}",
+					"description": "ID of the order"
+				  }
+				]
+			  },
+			  "description": "Resend voucher email only to the receiver with PDF attachment"
+			},
+			"response": []
+		  },
+		  {
+			"name": "Resend Store Email",
+			"request": {
+			  "method": "POST",
+			  "header": [
+				{
+				  "key": "Authorization",
+				  "value": "Bearer {{token}}",
+				  "type": "text"
+				}
+			  ],
+			  "url": {
+				"raw": "{{base_url}}/api/v1/orders/:id/resend-store-email",
+				"host": ["{{base_url}}"],
+				"path": ["api", "v1", "orders", ":id", "resend-store-email"],
+				"variable": [
+				  {
+					"key": "id",
+					"value": "{{order_id}}",
+					"description": "ID of the order"
+				  }
+				]
+			  },
+			  "description": "Resend voucher email only to the store with PDF attachment"
 			},
 			"response": []
 		  },

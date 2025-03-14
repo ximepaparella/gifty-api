@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import { AppError } from '@shared/types/appError';
 import { sendEmail } from './email';
 import { getPaginationOptions } from './pagination';
 import { isValidPhoneNumber, formatPhoneNumber } from './phoneValidator';

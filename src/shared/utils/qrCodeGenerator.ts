@@ -23,4 +23,22 @@ export async function generateQRCode(content: string): Promise<string> {
     console.error('Error generating QR code:', error);
     throw new Error('Failed to generate QR code');
   }
+}
+
+/**
+ * Generate a QR code for voucher redemption
+ * @param voucherCode The voucher code to be redeemed
+ * @returns A Promise that resolves to a data URL string of the QR code
+ */
+export async function generateVoucherRedemptionQRCode(voucherCode: string): Promise<string> {
+  try {
+    // Generate the redemption URL using the voucher code
+    const redemptionUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/vouchers/redeem/${voucherCode}`;
+    
+    // Generate QR code for the redemption URL
+    return await generateQRCode(redemptionUrl);
+  } catch (error) {
+    console.error('Error generating voucher redemption QR code:', error);
+    throw new Error('Failed to generate voucher redemption QR code');
+  }
 } 
