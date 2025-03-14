@@ -20,10 +20,19 @@ import userRoutes from '@modules/user/interface/user.routes';
 import passwordResetRoutes from '@modules/user/interface/passwordReset.routes';
 import { storeRoutes } from '@modules/store/interface/store.routes';
 import { productRoutes } from '@modules/product/interface/product.routes';
+import voucherRoutes from '@modules/voucher/interface/voucher.routes';
+import { UserController } from '@modules/user/interface/user.controller';
+import { UserService } from '@modules/user/application/user.service';
+import { MongoUserRepository } from '@modules/user/infrastructure/user.repository';
 
 dotenv.config();
 
 const app = express();
+
+// Initialize user controller for login route
+const userRepository = new MongoUserRepository();
+const userService = new UserService(userRepository);
+const userController = new UserController(userService);
 
 // Middleware
 app.use(cors());
@@ -31,11 +40,20 @@ app.use(helmet());
 app.use(express.json());
 app.use(passport.initialize());
 
+// Login route - separate from user routes for better accessibility
+app.post('/api/v1/login', (req: Request, res: Response) => userController.login(req, res));
+
+// Test route for vouchers
+app.get('/api/v1/test-vouchers', (req: Request, res: Response) => {
+  res.status(200).json({ success: true, message: 'Voucher test route is working' });
+});
+
 // Routes
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/auth', passwordResetRoutes);
 app.use('/api/v1/stores', storeRoutes);
 app.use('/api/v1/products', productRoutes);
+app.use('/api/v1/vouchers', voucherRoutes);
 
 // Setup Swagger documentation
 setupSwagger(app);

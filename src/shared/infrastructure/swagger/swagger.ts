@@ -6,6 +6,7 @@ import { storeSchemas } from './schemas/store.schema';
 import { userSwagger } from '@modules/user/interface/user.swagger';
 import { authSwagger } from '@modules/user/interface/auth.swagger';
 import { productSwagger } from '@modules/product/interface/product.swagger';
+import { voucherSwagger } from '@modules/voucher/interface/voucher.swagger';
 
 // Define Error schema that's referenced in responses
 const errorSchema = {
@@ -64,7 +65,8 @@ const swaggerOptions: swaggerJsdoc.Options = {
         ...storeSchemas,
         ...userSwagger.components.schemas,
         ...authSwagger.components.schemas,
-        ...productSwagger.components.schemas
+        ...productSwagger.components.schemas,
+        ...voucherSwagger.components.schemas
       },
       responses: {
         UnauthorizedError: {
@@ -164,7 +166,8 @@ const swaggerOptions: swaggerJsdoc.Options = {
       '/api/v1/stores/owner/{ownerId}': storePaths['/stores/owner/{ownerId}'],
       '/api/v1/products': productSwagger.paths['/products'],
       '/api/v1/products/{id}': productSwagger.paths['/products/{id}'],
-      '/api/v1/products/store/{storeId}': productSwagger.paths['/products/store/{storeId}']
+      '/api/v1/products/store/{storeId}': productSwagger.paths['/products/store/{storeId}'],
+      ...voucherSwagger.paths
     },
     tags: [
       {
@@ -182,6 +185,10 @@ const swaggerOptions: swaggerJsdoc.Options = {
       {
         name: 'Products',
         description: 'Product management endpoints'
+      },
+      {
+        name: 'Vouchers',
+        description: 'Voucher management endpoints'
       }
     ]
   },
