@@ -31,5 +31,9 @@ moduleAlias.addAliases({
   '@voucher-model': path.resolve(__dirname, 'modules/voucher/infrastructure/voucher.model'),
   '@voucher-repository': path.resolve(__dirname, 'modules/voucher/infrastructure/voucher.repository'),
   '@voucher-service': path.resolve(__dirname, 'modules/voucher/application/voucher.service'),
-  '@voucher-controller': path.resolve(__dirname, 'modules/voucher/interface/voucher.controller')
+  '@voucher-controller': path.resolve(__dirname, 'modules/voucher/interface/voucher.controller'),
+  '@order-model': path.resolve(__dirname, 'modules/order/infrastructure/order.model'),
+  '@order-repository': path.resolve(__dirname, 'modules/order/infrastructure/order.repository'),
+  '@order-service': path.resolve(__dirname, 'modules/order/application/order.service'),
+  '@order-controller': path.resolve(__dirname, 'modules/order/interface/order.controller'),
 }); 

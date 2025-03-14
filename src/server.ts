@@ -7,6 +7,8 @@ import helmet from 'helmet';
 import passport from 'passport';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import path from 'path';
+import fs from 'fs';
 
 import { connectDatabase } from '@shared/infrastructure/database/connection';
 import logger from '@shared/infrastructure/logging/logger';
@@ -21,6 +23,7 @@ import passwordResetRoutes from '@modules/user/interface/passwordReset.routes';
 import { storeRoutes } from '@modules/store/interface/store.routes';
 import { productRoutes } from '@modules/product/interface/product.routes';
 import voucherRoutes from '@modules/voucher/interface/voucher.routes';
+import orderRoutes from '@modules/order/interface/order.routes';
 import { UserController } from '@modules/user/interface/user.controller';
 import { UserService } from '@modules/user/application/user.service';
 import { MongoUserRepository } from '@modules/user/infrastructure/user.repository';
@@ -40,20 +43,32 @@ app.use(helmet());
 app.use(express.json());
 app.use(passport.initialize());
 
-// Login route - separate from user routes for better accessibility
-app.post('/api/v1/login', (req: Request, res: Response) => userController.login(req, res));
+// Create uploads directory for voucher PDFs
+const uploadsDir = path.join(__dirname, '../uploads');
+const vouchersDir = path.join(uploadsDir, 'vouchers');
 
-// Test route for vouchers
-app.get('/api/v1/test-vouchers', (req: Request, res: Response) => {
-  res.status(200).json({ success: true, message: 'Voucher test route is working' });
-});
+if (!fs.existsSync(uploadsDir)) {
+  logger.info(`Creating uploads directory: ${uploadsDir}`);
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+if (!fs.existsSync(vouchersDir)) {
+  logger.info(`Creating vouchers directory: ${vouchersDir}`);
+  fs.mkdirSync(vouchersDir, { recursive: true });
+}
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Routes
+
+app.post('/api/v1/login', (req: Request, res: Response) => userController.login(req, res));
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/auth', passwordResetRoutes);
 app.use('/api/v1/stores', storeRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/vouchers', voucherRoutes);
+app.use('/api/v1/orders', orderRoutes);
 
 // Setup Swagger documentation
 setupSwagger(app);
