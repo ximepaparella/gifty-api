@@ -35,18 +35,30 @@ export class VoucherRepository implements IVoucherRepository {
   }
 
   async create(voucherData: IVoucherInput): Promise<IVoucher> {
-    // Generate a unique code if not provided
-    if (!voucherData.code) {
-      voucherData.code = await this.generateUniqueCode();
-    }
+    try {
+      // Generate a unique code if not provided
+      if (!voucherData.code) {
+        voucherData.code = await this.generateUniqueCode();
+      }
 
-    // Generate QR code if not provided
-    if (!voucherData.qrCode) {
-      voucherData.qrCode = await generateQRCode(voucherData.code);
-    }
+      // Generate QR code if not provided
+      if (!voucherData.qrCode) {
+        voucherData.qrCode = await generateQRCode(voucherData.code);
+      }
 
-    const voucher = new Voucher(voucherData);
-    return await voucher.save();
+      const voucher = new Voucher(voucherData);
+      return await voucher.save();
+    } catch (error: any) {
+      // Check if it's a duplicate key error for the code field
+      if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+        if (error.code === 11000 && error.keyPattern?.code) {
+          // Try again with a new code
+          voucherData.code = await this.generateUniqueCode();
+          return this.create(voucherData);
+        }
+      }
+      throw error;
+    }
   }
 
   async update(id: string, voucherData: Partial<IVoucherInput>): Promise<IVoucher | null> {
@@ -68,33 +80,70 @@ export class VoucherRepository implements IVoucherRepository {
   }
 
   async redeemVoucher(code: string): Promise<IVoucher | null> {
-    const voucher = await Voucher.findOne({ code, status: 'active' });
+    const now = new Date();
     
-    if (!voucher) {
-      return null;
+    // Use atomic findOneAndUpdate to prevent race conditions
+    const redeemedVoucher = await Voucher.findOneAndUpdate(
+      { 
+        code, 
+        status: 'active',
+        expirationDate: { $gte: now }
+      },
+      { 
+        $set: { 
+          status: 'redeemed',
+          isRedeemed: true,
+          redeemedAt: now
+        } 
+      },
+      { 
+        new: true // Return the updated document
+      }
+    );
+    
+    if (!redeemedVoucher) {
+      // Check if the voucher exists but is expired
+      const expiredVoucher = await Voucher.findOneAndUpdate(
+        { 
+          code, 
+          status: 'active',
+          expirationDate: { $lt: now }
+        },
+        { 
+          $set: { status: 'expired' } 
+        },
+        { 
+          new: true
+        }
+      );
+      
+      if (expiredVoucher) {
+        return null; // Expired voucher
+      }
     }
-
-    // Check if voucher is expired
-    if (new Date(voucher.expirationDate) < new Date()) {
-      voucher.status = 'expired';
-      await voucher.save();
-      return null;
-    }
-
-    // Mark as redeemed
-    voucher.status = 'redeemed';
-    return await voucher.save();
+    
+    return redeemedVoucher;
   }
 
   // Helper method to generate a unique voucher code
   private async generateUniqueCode(): Promise<string> {
+    // Maximum number of attempts to generate a unique code
+    const MAX_ATTEMPTS = 10;
+    let attempts = 0;
     let code = generateRandomCode(10);
     let existingVoucher = await Voucher.findOne({ code });
     
-    // Keep generating until we find a unique code
-    while (existingVoucher) {
+    // Keep generating until we find a unique code or reach max attempts
+    while (existingVoucher && attempts < MAX_ATTEMPTS) {
       code = generateRandomCode(10);
       existingVoucher = await Voucher.findOne({ code });
+      attempts++;
+    }
+    
+    // If we reached max attempts, add a timestamp to ensure uniqueness
+    if (attempts >= MAX_ATTEMPTS) {
+      const timestamp = Date.now().toString(36);
+      code = code.substring(0, 6) + timestamp;
     }
     
     return code;

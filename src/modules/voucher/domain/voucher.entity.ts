@@ -5,8 +5,11 @@ export interface IVoucher {
   storeId: mongoose.Types.ObjectId | string;
   productId: mongoose.Types.ObjectId | string;
   customerId: mongoose.Types.ObjectId | string | null;
+  amount: number;
   code: string;
   status: 'active' | 'redeemed' | 'expired';
+  isRedeemed: boolean;
+  redeemedAt?: Date | null;
   expirationDate: Date;
   qrCode: string;
   sender_name: string;
@@ -23,8 +26,11 @@ export interface IVoucherInput {
   storeId: string;
   productId: string;
   customerId?: string | null;
+  amount: number;
   code?: string;
   status?: 'active' | 'redeemed' | 'expired';
+  isRedeemed?: boolean;
+  redeemedAt?: Date | null;
   expirationDate: Date;
   qrCode?: string;
   sender_name: string;

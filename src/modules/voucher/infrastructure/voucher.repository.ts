@@ -115,21 +115,54 @@ export class VoucherRepository implements IVoucherRepository {
   }
 
   async redeem(code: string): Promise<IVoucher | null> {
-    const voucher = await VoucherModel.findOne({ code, isRedeemed: false });
-    
-    if (!voucher) {
-      throw notFoundError(`Voucher with code ${code} not found or already redeemed`);
-    }
+    try {
+      logger.info(`Attempting to redeem voucher with code: ${code}`);
+      
+      // Use atomic findOneAndUpdate to prevent race conditions
+      const now = new Date();
+      const redeemedVoucher = await VoucherModel.findOneAndUpdate(
+        { 
+          code, 
+          isRedeemed: false,
+          expirationDate: { $gte: now }
+        },
+        { 
+          $set: { 
+            isRedeemed: true, 
+            redeemedAt: now, 
+            status: 'redeemed' 
+          } 
+        },
+        { 
+          new: true, // Return the updated document
+          runValidators: true // Run model validators
+        }
+      ).lean();
 
-    // Check if voucher is expired
-    if (new Date(voucher.expirationDate) < new Date()) {
-      throw new Error('Voucher has expired');
-    }
+      if (!redeemedVoucher) {
+        // Check if the voucher exists but is already redeemed or expired
+        const existingVoucher = await VoucherModel.findOne({ code }).lean();
+        
+        if (!existingVoucher) {
+          throw notFoundError(`Voucher with code ${code} not found`);
+        }
+        
+        if (existingVoucher.isRedeemed) {
+          throw new Error(`Voucher with code ${code} has already been redeemed`);
+        }
+        
+        if (new Date(existingVoucher.expirationDate) < now) {
+          throw new Error(`Voucher with code ${code} has expired`);
+        }
+        
+        throw new Error(`Unable to redeem voucher with code ${code}`);
+      }
 
-    voucher.isRedeemed = true;
-    voucher.redeemedAt = new Date();
-    voucher.status = 'redeemed';
-    
-    return (await voucher.save()).toObject();
+      logger.info(`Voucher with code ${code} redeemed successfully`);
+      return redeemedVoucher;
+    } catch (error: any) {
+      logger.error(`Error redeeming voucher with code ${code}:`, error);
+      throw error;
+    }
   }
 } 

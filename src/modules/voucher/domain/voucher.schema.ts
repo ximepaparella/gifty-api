@@ -1,7 +1,27 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { IVoucher } from './voucher.entity';
+import { IVoucher } from './voucher.interface';
 
-export interface IVoucherDocument extends Omit<IVoucher, '_id'>, Document {}
+// Explicitly define our document interface with correct types
+export interface IVoucherDocument extends Document {
+  storeId: mongoose.Types.ObjectId | string;
+  productId: mongoose.Types.ObjectId | string;
+  customerId?: mongoose.Types.ObjectId | string;
+  code: string;
+  status: string;
+  isRedeemed: boolean;
+  redeemedAt: Date | null;
+  amount: number;
+  expirationDate: Date;
+  qrCode: string;
+  sender_name: string;
+  sender_email: string;
+  receiver_name: string;
+  receiver_email: string;
+  message: string;
+  template: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 const VoucherSchema = new Schema<IVoucherDocument>(
   {
@@ -32,9 +52,28 @@ const VoucherSchema = new Schema<IVoucherDocument>(
       required: true,
       default: 'active'
     },
+    isRedeemed: {
+      type: Boolean,
+      default: false
+    },
+    redeemedAt: {
+      type: Date,
+      default: null
+    },
+    amount: {
+      type: Number,
+      required: [true, 'Amount is required'],
+      min: [0, 'Amount must be a positive number']
+    },
     expirationDate: { 
       type: Date, 
-      required: [true, 'Expiration date is required']
+      required: [true, 'Expiration date is required'],
+      validate: {
+        validator: function(value: Date) {
+          return value > new Date();
+        },
+        message: 'Expiration date must be in the future'
+      }
     },
     qrCode: { 
       type: String, 
@@ -71,19 +110,38 @@ const VoucherSchema = new Schema<IVoucherDocument>(
     template: {
       type: String,
       required: [true, 'Template is required'],
-      enum: ['template1', 'template2', 'template3', 'template4', 'template5'],
+      enum: ['template1', 'template2', 'template3', 'template4', 'template5', 'birthday', 'christmas', 'valentine', 'general'],
       default: 'template1'
     }
   },
   { timestamps: true }
 );
 
-// Indexes for optimized queries
+// Compound Indexes for optimized queries and to prevent race conditions
 VoucherSchema.index({ code: 1 }, { unique: true }); // Prevent duplicate voucher codes
+VoucherSchema.index({ code: 1, isRedeemed: 1 }); // For fast lookups during redemption
+VoucherSchema.index({ code: 1, status: 1 }); // For fast lookups during redemption
 VoucherSchema.index({ customerId: 1, status: 1 }); // Fetch vouchers for a user by status
-VoucherSchema.index({ storeId: 1 }); // Fetch all vouchers for a store
-VoucherSchema.index({ expirationDate: 1 }, { expireAfterSeconds: 0 }); // Auto-remove expired vouchers
-VoucherSchema.index({ sender_email: 1 }); // Fetch vouchers by sender email
-VoucherSchema.index({ receiver_email: 1 }); // Fetch vouchers by receiver email
+VoucherSchema.index({ storeId: 1, status: 1 }); // Fetch all active vouchers for a store
+VoucherSchema.index({ receiver_email: 1, status: 1 }); // Fetch vouchers by receiver email and status
+
+// Do not use TTL index for auto-expiration as we want to keep expired vouchers
+// Instead, add a normal index on expirationDate for filtering
+VoucherSchema.index({ expirationDate: 1 });
+
+// Add pre-save middleware to validate expirationDate is in the future
+VoucherSchema.pre('save', function(this: IVoucherDocument, next) {
+  // Skip validation if the voucher is already redeemed or expired
+  if (this.status === 'redeemed' || this.status === 'expired') {
+    return next();
+  }
+  
+  // Check if expiration date is in the past
+  if (this.expirationDate < new Date()) {
+    this.status = 'expired';
+  }
+  
+  next();
+});
 
 export const Voucher = mongoose.model<IVoucherDocument>('Voucher', VoucherSchema); 
