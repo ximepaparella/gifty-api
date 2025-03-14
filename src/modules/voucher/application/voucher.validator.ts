@@ -63,8 +63,13 @@ export const validateVoucher = (voucherData: IVoucherInput): string[] => {
     errors.push('Message cannot exceed 500 characters');
   }
 
-  if (voucherData.template && !['template1', 'template2', 'template3', 'template4'].includes(voucherData.template)) {
-    errors.push('Template must be one of: template1, template2, template3, template4');
+  if (voucherData.template && !['template1', 'template2', 'template3', 'template4', 'template5'].includes(voucherData.template)) {
+    errors.push('Template must be one of: template1, template2, template3, template4, template5');
+  }
+
+  // Optional fields validation
+  if (voucherData.status && !['active', 'expired', 'redeemed'].includes(voucherData.status)) {
+    errors.push('Status must be one of: active, expired, redeemed');
   }
 
   return errors;

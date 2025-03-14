@@ -5,16 +5,19 @@ export interface IVoucher {
   code: string;
   storeId: string | Types.ObjectId;
   productId: string | Types.ObjectId;
+  customerId?: string | Types.ObjectId;
   amount: number;
   expirationDate: Date;
   isRedeemed: boolean;
   redeemedAt?: Date;
+  status?: string;
+  qrCode?: string;
   sender_name: string;
   sender_email: string;
   receiver_name: string;
   receiver_email: string;
   message: string;
-  template: 'template1' | 'template2' | 'template3' | 'template4';
+  template: 'birthday' | 'christmas' | 'valentine' | 'general' | 'template1';
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -22,14 +25,18 @@ export interface IVoucher {
 export interface IVoucherInput {
   storeId: string;
   productId: string;
+  customerId?: string;
+  code?: string;
+  status?: string;
   amount: number;
   expirationDate: Date;
+  qrCode?: string;
   sender_name: string;
   sender_email: string;
   receiver_name: string;
   receiver_email: string;
   message: string;
-  template: 'template1' | 'template2' | 'template3' | 'template4';
+  template: 'birthday' | 'christmas' | 'valentine' | 'general' | 'template1';
 }
 
 export interface IVoucherRepository {

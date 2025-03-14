@@ -22,6 +22,10 @@ const VoucherSchema: Schema = new Schema(
       ref: 'Product',
       required: true,
     },
+    customerId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
     amount: {
       type: Number,
       required: true,
@@ -31,6 +35,11 @@ const VoucherSchema: Schema = new Schema(
       type: Date,
       required: true,
     },
+    status: {
+      type: String,
+      enum: ['active', 'expired', 'redeemed'],
+      default: 'active',
+    },
     isRedeemed: {
       type: Boolean,
       default: false,
@@ -38,6 +47,9 @@ const VoucherSchema: Schema = new Schema(
     redeemedAt: {
       type: Date,
       default: null,
+    },
+    qrCode: {
+      type: String,
     },
     sender_name: {
       type: String,
@@ -62,7 +74,7 @@ const VoucherSchema: Schema = new Schema(
     },
     template: {
       type: String,
-      enum: ['template1', 'template2', 'template3', 'template4'],
+      enum: ['birthday', 'christmas', 'valentine', 'general', 'template1'],
       default: 'general',
     },
   },

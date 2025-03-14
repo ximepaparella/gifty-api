@@ -62,34 +62,118 @@ export class VoucherService {
    * Create a new voucher
    */
   async createVoucher(voucherData: IVoucherInput): Promise<IVoucher> {
-    logger.info('Creating new voucher');
-    
-    const validationErrors = validateVoucher(voucherData);
-    if (validationErrors.length > 0) {
-      throw validationError('Invalid voucher data');
+    try {
+      logger.info('Validating voucher data');
+      
+      const validationErrors = validateVoucher(voucherData);
+      if (validationErrors.length > 0) {
+        const error = validationError('Invalid voucher data');
+        (error as any).details = validationErrors;
+        throw error;
+      }
+      
+      // Create a safe copy of the data to log (without the full QR code)
+      const safeDataForLogging = {...voucherData};
+      if (safeDataForLogging.qrCode) {
+        safeDataForLogging.qrCode = `${safeDataForLogging.qrCode.substring(0, 30)}... (length: ${safeDataForLogging.qrCode.length})`;
+      }
+      logger.info('Creating voucher with data:', JSON.stringify(safeDataForLogging, null, 2));
+      
+      // Check if QR code or customerId is present
+      logger.info(`QR Code provided: ${Boolean(voucherData.qrCode)}, CustomerId provided: ${Boolean(voucherData.customerId)}`);
+      
+      return this.voucherRepository.create(voucherData);
+    } catch (error: any) {
+      logger.error('Error in createVoucher service:', error);
+      
+      // Add more context to the error
+      if (error.name === 'ValidationError' && error.errors) {
+        // Mongoose validation error
+        const validationErrors = Object.keys(error.errors).map(field => ({
+          field,
+          message: error.errors[field].message
+        }));
+        
+        const enhancedError = validationError('Mongoose validation failed');
+        (enhancedError as any).details = validationErrors;
+        throw enhancedError;
+      }
+      
+      // Re-throw the error with additional context
+      if (!error.isOperational) {
+        const wrappedError = new Error(`Error creating voucher: ${error.message}`);
+        (wrappedError as any).originalError = error;
+        (wrappedError as any).receivedData = {
+          hasQrCode: Boolean(voucherData.qrCode),
+          hasCustomerId: Boolean(voucherData.customerId),
+          fields: Object.keys(voucherData)
+        };
+        throw wrappedError;
+      }
+      
+      throw error;
     }
-    
-    return this.voucherRepository.create(voucherData);
   }
 
   /**
    * Update an existing voucher
    */
   async updateVoucher(id: string, voucherData: Partial<IVoucherInput>): Promise<IVoucher> {
-    logger.info(`Updating voucher with ID ${id}`);
-    
-    // Check if voucher exists
-    const existingVoucher = await this.voucherRepository.findById(id);
-    if (!existingVoucher) {
-      throw notFoundError(`Voucher with ID ${id} not found`);
+    try {
+      logger.info(`Updating voucher with ID ${id}`);
+      
+      // Check if voucher exists
+      const existingVoucher = await this.voucherRepository.findById(id);
+      if (!existingVoucher) {
+        throw notFoundError(`Voucher with ID ${id} not found`);
+      }
+      
+      // Create a safe copy of the data to log (without the full QR code)
+      const safeDataForLogging = {...voucherData};
+      if (safeDataForLogging.qrCode) {
+        safeDataForLogging.qrCode = `${safeDataForLogging.qrCode.substring(0, 30)}... (length: ${safeDataForLogging.qrCode.length})`;
+      }
+      logger.info('Updating voucher with data:', JSON.stringify(safeDataForLogging, null, 2));
+      
+      // Check if QR code or customerId is present
+      logger.info(`QR Code provided: ${Boolean(voucherData.qrCode)}, CustomerId provided: ${Boolean(voucherData.customerId)}`);
+      
+      const updatedVoucher = await this.voucherRepository.update(id, voucherData);
+      if (!updatedVoucher) {
+        throw notFoundError(`Failed to update voucher with ID ${id}`);
+      }
+      
+      return updatedVoucher;
+    } catch (error: any) {
+      logger.error(`Error in updateVoucher service for ID ${id}:`, error);
+      
+      // Add more context to the error
+      if (error.name === 'ValidationError' && error.errors) {
+        // Mongoose validation error
+        const validationErrors = Object.keys(error.errors).map(field => ({
+          field,
+          message: error.errors[field].message
+        }));
+        
+        const enhancedError = validationError('Mongoose validation failed');
+        (enhancedError as any).details = validationErrors;
+        throw enhancedError;
+      }
+      
+      // Re-throw the error with additional context
+      if (!error.isOperational) {
+        const wrappedError = new Error(`Error updating voucher: ${error.message}`);
+        (wrappedError as any).originalError = error;
+        (wrappedError as any).receivedData = {
+          hasQrCode: Boolean(voucherData.qrCode),
+          hasCustomerId: Boolean(voucherData.customerId),
+          fields: Object.keys(voucherData)
+        };
+        throw wrappedError;
+      }
+      
+      throw error;
     }
-    
-    const updatedVoucher = await this.voucherRepository.update(id, voucherData);
-    if (!updatedVoucher) {
-      throw notFoundError(`Failed to update voucher with ID ${id}`);
-    }
-    
-    return updatedVoucher;
   }
 
   /**

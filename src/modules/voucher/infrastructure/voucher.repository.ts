@@ -1,6 +1,7 @@
 import { IVoucher, IVoucherInput, IVoucherRepository } from '../domain/voucher.interface';
 import VoucherModel from './voucher.model';
 import { notFoundError } from '@shared/types/appError';
+import logger from '@shared/infrastructure/logging/logger';
 
 export class VoucherRepository implements IVoucherRepository {
   async findAll(): Promise<IVoucher[]> {
@@ -24,22 +25,88 @@ export class VoucherRepository implements IVoucherRepository {
   }
 
   async create(voucherData: IVoucherInput): Promise<IVoucher> {
-    const voucher = new VoucherModel(voucherData);
-    return (await voucher.save()).toObject();
+    try {
+      // Log the fields being passed to the model
+      logger.info('Fields being passed to the voucher model:', Object.keys(voucherData).join(', '));
+      
+      // Check if QR code is present and log its size
+      if (voucherData.qrCode) {
+        logger.info(`QR code is present, size: ${voucherData.qrCode.length} characters`);
+        
+        // If the QR code is too large (over 1MB), truncate it
+        if (voucherData.qrCode.length > 1000000) {
+          logger.warn(`QR code is very large (${voucherData.qrCode.length} chars), truncating to 1MB`);
+          voucherData.qrCode = voucherData.qrCode.substring(0, 1000000);
+        }
+      }
+      
+      // Check if customerId is present
+      if (voucherData.customerId) {
+        logger.info(`Customer ID is present: ${voucherData.customerId}`);
+      }
+      
+      const voucher = new VoucherModel(voucherData);
+      logger.info('Voucher model created, saving to database');
+      
+      const savedVoucher = await voucher.save();
+      logger.info(`Voucher saved successfully with ID: ${savedVoucher._id}`);
+      
+      return savedVoucher.toObject();
+    } catch (error: any) {
+      logger.error('Error creating voucher in repository:', error);
+      
+      // Provide more context about the error
+      if (error.name === 'ValidationError') {
+        logger.error('Validation error details:', JSON.stringify(error.errors, null, 2));
+      }
+      
+      throw error;
+    }
   }
 
   async update(id: string, voucherData: Partial<IVoucherInput>): Promise<IVoucher | null> {
-    const updatedVoucher = await VoucherModel.findByIdAndUpdate(
-      id,
-      { $set: voucherData },
-      { new: true }
-    ).lean();
+    try {
+      // Log the fields being updated
+      logger.info(`Updating voucher ${id} with fields:`, Object.keys(voucherData).join(', '));
+      
+      // Check if QR code is present and log its size
+      if (voucherData.qrCode) {
+        logger.info(`QR code is present in update, size: ${voucherData.qrCode.length} characters`);
+        
+        // If the QR code is too large (over 1MB), truncate it
+        if (voucherData.qrCode.length > 1000000) {
+          logger.warn(`QR code is very large (${voucherData.qrCode.length} chars), truncating to 1MB`);
+          voucherData.qrCode = voucherData.qrCode.substring(0, 1000000);
+        }
+      }
+      
+      // Check if customerId is present
+      if (voucherData.customerId) {
+        logger.info(`Customer ID is present in update: ${voucherData.customerId}`);
+      }
+      
+      const updatedVoucher = await VoucherModel.findByIdAndUpdate(
+        id,
+        { $set: voucherData },
+        { new: true }
+      ).lean();
 
-    if (!updatedVoucher) {
-      throw notFoundError(`Voucher with id ${id} not found`);
+      if (!updatedVoucher) {
+        throw notFoundError(`Voucher with id ${id} not found`);
+      }
+
+      logger.info(`Voucher ${id} updated successfully`);
+      return updatedVoucher;
+    } catch (error: any) {
+      logger.error(`Error updating voucher ${id} in repository:`, error);
+      
+      // Provide more context about the error
+      if (error.name === 'ValidationError') {
+        logger.error('Validation error details:', JSON.stringify(error.errors, null, 2));
+      }
+      
+      throw error;
     }
-
-    return updatedVoucher;
   }
 
   async delete(id: string): Promise<boolean> {
@@ -61,6 +128,7 @@ export class VoucherRepository implements IVoucherRepository {
 
     voucher.isRedeemed = true;
     voucher.redeemedAt = new Date();
+    voucher.status = 'redeemed';
     
     return (await voucher.save()).toObject();
   }
