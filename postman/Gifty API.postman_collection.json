@@ -670,6 +670,257 @@
 					}
 				}
 			]
+		},
+		{
+			"name": "Vouchers",
+			"item": [
+				{
+					"name": "Create Voucher",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"storeId\": \"{{storeId}}\",\n    \"productId\": \"{{productId}}\",\n    \"amount\": 50,\n    \"expirationDate\": \"2024-12-31T23:59:59Z\",\n    \"sender_name\": \"John Doe\",\n    \"sender_email\": \"john.doe@example.com\",\n    \"receiver_name\": \"Jane Smith\",\n    \"receiver_email\": \"jane.smith@example.com\",\n    \"message\": \"Happy Birthday! Enjoy your gift!\",\n    \"template\": \"birthday\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/vouchers",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"vouchers"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Vouchers",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/vouchers",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"vouchers"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Voucher by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/vouchers/{{voucherId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"vouchers",
+								"{{voucherId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Voucher by Code",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/vouchers/code/{{voucherCode}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"vouchers",
+								"code",
+								"{{voucherCode}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Vouchers by Store ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/vouchers/store/{{storeId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"vouchers",
+								"store",
+								"{{storeId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Vouchers by Customer Email",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/vouchers/customer/{{customerEmail}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"vouchers",
+								"customer",
+								"{{customerEmail}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Voucher",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"expirationDate\": \"2025-12-31T23:59:59Z\",\n    \"message\": \"Updated message for your gift!\",\n    \"template\": \"christmas\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/vouchers/{{voucherId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"vouchers",
+								"{{voucherId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Voucher",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/vouchers/{{voucherId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"vouchers",
+								"{{voucherId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Redeem Voucher",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/vouchers/code/{{voucherCode}}/redeem",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"vouchers",
+								"code",
+								"{{voucherCode}}",
+								"redeem"
+							]
+						}
+					}
+				}
+			]
 		}
 	],
 	"event": [
@@ -710,6 +961,21 @@
 					"        pm.environment.set(\"user_id\", responseJson.data.id);",
 					"        console.log(\"Created user ID saved to environment\");",
 					"    }",
+					"}",
+					"",
+					"// Save voucher ID and code from create voucher response",
+					"if (pm.response.code === 201 && pm.info.requestName === \"Create Voucher\") {",
+					"    const responseJson = pm.response.json();",
+					"    if (responseJson.success && responseJson.data) {",
+					"        if (responseJson.data._id) {",
+					"            pm.environment.set(\"voucherId\", responseJson.data._id);",
+					"            console.log(\"Voucher ID saved to environment\");",
+					"        }",
+					"        if (responseJson.data.code) {",
+					"            pm.environment.set(\"voucherCode\", responseJson.data.code);",
+					"            console.log(\"Voucher code saved to environment\");",
+					"        }",
+					"    }",
 					"}"
 				]
 			}
@@ -728,6 +994,16 @@
 		},
 		{
 			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "voucherId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "voucherCode",
 			"value": "",
 			"type": "string"
 		}

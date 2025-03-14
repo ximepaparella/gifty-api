@@ -15,17 +15,35 @@ import { storeRoutes } from '@modules/store/interface/store.routes';
 import { storeSwagger } from '@modules/store/interface/store.swagger';
 import { productRoutes } from '@modules/product/interface/product.routes';
 import { productSwagger } from '@modules/product/interface/product.swagger';
+import { UserController } from '@modules/user/interface/user.controller';
+import { UserService } from '@modules/user/application/user.service';
+import { MongoUserRepository } from '@modules/user/infrastructure/user.repository';
+import voucherRoutes from '@modules/voucher/interface/voucher.routes';
+import { voucherSwagger } from '@modules/voucher/interface/voucher.swagger';
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
 
+// Initialize user controller for login route
+const userRepository = new MongoUserRepository();
+const userService = new UserService(userRepository);
+const userController = new UserController(userService);
+
 // Middleware
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
 app.use(passport.initialize());
+
+// Login route - separate from user routes for better accessibility
+app.post('/api/v1/login', (req: Request, res: Response) => userController.login(req, res));
+
+// Test route for vouchers
+app.get('/api/v1/test-vouchers', (req: Request, res: Response) => {
+  res.status(200).json({ success: true, message: 'Voucher test route is working' });
+});
 
 // Setup Swagger documentation
 setupSwagger(app);
@@ -40,6 +58,7 @@ app.use('/api/v1/auth', passwordResetRoutes);
 
 app.use('/api/v1/stores', storeRoutes);
 app.use('/api/v1/products', productRoutes);
+app.use('/api/v1/vouchers', voucherRoutes);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -66,11 +85,13 @@ const swaggerDocument = {
       }
     },
     ...storeSwagger.components,
-    ...productSwagger.components
+    ...productSwagger.components,
+    ...voucherSwagger.components
   },
   paths: {
     ...storeSwagger.paths,
-    ...productSwagger.paths
+    ...productSwagger.paths,
+    ...voucherSwagger.paths
   }
 };
 
