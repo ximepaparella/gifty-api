@@ -20,6 +20,8 @@ import { UserService } from '@modules/user/application/user.service';
 import { MongoUserRepository } from '@modules/user/infrastructure/user.repository';
 import voucherRoutes from '@modules/voucher/interface/voucher.routes';
 import { voucherSwagger } from '@modules/voucher/interface/voucher.swagger';
+import orderRoutes from '@modules/order/interface/order.routes';
+import { orderSwagger } from '@modules/order/interface/order.swagger';
 
 // Load environment variables
 dotenv.config();
@@ -59,6 +61,7 @@ app.use('/api/v1/auth', passwordResetRoutes);
 app.use('/api/v1/stores', storeRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/vouchers', voucherRoutes);
+app.use('/api/v1/orders', orderRoutes);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -86,12 +89,14 @@ const swaggerDocument = {
     },
     ...storeSwagger.components,
     ...productSwagger.components,
-    ...voucherSwagger.components
+    ...voucherSwagger.components,
+    ...orderSwagger.components
   },
   paths: {
     ...storeSwagger.paths,
     ...productSwagger.paths,
-    ...voucherSwagger.paths
+    ...voucherSwagger.paths,
+    ...orderSwagger.paths
   }
 };
 

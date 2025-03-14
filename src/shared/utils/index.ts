@@ -1,12 +1,23 @@
-import catchAsync from './catchAsync';
+import { NextFunction, Request, Response } from 'express';
+import { AppError } from '@shared/types/appError';
 import { sendEmail } from './email';
 import { getPaginationOptions } from './pagination';
 import { isValidPhoneNumber, formatPhoneNumber } from './phoneValidator';
+import { generateRandomCode } from './codeGenerator';
+
+/**
+ * Catch async errors in controllers
+ */
+export const catchAsync = (fn: Function) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    fn(req, res, next).catch(next);
+  };
+};
 
 export {
-  catchAsync,
   sendEmail,
   getPaginationOptions,
   isValidPhoneNumber,
-  formatPhoneNumber
+  formatPhoneNumber,
+  generateRandomCode
 }; 
