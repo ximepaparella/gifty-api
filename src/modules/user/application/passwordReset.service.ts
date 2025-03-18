@@ -31,9 +31,9 @@ class PasswordResetService {
 
     try {
       await sendEmail({
-        email: user.email,
+        to: user.email,
         subject: 'Your password reset token (valid for 1 hour)',
-        message
+        text: message
       });
 
       return {
