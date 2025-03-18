@@ -136,8 +136,6 @@ const swaggerOptions: swaggerJsdoc.Options = {
       '/api/v1/auth/reset-password': authSwagger.paths['/auth/reset-password'],
       '/api/v1/users': userSwagger.paths['/users'],
       '/api/v1/users/{id}': userSwagger.paths['/users/{id}'],
-      '/api/v1/users/me': userSwagger.paths['/users/me'],
-      '/api/v1/users/setup-admin': userSwagger.paths['/users/setup-admin'],
       '/api/v1/stores': {
         ...storePaths['/stores'],
         get: {
@@ -206,7 +204,10 @@ const swaggerOptions: swaggerJsdoc.Options = {
  * Sets up Swagger documentation for the API
  */
 export const setupSwagger = (app: Express): void => {
-  const swaggerSpec = swaggerJsdoc(swaggerOptions);
+  const swaggerSpec = swaggerJsdoc(swaggerOptions) as {
+    components: { schemas: Record<string, any> },
+    paths: Record<string, any>
+  };
 
   // Debug: Log the available schemas
   console.log('Available schemas:', Object.keys(swaggerSpec.components.schemas));

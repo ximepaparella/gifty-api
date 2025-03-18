@@ -1,5 +1,5 @@
 {
-  "name": "real-estate-api",
+  "name": "gifty-api",
   "version": "1.0.0",
   "description": "Real Estate API with Hexagonal Architecture",
   "main": "dist/server.js",

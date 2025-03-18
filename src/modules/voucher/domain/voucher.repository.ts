@@ -6,32 +6,37 @@ import { generateQRCode } from '@shared/utils/qrCodeGenerator';
 
 export class VoucherRepository implements IVoucherRepository {
   async findAll(): Promise<IVoucher[]> {
-    return await Voucher.find().sort({ createdAt: -1 });
+    const vouchers = await Voucher.find().sort({ createdAt: -1 });
+    return vouchers.map(v => v.toObject() as IVoucher);
   }
 
   async findById(id: string): Promise<IVoucher | null> {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return null;
     }
-    return await Voucher.findById(id);
+    const voucher = await Voucher.findById(id);
+    return voucher ? voucher.toObject() as IVoucher : null;
   }
 
   async findByCode(code: string): Promise<IVoucher | null> {
-    return await Voucher.findOne({ code });
+    const voucher = await Voucher.findOne({ code });
+    return voucher ? voucher.toObject() as IVoucher : null;
   }
 
   async findByStoreId(storeId: string): Promise<IVoucher[]> {
     if (!mongoose.Types.ObjectId.isValid(storeId)) {
       return [];
     }
-    return await Voucher.find({ storeId }).sort({ createdAt: -1 });
+    const vouchers = await Voucher.find({ storeId }).sort({ createdAt: -1 });
+    return vouchers.map(v => v.toObject() as IVoucher);
   }
 
   async findByCustomerId(customerId: string): Promise<IVoucher[]> {
     if (!mongoose.Types.ObjectId.isValid(customerId)) {
       return [];
     }
-    return await Voucher.find({ customerId }).sort({ createdAt: -1 });
+    const vouchers = await Voucher.find({ customerId }).sort({ createdAt: -1 });
+    return vouchers.map(v => v.toObject() as IVoucher);
   }
 
   async create(voucherData: IVoucherInput): Promise<IVoucher> {
@@ -47,7 +52,8 @@ export class VoucherRepository implements IVoucherRepository {
       }
 
       const voucher = new Voucher(voucherData);
-      return await voucher.save();
+      const savedVoucher = await voucher.save();
+      return savedVoucher.toObject() as IVoucher;
     } catch (error: any) {
       // Check if it's a duplicate key error for the code field
       if (error.name === 'MongoError' || error.name === 'MongoServerError') {
@@ -65,18 +71,20 @@ export class VoucherRepository implements IVoucherRepository {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return null;
     }
-    return await Voucher.findByIdAndUpdate(
+    const updatedVoucher = await Voucher.findByIdAndUpdate(
       id,
       { $set: voucherData },
       { new: true, runValidators: true }
     );
+    return updatedVoucher ? updatedVoucher.toObject() as IVoucher : null;
   }
 
   async delete(id: string): Promise<IVoucher | null> {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return null;
     }
-    return await Voucher.findByIdAndDelete(id);
+    const deletedVoucher = await Voucher.findByIdAndDelete(id);
+    return deletedVoucher ? deletedVoucher.toObject() as IVoucher : null;
   }
 
   async redeemVoucher(code: string): Promise<IVoucher | null> {
@@ -122,7 +130,7 @@ export class VoucherRepository implements IVoucherRepository {
       }
     }
     
-    return redeemedVoucher;
+    return redeemedVoucher ? redeemedVoucher.toObject() as IVoucher : null;
   }
 
   // Helper method to generate a unique voucher code
