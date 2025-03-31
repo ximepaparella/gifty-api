@@ -4,13 +4,13 @@ This section describes the endpoints for product management in the Gifty API.
 
 ## Get All Products
 
-Retrieves a list of all products.
+Retrieves a list of all products. This is a public endpoint that does not require authentication.
 
 **URL**: `/products`
 
 **Method**: `GET`
 
-**Authentication Required**: Yes
+**Authentication Required**: No
 
 **Query Parameters**:
 - `page` (optional): Page number for pagination (default: 1)
@@ -54,13 +54,13 @@ Retrieves a list of all products.
 
 ## Get Product by ID
 
-Retrieves a product by its ID.
+Retrieves a product by its ID. This is a public endpoint that does not require authentication.
 
 **URL**: `/products/:id`
 
 **Method**: `GET`
 
-**Authentication Required**: Yes
+**Authentication Required**: No
 
 **URL Parameters**:
 - `id`: ID of the product to retrieve

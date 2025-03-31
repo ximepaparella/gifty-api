@@ -6,19 +6,24 @@ import { authorize } from '@shared/infrastructure/middleware/authorize';
 const router = Router();
 const storeController = new StoreController();
 
+// Public routes (no authentication required)
+router.get('/', storeController.getStores);
+router.get('/:id', storeController.getStoreById);
+
+// Protected routes (authentication required)
+router.use(authenticate);
+
 router
   .route('/')
-  .get(authenticate, storeController.getStores)
-  .post(authenticate, storeController.createStore);
+  .post(storeController.createStore);
 
 router
   .route('/owner/:ownerId')
-  .get(authenticate, storeController.getStoresByOwnerId);
+  .get(storeController.getStoresByOwnerId);
 
 router
   .route('/:id')
-  .get(authenticate, storeController.getStoreById)
-  .put(authenticate, storeController.updateStore)
-  .delete(authenticate, authorize(['admin']), storeController.deleteStore);
+  .put(storeController.updateStore)
+  .delete(authorize(['admin']), storeController.deleteStore);
 
 export const storeRoutes = router; 
