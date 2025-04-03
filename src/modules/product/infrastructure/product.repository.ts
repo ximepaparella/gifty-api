@@ -2,8 +2,7 @@ import { Types } from 'mongoose';
 import { IProduct } from '../domain/product.entity';
 import { Product } from '../domain/product.schema';
 import logger from '@shared/infrastructure/logging/logger';
-import { deleteOldFile } from '@shared/infrastructure/services/fileUpload';
-import path from 'path';
+import { deleteFile } from '@shared/infrastructure/services/fileUpload';
 
 export class ProductRepository {
   async create(productData: IProduct): Promise<IProduct> {
@@ -34,12 +33,11 @@ export class ProductRepository {
       return null;
     }
 
-    // If updating image, delete the old one
+    // If updating image, delete the old one from Cloudinary
     if (productData.image) {
       const existingProduct = await this.findById(id);
       if (existingProduct?.image) {
-        const oldImagePath = path.join(__dirname, '../../../../../', existingProduct.image);
-        await deleteOldFile(oldImagePath);
+        await deleteFile(existingProduct.image);
       }
     }
 
@@ -55,11 +53,10 @@ export class ProductRepository {
       return null;
     }
 
-    // Delete product image if it exists
+    // Delete product image from Cloudinary if it exists
     const product = await this.findById(id);
     if (product?.image) {
-      const imagePath = path.join(__dirname, '../../../../../', product.image);
-      await deleteOldFile(imagePath);
+      await deleteFile(product.image);
     }
 
     return await Product.findByIdAndDelete(id);
