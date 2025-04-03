@@ -101,4 +101,23 @@ export class CustomerService {
     logger.info(`Customer deleted successfully with ID: ${id}`);
     return customer;
   }
+
+  async getOrCreateCustomer(customerData: Omit<ICustomer, '_id' | 'createdAt' | 'updatedAt'>): Promise<ICustomer> {
+    const { error } = customerValidationSchema.validate(customerData);
+    if (error) {
+      logger.error(`Validation error in get-or-create customer: ${error.details[0].message}`);
+      throw validationError(error.details[0].message);
+    }
+
+    // Try to find existing customer by email
+    const existingCustomer = await this.repository.findByEmail(customerData.email);
+    if (existingCustomer) {
+      logger.info(`Found existing customer with email: ${customerData.email}`);
+      return existingCustomer;
+    }
+
+    // If no existing customer, create new one
+    logger.info(`No existing customer found with email: ${customerData.email}, creating new customer`);
+    return await this.createCustomer(customerData);
+  }
 }

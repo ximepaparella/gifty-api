@@ -13,6 +13,7 @@ import { initCloudinary } from '@shared/infrastructure/services/cloudinary.confi
 import { AppError } from '@shared/types/appError';
 import { errorHandler as globalErrorHandler } from '@shared/infrastructure/errors/errorHandler';
 import { setupSwagger } from '@shared/infrastructure/swagger/swagger';
+import { authenticate } from '@shared/infrastructure/middleware/auth';
 
 // Import routes
 import userRoutes from '@modules/user/interface/user.routes';
@@ -94,34 +95,33 @@ app.get('/api/v1/customers-test', (req: Request, res: Response) => {
   res.status(200).json({ message: 'Customer test route is working!' });
 });
 
-// Authentication middleware for customer routes
-import { authenticate } from '@shared/infrastructure/middleware/auth';
-const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  authenticate(req, res, next);
-};
-
-// Get all customers
-app.get('/api/v1/customers', authMiddleware, (req: Request, res: Response, next: NextFunction) => {
+// Get all customers (protected)
+app.get('/api/v1/customers', authenticate, (req: Request, res: Response, next: NextFunction) => {
   customerController.getCustomers(req, res, next);
 });
 
-// Create new customer
-app.post('/api/v1/customers', authMiddleware, (req: Request, res: Response, next: NextFunction) => {
+// Create new customer (public endpoint)
+app.post('/api/v1/customers', (req: Request, res: Response, next: NextFunction) => {
   customerController.createCustomer(req, res, next);
 });
 
-// Get customer by ID
-app.get('/api/v1/customers/:id', authMiddleware, (req: Request, res: Response, next: NextFunction) => {
+// Get or create customer (public endpoint)
+app.post('/api/v1/customers/get-or-create', (req: Request, res: Response, next: NextFunction) => {
+  customerController.getOrCreateCustomer(req, res, next);
+});
+
+// Get customer by ID (protected)
+app.get('/api/v1/customers/:id', authenticate, (req: Request, res: Response, next: NextFunction) => {
   customerController.getCustomerById(req, res, next);
 });
 
-// Update customer
-app.put('/api/v1/customers/:id', authMiddleware, (req: Request, res: Response, next: NextFunction) => {
+// Update customer (protected)
+app.put('/api/v1/customers/:id', authenticate, (req: Request, res: Response, next: NextFunction) => {
   customerController.updateCustomer(req, res, next);
 });
 
-// Delete customer
-app.delete('/api/v1/customers/:id', authMiddleware, (req: Request, res: Response, next: NextFunction) => {
+// Delete customer (protected)
+app.delete('/api/v1/customers/:id', authenticate, (req: Request, res: Response, next: NextFunction) => {
   customerController.deleteCustomer(req, res, next);
 });
 

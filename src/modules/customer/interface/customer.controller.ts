@@ -61,4 +61,14 @@ export class CustomerController {
       data: customer // Optionally return the deleted customer
     });
   });
+
+  getOrCreateCustomer = handleAsync(async (req: Request, res: Response, next: NextFunction) => {
+    logger.debug('Received request to get or create customer', req.body);
+    const customerData: Omit<ICustomer, '_id' | 'createdAt' | 'updatedAt'> = req.body;
+    const customer = await this.service.getOrCreateCustomer(customerData);
+    res.status(200).json({
+      status: 'success',
+      data: customer
+    });
+  });
 } 

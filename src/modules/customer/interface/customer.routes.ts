@@ -13,24 +13,18 @@ const customerService = new CustomerService(customerRepository);
 const customerController = new CustomerController(customerService);
 
 // Public routes
-// Create new customer - public endpoint
+// Create new customer
 router.post('/', (req, res, next) => customerController.createCustomer(req, res, next));
 
-// Protected routes - apply authentication middleware
-router.use(authenticate);
+// Get or create customer
+router.post('/get-or-create', (req, res, next) => customerController.getOrCreateCustomer(req, res, next));
 
+// Protected routes below
 // Get all customers
-router.get('/', (req, res, next) => customerController.getCustomers(req, res, next));
-
-// Get customer by ID
+router.get('/', authenticate, (req, res, next) => customerController.getCustomers(req, res, next));
 router.get('/:id', (req, res, next) => customerController.getCustomerById(req, res, next));
-
-// Update customer
 router.put('/:id', (req, res, next) => customerController.updateCustomer(req, res, next));
-
-// Delete customer
 router.delete('/:id', (req, res, next) => customerController.deleteCustomer(req, res, next));
 
-// Export both ways to ensure compatibility
-module.exports = router;
+// Export the router
 export default router; 
