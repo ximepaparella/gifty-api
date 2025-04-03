@@ -12,19 +12,15 @@ const customerRepository = new CustomerRepository();
 const customerService = new CustomerService(customerRepository);
 const customerController = new CustomerController(customerService);
 
-// Apply authentication middleware to all routes
-router.use(authenticate);
+// Public routes
+// Create new customer - public endpoint
+router.post('/', (req, res, next) => customerController.createCustomer(req, res, next));
 
-// Simple test route
-router.get('/test', (req, res) => {
-  res.status(200).json({ message: 'Customer routes are working!' });
-});
+// Protected routes - apply authentication middleware
+router.use(authenticate);
 
 // Get all customers
 router.get('/', (req, res, next) => customerController.getCustomers(req, res, next));
-
-// Create new customer
-router.post('/', (req, res, next) => customerController.createCustomer(req, res, next));
 
 // Get customer by ID
 router.get('/:id', (req, res, next) => customerController.getCustomerById(req, res, next));
