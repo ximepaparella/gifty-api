@@ -24,6 +24,7 @@ import { storeRoutes } from '@modules/store/interface/store.routes';
 import { productRoutes } from '@modules/product/interface/product.routes';
 import voucherRoutes from '@modules/voucher/interface/voucher.routes';
 import orderRoutes from '@modules/order/interface/order.routes';
+const customerRoutes = require('@modules/customer/interface/customer.routes');
 import { UserController } from '@modules/user/interface/user.controller';
 import { UserService } from '@modules/user/application/user.service';
 import { MongoUserRepository } from '@modules/user/infrastructure/user.repository';
@@ -60,23 +61,56 @@ if (!fs.existsSync(vouchersDir)) {
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Routes
-
+// Public routes
 app.post('/api/v1/login', (req: Request, res: Response) => userController.login(req, res));
-app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/auth', passwordResetRoutes);
-app.use('/api/v1/stores', storeRoutes);
-app.use('/api/v1/products', productRoutes);
-app.use('/api/v1/vouchers', voucherRoutes);
-app.use('/api/v1/orders', orderRoutes);
-
-// Setup Swagger documentation
-setupSwagger(app);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
+
+// Protected routes
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/stores', storeRoutes);
+app.use('/api/v1/products', productRoutes);
+app.use('/api/v1/vouchers', voucherRoutes);
+app.use('/api/v1/orders', orderRoutes);
+
+// Register customer routes separately to ensure proper loading
+console.log('Registering customer routes...');
+try {
+  // Ensure customerRoutes is properly loaded
+  app.use('/api/v1/customers', customerRoutes);
+  console.log('Customer routes registered successfully!');
+} catch (error) {
+  console.error('Error registering customer routes:', error);
+  
+  // Fallback direct implementation
+  console.log('Implementing direct customer routes as fallback...');
+  
+  // Direct implementation of customer routes
+  const directCustomersPath = '/api/v1/direct-customers';
+  
+  app.get(directCustomersPath, (req: Request, res: Response) => {
+    logger.info('Direct GET all customers endpoint accessed');
+    res.status(200).json({
+      status: 'success',
+      message: 'Direct customers endpoint working',
+      data: []
+    });
+  });
+  
+  console.log('Direct customer routes implemented as fallback');
+}
+
+// Add a direct test route to verify API is working
+app.get('/api/v1/customers-test', (req: Request, res: Response) => {
+  res.status(200).json({ message: 'Direct customer test route is working!' });
+});
+
+// Setup Swagger documentation
+setupSwagger(app);
 
 // Error handling middleware
 const errorHandler: ErrorRequestHandler = (err: AppError, req: Request, res: Response, next: NextFunction): void => {

@@ -36,4 +36,8 @@ moduleAlias.addAliases({
   '@order-repository': path.resolve(__dirname, 'modules/order/infrastructure/order.repository'),
   '@order-service': path.resolve(__dirname, 'modules/order/application/order.service'),
   '@order-controller': path.resolve(__dirname, 'modules/order/interface/order.controller'),
+  '@customer-model': path.resolve(__dirname, 'modules/customer/infrastructure/customer.model'),
+  '@customer-repository': path.resolve(__dirname, 'modules/customer/infrastructure/customer.repository'),
+  '@customer-service': path.resolve(__dirname, 'modules/customer/application/customer.service'),
+  '@customer-controller': path.resolve(__dirname, 'modules/customer/interface/customer.controller'),
 }); 

@@ -1,163 +1,101 @@
-import mongoose, { Schema } from 'mongoose';
-import { IOrder } from './order.interface';
-import { isValidEmail } from '@modules/voucher/application/voucher.validator';
-import { generateRandomCode } from '@shared/utils/codeGenerator';
-import { generateQRCode } from '@shared/utils/qrCodeGenerator';
+import mongoose, { Schema, Document } from 'mongoose';
+import { ICustomer } from '@modules/customer/domain/customer.entity';
+import { IVoucher } from '@modules/voucher/domain/voucher.entity';
 
-// Create a type that extends the interface
-export type IOrderDocument = mongoose.Document & IOrder;
+// --- Define Sub-Schemas First ---
 
-// Create the schema
-const OrderSchema = new Schema(
+// Payment Details Sub-Schema
+// Interface for PaymentDetails (without Mongoose specifics)
+interface IPaymentDetails {
+  paymentId: string;
+  paymentStatus: 'pending' | 'completed' | 'failed';
+  paymentEmail: string;
+  amount: number;
+  provider: 'mercadopago' | 'paypal' | 'stripe';
+}
+
+const PaymentDetailsSchema = new Schema<IPaymentDetails>({
+  paymentId: { type: String, required: true },
+  paymentStatus: { type: String, enum: ['pending', 'completed', 'failed'], required: true },
+  paymentEmail: { type: String, required: true },
+  amount: { type: Number, required: true, min: 0 },
+  provider: { type: String, enum: ['mercadopago', 'paypal', 'stripe'], required: true },
+}, { _id: false });
+
+// --- Define Main Order Interface & Schema ---
+
+// Order Status Enum
+export enum OrderStatus {
+  PENDING = 'pending',
+  PROCESSING = 'processing',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  CANCELLED = 'cancelled'
+}
+
+// Define the core Order interface (without Mongoose Document fields)
+export interface IOrder {
+  customerId: mongoose.Types.ObjectId | ICustomer; // Reference Customer
+  paymentDetails: IPaymentDetails;
+  voucher: IVoucher;
+  status: OrderStatus;
+  emailsSent: boolean;
+  pdfGenerated: boolean;
+  pdfUrl: string | null;
+  // Mongoose handles _id, createdAt, updatedAt
+}
+
+// Define the Mongoose Document interface extending the core interface
+export interface IOrderDocument extends IOrder, Document {}
+
+// Main Order Schema using IOrderDocument
+const OrderSchema = new Schema<IOrderDocument>(
   {
     customerId: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Customer',
       required: [true, 'Customer ID is required'],
+      index: true,
     },
     paymentDetails: {
-      paymentId: {
-        type: String,
-        required: [true, 'Payment ID is required'],
-      },
-      paymentStatus: {
-        type: String,
-        enum: ['pending', 'completed', 'failed'],
-        default: 'pending',
-        required: [true, 'Payment status is required'],
-      },
-      paymentEmail: {
-        type: String,
-        required: [true, 'Payment email is required'],
-      },
-      amount: {
-        type: Number,
-        min: [0, 'Amount must be positive'],
-        required: [true, 'Amount is required'],
-      },
-      provider: {
-        type: String,
-        enum: ['mercadopago', 'paypal', 'stripe'],
-        required: [true, 'Payment provider is required'],
-      },
-      createdAt: {
-        type: Date,
-        default: Date.now,
-      },
-      updatedAt: {
-        type: Date,
-        default: Date.now,
-      },
+      type: PaymentDetailsSchema,
+      required: [true, 'Payment details are required'],
     },
     voucher: {
-      storeId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Store',
-        required: [true, 'Store ID is required'],
-      },
-      productId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Product',
-        required: [true, 'Product ID is required'],
-      },
-      code: {
-        type: String,
-        unique: true,
-        required: [true, 'Voucher code is required'],
-      },
-      status: {
-        type: String,
-        enum: ['active', 'redeemed', 'expired'],
-        default: 'active',
-        required: [true, 'Voucher status is required'],
-      },
-      isRedeemed: {
-        type: Boolean,
-        default: false,
-      },
-      redeemedAt: {
-        type: Date,
-        default: null,
-      },
-      expirationDate: {
-        type: Date,
-        required: [true, 'Expiration date is required'],
-      },
-      qrCode: {
-        type: String,
-      },
-      senderName: {
-        type: String,
-        required: [true, 'Sender name is required'],
-      },
-      senderEmail: {
-        type: String,
-        required: [true, 'Sender email is required'],
-      },
-      receiverName: {
-        type: String,
-        required: [true, 'Receiver name is required'],
-      },
-      receiverEmail: {
-        type: String,
-        required: [true, 'Receiver email is required'],
-      },
-      message: {
-        type: String,
-        required: [true, 'Message is required'],
-      },
-      template: {
-        type: String,
-        enum: [
-          'template1',
-          'template2',
-          'template3',
-          'template4',
-          'template5',
-          'birthday',
-          'christmas',
-          'valentine',
-          'general',
-        ],
-        default: 'general',
-        required: [true, 'Template is required'],
-      },
+      type: Schema.Types.Mixed,
+      required: [true, 'Voucher is required'],
     },
-    emailsSent: {
-      type: Boolean,
-      default: false,
-    },
-    pdfGenerated: {
-      type: Boolean,
-      default: false,
-    },
-    pdfUrl: {
+    status: {
       type: String,
-      default: null,
+      enum: Object.values(OrderStatus),
+      default: OrderStatus.PENDING,
+      required: true,
     },
+    emailsSent: { type: Boolean, default: false },
+    pdfGenerated: { type: Boolean, default: false },
+    pdfUrl: { type: String, default: null },
   },
   {
-    timestamps: true,
+    timestamps: true, // Let Mongoose manage createdAt and updatedAt
   }
 );
 
-// Create indexes for better query performance
-OrderSchema.index({ 'voucher.code': 1 }, { unique: true });
-OrderSchema.index({ customerId: 1 });
-OrderSchema.index({ 'voucher.storeId': 1 });
-OrderSchema.index({ 'voucher.receiverEmail': 1 });
-OrderSchema.index({ 'voucher.senderEmail': 1 });
-
-// Check if voucher has expired before saving
+// Pre-save hook (commented out for now to isolate potential issues)
+/*
 OrderSchema.pre('save', function (next) {
   const order = this as IOrderDocument;
-  
-  if (order.voucher.expirationDate < new Date()) {
-    order.voucher.status = 'expired';
-  }
-  
+  // Need to populate voucher to check expiration/status
+  // This logic might be better placed in the service layer before saving
+  // Example (requires populating voucher first):
+  // if (order.voucher && order.voucher instanceof VoucherModel && order.voucher.expirationDate < new Date()) {
+  //   return next(new Error('Cannot create order with expired voucher'));
+  // }
+  // if (order.voucher && order.voucher instanceof VoucherModel && order.voucher.status !== 'active') {
+  //   return next(new Error('Cannot create order with non-active voucher'));
+  // }
   next();
 });
+*/
 
-// Create and export the model
-export const Order = mongoose.model<IOrderDocument>('Order', OrderSchema); 
+// Export the model
+export const OrderModel = mongoose.model<IOrderDocument>('Order', OrderSchema); 

@@ -6,6 +6,151 @@
 	},
 	"item": [
 	  {
+		"name": "Customers",
+		"description": "Customer management endpoints",
+		"item": [
+		  {
+			"name": "Get All Customers",
+			"request": {
+			  "method": "GET",
+			  "header": [
+				{
+				  "key": "Authorization",
+				  "value": "Bearer {{token}}",
+				  "type": "text"
+				}
+			  ],
+			  "url": {
+				"raw": "{{base_url}}/api/v1/customers",
+				"host": ["{{base_url}}"],
+				"path": ["api", "v1", "customers"]
+			  },
+			  "description": "Retrieve all customers (Requires authentication)"
+			},
+			"response": []
+		  },
+		  {
+			"name": "Get Customer By ID",
+			"request": {
+			  "method": "GET",
+			  "header": [
+				{
+				  "key": "Authorization",
+				  "value": "Bearer {{token}}",
+				  "type": "text"
+				}
+			  ],
+			  "url": {
+				"raw": "{{base_url}}/api/v1/customers/:id",
+				"host": ["{{base_url}}"],
+				"path": ["api", "v1", "customers", ":id"],
+				"variable": [
+				  {
+					"key": "id",
+					"value": "{{customer_id}}",
+					"description": "ID of the customer to retrieve"
+				  }
+				]
+			  },
+			  "description": "Retrieve a customer by their ID (Requires authentication)"
+			},
+			"response": []
+		  },
+		  {
+			"name": "Create Customer",
+			"request": {
+			  "method": "POST",
+			  "header": [
+				{
+				  "key": "Authorization",
+				  "value": "Bearer {{token}}",
+				  "type": "text"
+				},
+				{
+				  "key": "Content-Type",
+				  "value": "application/json",
+				  "type": "text"
+				}
+			  ],
+			  "body": {
+				"mode": "raw",
+				"raw": "{\n    \"fullName\": \"John Doe (New Customer)\",\n    \"email\": \"john.new.customer@example.com\",\n    \"phoneNumber\": \"+1987654321\",\n    \"address\": \"123 Customer Ln\",\n    \"city\": \"Custoville\",\n    \"zipCode\": \"CUST01\",\n    \"country\": \"Customerland\",\n    \"userId\": null \n}"
+			  },
+			  "url": {
+				"raw": "{{base_url}}/api/v1/customers",
+				"host": ["{{base_url}}"],
+				"path": ["api", "v1", "customers"]
+			  },
+			  "description": "Create a new customer (Requires authentication)"
+			},
+			"response": []
+		  },
+		  {
+			"name": "Update Customer",
+			"request": {
+			  "method": "PUT",
+			  "header": [
+				{
+				  "key": "Authorization",
+				  "value": "Bearer {{token}}",
+				  "type": "text"
+				},
+				{
+				  "key": "Content-Type",
+				  "value": "application/json",
+				  "type": "text"
+				}
+			  ],
+			  "body": {
+				"mode": "raw",
+				"raw": "{\n    \"fullName\": \"John Doe (Updated\",\n    \"phoneNumber\": \"+11122233344\",\n    \"city\": \"Updated City\"\n}"
+			  },
+			  "url": {
+				"raw": "{{base_url}}/api/v1/customers/:id",
+				"host": ["{{base_url}}"],
+				"path": ["api", "v1", "customers", ":id"],
+				"variable": [
+				  {
+					"key": "id",
+					"value": "{{customer_id}}",
+					"description": "ID of the customer to update"
+				  }
+				]
+			  },
+			  "description": "Update an existing customer (Requires authentication)"
+			},
+			"response": []
+		  },
+		  {
+			"name": "Delete Customer",
+			"request": {
+			  "method": "DELETE",
+			  "header": [
+				{
+				  "key": "Authorization",
+				  "value": "Bearer {{token}}",
+				  "type": "text"
+				}
+			  ],
+			  "url": {
+				"raw": "{{base_url}}/api/v1/customers/:id",
+				"host": ["{{base_url}}"],
+				"path": ["api", "v1", "customers", ":id"],
+				"variable": [
+				  {
+					"key": "id",
+					"value": "{{customer_id}}",
+					"description": "ID of the customer to delete"
+				  }
+				]
+			  },
+			  "description": "Delete a customer (Requires authentication)"
+			},
+			"response": []
+		  }
+		]
+	  },
+	  {
 		"name": "Orders",
 		"description": "Order management endpoints",
 		"item": [
