@@ -1,102 +1,96 @@
-import { IStore, Store } from '../domain/store.entity';
-import { StoreRepository, IStoreRepository } from '../domain/store.repository';
+import { IStore } from '../domain/store.entity';
+import { StoreRepository } from '../infrastructure/store.repository';
 import { validateStore } from '../domain/store.schema';
-import { notFoundError, validationError } from '../../../shared/types/appError';
-import logger from '../../../shared/infrastructure/logging/logger';
+import { validationError, notFoundError } from '@shared/types/appError';
+import logger from '@shared/infrastructure/logging/logger';
 import mongoose from 'mongoose';
 
 export class StoreService {
-  private repository: IStoreRepository;
+  private repository: StoreRepository;
 
-  constructor(repository: IStoreRepository = new StoreRepository()) {
+  constructor(repository: StoreRepository) {
     this.repository = repository;
   }
 
-  async createStore(storeData: Omit<IStore, 'ownerId'> & { ownerId: string }): Promise<IStore> {
+  async createStore(storeData: Omit<IStore, '_id'>): Promise<IStore> {
+    logger.info('Creating new store');
+    
     const { error } = validateStore(storeData);
     if (error) {
-      logger.error(`Error creating store: ${error.details[0].message}`);
+      logger.error(`Validation error creating store: ${error.details[0].message}`);
       throw validationError(error.details[0].message);
     }
 
+    // Check if store with email already exists
     const existingStore = await this.repository.findByEmail(storeData.email);
     if (existingStore) {
-      logger.error(`Error creating store: Email ${storeData.email} already registered`);
-      throw validationError('Email already registered');
+      logger.error(`Store with email ${storeData.email} already exists`);
+      throw validationError('Store with this email already exists');
     }
 
-    const store = new Store({
-      ...storeData,
-      ownerId: new mongoose.Types.ObjectId(storeData.ownerId)
-    });
-    return await this.repository.create(store);
+    // Convert ownerId to ObjectId if it's a string
+    if (typeof storeData.ownerId === 'string') {
+      storeData.ownerId = new mongoose.Types.ObjectId(storeData.ownerId);
+    }
+
+    return this.repository.create(storeData);
   }
 
   async getStores(): Promise<IStore[]> {
-    return await this.repository.findAll();
+    logger.info('Getting all stores');
+    return this.repository.findAll();
   }
 
   async getStoreById(id: string): Promise<IStore> {
+    logger.info(`Getting store by ID: ${id}`);
     const store = await this.repository.findById(id);
     if (!store) {
-      logger.error(`Store with id ${id} not found`);
+      logger.error(`Store with ID ${id} not found`);
       throw notFoundError('Store not found');
     }
     return store;
   }
 
   async getStoresByOwnerId(ownerId: string): Promise<IStore[]> {
-    return await this.repository.findByOwnerId(ownerId);
+    logger.info(`Getting stores by owner ID: ${ownerId}`);
+    return this.repository.findByOwnerId(ownerId);
   }
 
-  async updateStore(id: string, storeData: Partial<Omit<IStore, 'ownerId'>> & { ownerId?: string }): Promise<IStore> {
-    const existingStore = await this.repository.findById(id);
-    if (!existingStore) {
-      logger.error(`Store with id ${id} not found`);
-      throw notFoundError('Store not found');
-    }
-
-    // Create a clean object with only the fields we want to validate
-    const cleanData = {
-      name: storeData.name ?? existingStore.name,
-      email: storeData.email ?? existingStore.email,
-      phone: storeData.phone ?? existingStore.phone,
-      address: storeData.address ?? existingStore.address,
-      ownerId: storeData.ownerId ?? existingStore.ownerId.toString()
-    };
-
-    const { error } = validateStore(cleanData);
-    if (error) {
-      logger.error(`Error updating store: ${error.details[0].message}`);
-      throw validationError(error.details[0].message);
-    }
-
+  async updateStore(id: string, storeData: Partial<IStore>): Promise<IStore> {
+    logger.info(`Updating store ${id}`);
+    
+    // If email is being updated, check for uniqueness
     if (storeData.email) {
-      const existingStoreWithEmail = await this.repository.findByEmail(storeData.email);
-      if (existingStoreWithEmail && existingStoreWithEmail._id?.toString() !== id) {
-        logger.error(`Error updating store: Email ${storeData.email} already in use`);
-        throw validationError('Email already in use');
+      const existingStore = await this.repository.findByEmail(storeData.email);
+      if (existingStore && existingStore._id?.toString() !== id) {
+        logger.error(`Store with email ${storeData.email} already exists`);
+        throw validationError('Store with this email already exists');
       }
     }
 
-    const { ownerId, ...restData } = storeData;
-    const updateData: Partial<IStore> = {
-      ...restData,
-      ...(ownerId && { ownerId: new mongoose.Types.ObjectId(ownerId) })
-    };
-
-    const store = await this.repository.update(id, updateData);
+    const store = await this.repository.update(id, storeData);
     if (!store) {
-      logger.error(`Store with id ${id} not found`);
+      logger.error(`Store with ID ${id} not found for update`);
       throw notFoundError('Store not found');
     }
     return store;
   }
 
   async deleteStore(id: string): Promise<IStore> {
+    logger.info(`Deleting store ${id}`);
     const store = await this.repository.delete(id);
     if (!store) {
-      logger.error(`Store with id ${id} not found`);
+      logger.error(`Store with ID ${id} not found for deletion`);
+      throw notFoundError('Store not found');
+    }
+    return store;
+  }
+
+  async updateStoreLogo(id: string, logoPath: string): Promise<IStore> {
+    logger.info(`Updating logo for store ${id}`);
+    const store = await this.repository.updateLogo(id, logoPath);
+    if (!store) {
+      logger.error(`Store with ID ${id} not found for logo update`);
       throw notFoundError('Store not found');
     }
     return store;

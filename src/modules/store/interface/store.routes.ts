@@ -1,29 +1,40 @@
-import { Router } from 'express';
+import express from 'express';
 import { StoreController } from './store.controller';
+import { StoreService } from '../application/store.service';
+import { StoreRepository } from '../infrastructure/store.repository';
 import { authenticate } from '@shared/infrastructure/middleware/auth';
-import { authorize } from '@shared/infrastructure/middleware/authorize';
+import { uploadStoreLogo } from '@shared/infrastructure/services/fileUpload';
 
-const router = Router();
-const storeController = new StoreController();
+const router = express.Router();
 
-// Public routes (no authentication required)
-router.get('/', storeController.getStores);
-router.get('/:id', storeController.getStoreById);
+// Initialize repository, service, and controller
+const storeRepository = new StoreRepository();
+const storeService = new StoreService(storeRepository);
+const storeController = new StoreController(storeService);
 
-// Protected routes (authentication required)
+// Apply authentication middleware
 router.use(authenticate);
 
-router
-  .route('/')
-  .post(storeController.createStore);
+// Get all stores
+router.get('/', (req, res, next) => storeController.getStores(req, res, next));
 
-router
-  .route('/owner/:ownerId')
-  .get(storeController.getStoresByOwnerId);
+// Create new store with logo
+router.post('/', uploadStoreLogo.single('logo'), (req, res, next) => 
+  storeController.createStore(req, res, next)
+);
 
-router
-  .route('/:id')
-  .put(storeController.updateStore)
-  .delete(authorize(['admin']), storeController.deleteStore);
+// Get store by ID
+router.get('/:id', (req, res, next) => storeController.getStoreById(req, res, next));
 
-export const storeRoutes = router; 
+// Update store with logo
+router.put('/:id', uploadStoreLogo.single('logo'), (req, res, next) => 
+  storeController.updateStore(req, res, next)
+);
+
+// Delete store
+router.delete('/:id', (req, res, next) => storeController.deleteStore(req, res, next));
+
+// Get store logo
+router.get('/:id/logo', (req, res, next) => storeController.getLogo(req, res, next));
+
+export { router as storeRoutes }; 
