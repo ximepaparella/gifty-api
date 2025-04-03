@@ -24,6 +24,7 @@ import { storeRoutes } from '@modules/store/interface/store.routes';
 import { productRoutes } from '@modules/product/interface/product.routes';
 import voucherRoutes from '@modules/voucher/interface/voucher.routes';
 import orderRoutes from '@modules/order/interface/order.routes';
+const customerRoutes = require('@modules/customer/interface/customer.routes');
 import { UserController } from '@modules/user/interface/user.controller';
 import { UserService } from '@modules/user/application/user.service';
 import { MongoUserRepository } from '@modules/user/infrastructure/user.repository';
@@ -60,11 +61,18 @@ if (!fs.existsSync(vouchersDir)) {
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Routes
-
+// Public routes
 app.post('/api/v1/login', (req: Request, res: Response) => userController.login(req, res));
-app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/auth', passwordResetRoutes);
+app.use('/api/v1/customers', customerRoutes);
+
+// Health check endpoint
+app.get('/health', (req: Request, res: Response) => {
+  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Protected routes
+app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/stores', storeRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/vouchers', voucherRoutes);
@@ -72,11 +80,6 @@ app.use('/api/v1/orders', orderRoutes);
 
 // Setup Swagger documentation
 setupSwagger(app);
-
-// Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
-});
 
 // Error handling middleware
 const errorHandler: ErrorRequestHandler = (err: AppError, req: Request, res: Response, next: NextFunction): void => {

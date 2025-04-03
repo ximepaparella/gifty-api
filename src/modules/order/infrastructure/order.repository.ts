@@ -1,34 +1,34 @@
 import { IOrder, IOrderInput, IOrderRepository } from '../domain/order.interface';
-import { Order } from '../domain/order.schema';
+import { OrderModel } from '../domain/order.schema';
 import { notFoundError } from '@shared/types/appError';
 import logger from '@shared/infrastructure/logging/logger';
 import mongoose from 'mongoose';
 
 export class OrderRepository implements IOrderRepository {
   async findAll(): Promise<IOrder[]> {
-    return Order.find().exec();
+    return OrderModel.find().exec();
   }
 
   async findById(id: string): Promise<IOrder | null> {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return null;
     }
-    return Order.findById(id).exec();
+    return OrderModel.findById(id).exec();
   }
 
   async findByCustomerId(customerId: string): Promise<IOrder[]> {
     if (!mongoose.Types.ObjectId.isValid(customerId)) {
       return [];
     }
-    return Order.find({ customerId }).exec();
+    return OrderModel.find({ customerId }).exec();
   }
 
   async findByVoucherCode(code: string): Promise<IOrder | null> {
-    return Order.findOne({ 'voucher.code': code }).exec();
+    return OrderModel.findOne({ 'voucher.code': code }).exec();
   }
 
   async create(order: IOrderInput): Promise<IOrder> {
-    const newOrder = new Order(order);
+    const newOrder = new OrderModel(order);
     return newOrder.save();
   }
 
@@ -36,14 +36,14 @@ export class OrderRepository implements IOrderRepository {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return null;
     }
-    return Order.findByIdAndUpdate(id, order, { new: true }).exec();
+    return OrderModel.findByIdAndUpdate(id, order, { new: true }).exec();
   }
 
   async delete(id: string): Promise<boolean> {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return false;
     }
-    const result = await Order.findByIdAndDelete(id).exec();
+    const result = await OrderModel.findByIdAndDelete(id).exec();
     return result !== null;
   }
 
@@ -55,7 +55,7 @@ export class OrderRepository implements IOrderRepository {
       
       logger.info(`Updating email sent status for order ${id} to ${status}`);
       
-      const updatedOrder = await Order.findByIdAndUpdate(
+      const updatedOrder = await OrderModel.findByIdAndUpdate(
         id,
         { $set: { emailsSent: status } },
         { new: true }
@@ -82,7 +82,7 @@ export class OrderRepository implements IOrderRepository {
       
       logger.info(`Updating PDF generated status for order ${id} to ${status}`);
       
-      const updatedOrder = await Order.findByIdAndUpdate(
+      const updatedOrder = await OrderModel.findByIdAndUpdate(
         id,
         { $set: { pdfGenerated: status } },
         { new: true }
@@ -107,7 +107,7 @@ export class OrderRepository implements IOrderRepository {
       
       // Use atomic findOneAndUpdate to prevent race conditions
       const now = new Date();
-      const redeemedOrder = await Order.findOneAndUpdate(
+      const redeemedOrder = await OrderModel.findOneAndUpdate(
         { 
           'voucher.code': voucherCode, 
           'voucher.status': 'active',
@@ -127,7 +127,7 @@ export class OrderRepository implements IOrderRepository {
 
       if (!redeemedOrder) {
         // Check if the voucher exists but is already redeemed or expired
-        const existingOrder = await Order.findOne({ 'voucher.code': voucherCode }).exec();
+        const existingOrder = await OrderModel.findOne({ 'voucher.code': voucherCode }).exec();
         
         if (!existingOrder) {
           logger.warn(`Voucher with code ${voucherCode} not found`);
@@ -159,7 +159,7 @@ export class OrderRepository implements IOrderRepository {
   async updatePdfUrl(id: string, pdfUrl: string): Promise<IOrder | null> {
     try {
       logger.info(`Updating PDF URL for order ${id} to ${pdfUrl}`);
-      const updatedOrder = await Order.findByIdAndUpdate(
+      const updatedOrder = await OrderModel.findByIdAndUpdate(
         id,
         {
           $set: {
