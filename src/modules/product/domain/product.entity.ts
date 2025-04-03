@@ -1,23 +1,25 @@
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
 export interface IProduct {
-  _id?: mongoose.Types.ObjectId;
-  storeId: mongoose.Types.ObjectId;
+  _id?: Types.ObjectId;
+  storeId: Types.ObjectId;
   name: string;
   description: string;
   price: number;
   isActive: boolean;
+  image?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 export class Product implements IProduct {
-  _id?: mongoose.Types.ObjectId;
-  storeId: mongoose.Types.ObjectId;
+  _id?: Types.ObjectId;
+  storeId: Types.ObjectId;
   name: string;
   description: string;
   price: number;
   isActive: boolean;
+  image?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 
@@ -28,6 +30,7 @@ export class Product implements IProduct {
     this.description = product.description;
     this.price = product.price;
     this.isActive = product.isActive ?? true;
+    this.image = product.image;
     this.createdAt = product.createdAt;
     this.updatedAt = product.updatedAt;
   }

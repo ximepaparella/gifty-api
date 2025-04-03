@@ -1,16 +1,21 @@
 import Joi from 'joi';
 import mongoose from 'mongoose';
+import { IProduct } from './product.entity';
 
-export const ProductSchema = new mongoose.Schema({
+const ProductSchema = new mongoose.Schema<IProduct>({
   _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
-  storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true },
   name: { type: String, required: true },
   description: { type: String, required: true },
   price: { type: Number, required: true },
-  isActive: { type: Boolean, default: true },
+  storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true },
+  image: { type: String, default: null },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
+
+// Add indexes
+ProductSchema.index({ storeId: 1 });
+ProductSchema.index({ name: 1 });
 
 ProductSchema.pre('save', function(next) {
   this.updatedAt = new Date();
@@ -44,8 +49,12 @@ export const validateProduct = (product: unknown) => {
       'number.positive': 'Price must be positive',
       'any.required': 'Price is required'
     }),
-    isActive: Joi.boolean().default(true)
+    isActive: Joi.boolean().default(true),
+    image: Joi.string().allow(null).optional()
   });
 
   return schema.validate(product);
-}; 
+};
+
+export const Product = mongoose.model<IProduct>('Product', ProductSchema);
+export default Product; 

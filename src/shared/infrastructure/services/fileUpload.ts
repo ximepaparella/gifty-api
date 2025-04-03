@@ -26,6 +26,26 @@ const storageForStoreLogo = multer.diskStorage({
   }
 });
 
+// Configure product image storage
+const storageForProductImage = multer.diskStorage({
+  destination: (req: Request, file: Express.Multer.File, cb) => {
+    const storeName = req.body.storeName || 'default';
+    const uploadPath = path.join(__dirname, '../../../../uploads', storeName, 'products');
+    
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    
+    cb(null, uploadPath);
+  },
+  filename: (req: Request, file: Express.Multer.File, cb) => {
+    const ext = path.extname(file.originalname);
+    const filename = `product-${Date.now()}${ext}`;
+    cb(null, filename);
+  }
+});
+
 // File filter for images
 const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   // Accept images only
@@ -35,7 +55,7 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
   cb(null, true);
 };
 
-// Create multer upload instance for store logos
+// Create multer upload instances
 export const uploadStoreLogo = multer({
   storage: storageForStoreLogo,
   fileFilter: fileFilter,
@@ -44,14 +64,22 @@ export const uploadStoreLogo = multer({
   }
 });
 
-// Function to delete old logo if it exists
-export const deleteOldLogo = async (logoPath: string) => {
+export const uploadProductImage = multer({
+  storage: storageForProductImage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
+
+// Function to delete old file if it exists
+export const deleteOldFile = async (filePath: string) => {
   try {
-    if (fs.existsSync(logoPath)) {
-      await fs.promises.unlink(logoPath);
-      logger.info(`Deleted old logo: ${logoPath}`);
+    if (fs.existsSync(filePath)) {
+      await fs.promises.unlink(filePath);
+      logger.info(`Deleted old file: ${filePath}`);
     }
   } catch (error) {
-    logger.error(`Error deleting old logo: ${error}`);
+    logger.error(`Error deleting old file: ${error}`);
   }
 }; 
