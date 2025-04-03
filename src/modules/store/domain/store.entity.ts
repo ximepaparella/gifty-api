@@ -7,6 +7,17 @@ export interface IStore {
   email: string;
   phone: string;
   address: string;
+  logo?: string | null;
+  social?: {
+    instagram?: string | null;
+    facebook?: string | null;
+    tiktok?: string | null;
+    youtube?: string | null;
+    others?: Array<{
+      name: string;
+      url: string;
+    }>;
+  };
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -18,6 +29,17 @@ export class Store implements IStore {
   public email: string;
   public phone: string;
   public address: string;
+  public logo?: string | null;
+  public social?: {
+    instagram?: string | null;
+    facebook?: string | null;
+    tiktok?: string | null;
+    youtube?: string | null;
+    others?: Array<{
+      name: string;
+      url: string;
+    }>;
+  };
   public createdAt?: Date;
   public updatedAt?: Date;
 
@@ -28,6 +50,8 @@ export class Store implements IStore {
     this.email = store.email;
     this.phone = store.phone;
     this.address = store.address;
+    this.logo = store.logo;
+    this.social = store.social;
     this.createdAt = store.createdAt;
     this.updatedAt = store.updatedAt;
   }
@@ -40,6 +64,8 @@ export class Store implements IStore {
       email: this.email,
       phone: this.phone,
       address: this.address,
+      logo: this.logo,
+      social: this.social,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt
     };
