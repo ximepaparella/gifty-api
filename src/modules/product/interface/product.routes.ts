@@ -1,27 +1,40 @@
-import { Router } from 'express';
+import express from 'express';
 import { ProductController } from './product.controller';
 import { ProductService } from '../application/product.service';
+import { ProductRepository } from '../infrastructure/product.repository';
 import { authenticate } from '@shared/infrastructure/middleware/auth';
+import { uploadProductImage } from '@shared/infrastructure/services/fileUpload';
 
-const router = Router();
-const service = new ProductService();
-const controller = new ProductController(service);
+const router = express.Router();
 
-// Public routes (no authentication required)
-router.get('/', controller.getProducts);
-router.get('/store/:storeId', controller.getProductsByStoreId);
-router.get('/:id', controller.getProductById);
+// Initialize repository, service, and controller
+const productRepository = new ProductRepository();
+const productService = new ProductService(productRepository);
+const productController = new ProductController(productService);
 
-// Protected routes (authentication required)
+// Apply authentication middleware
 router.use(authenticate);
 
-router
-  .route('/')
-  .post(controller.createProduct);
+// Get all products
+router.get('/', (req, res, next) => productController.getProducts(req, res, next));
 
-router
-  .route('/:id')
-  .put(controller.updateProduct)
-  .delete(controller.deleteProduct);
+// Create new product with image
+router.post('/', uploadProductImage.single('image'), (req, res, next) => 
+  productController.createProduct(req, res, next)
+);
 
-export const productRoutes = router; 
+// Get product by ID
+router.get('/:id', (req, res, next) => productController.getProductById(req, res, next));
+
+// Update product with image
+router.put('/:id', uploadProductImage.single('image'), (req, res, next) => 
+  productController.updateProduct(req, res, next)
+);
+
+// Delete product
+router.delete('/:id', (req, res, next) => productController.deleteProduct(req, res, next));
+
+// Get product image
+router.get('/:id/image', (req, res, next) => productController.getImage(req, res, next));
+
+export { router as productRoutes }; 
