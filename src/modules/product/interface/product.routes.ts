@@ -12,19 +12,20 @@ const productRepository = new ProductRepository();
 const productService = new ProductService(productRepository);
 const productController = new ProductController(productService);
 
-// Apply authentication middleware
-router.use(authenticate);
-
+// Public routes
 // Get all products
 router.get('/', (req, res, next) => productController.getProducts(req, res, next));
+
+// Get product by ID
+router.get('/:id', (req, res, next) => productController.getProductById(req, res, next));
 
 // Create new product with image
 router.post('/', uploadProductImage.single('image'), (req, res, next) => 
   productController.createProduct(req, res, next)
 );
 
-// Get product by ID
-router.get('/:id', (req, res, next) => productController.getProductById(req, res, next));
+// Protected routes
+router.use(authenticate);
 
 // Update product with image
 router.put('/:id', uploadProductImage.single('image'), (req, res, next) => 
