@@ -12,29 +12,30 @@ const storeRepository = new StoreRepository();
 const storeService = new StoreService(storeRepository);
 const storeController = new StoreController(storeService);
 
-// Apply authentication middleware
-router.use(authenticate);
-
+// Public routes
 // Get all stores
 router.get('/', (req, res, next) => storeController.getStores(req, res, next));
+
+// Get store by ID
+router.get('/:id([0-9a-fA-F]{24})', (req, res, next) => storeController.getStoreById(req, res, next));
+
+// Get store logo
+router.get('/:id([0-9a-fA-F]{24})/logo', (req, res, next) => storeController.getLogo(req, res, next));
+
+// Protected routes
+router.use(authenticate);
 
 // Create new store with logo
 router.post('/', uploadStoreLogo.single('logo'), (req, res, next) => 
   storeController.createStore(req, res, next)
 );
 
-// Get store by ID
-router.get('/:id', (req, res, next) => storeController.getStoreById(req, res, next));
-
 // Update store with logo
-router.put('/:id', uploadStoreLogo.single('logo'), (req, res, next) => 
+router.put('/:id([0-9a-fA-F]{24})', uploadStoreLogo.single('logo'), (req, res, next) => 
   storeController.updateStore(req, res, next)
 );
 
 // Delete store
-router.delete('/:id', (req, res, next) => storeController.deleteStore(req, res, next));
-
-// Get store logo
-router.get('/:id/logo', (req, res, next) => storeController.getLogo(req, res, next));
+router.delete('/:id([0-9a-fA-F]{24})', (req, res, next) => storeController.deleteStore(req, res, next));
 
 export { router as storeRoutes }; 
