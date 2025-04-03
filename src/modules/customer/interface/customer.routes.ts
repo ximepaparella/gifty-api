@@ -19,11 +19,21 @@ router.post('/', (req, res, next) => customerController.createCustomer(req, res,
 // Get or create customer
 router.post('/get-or-create', (req, res, next) => customerController.getOrCreateCustomer(req, res, next));
 
-// Protected routes below
-// Get all customers
-router.get('/', authenticate, (req, res, next) => customerController.getCustomers(req, res, next));
+
+// Protected routes
+router.use(authenticate);
+
+// Get customer by ID
 router.get('/:id', (req, res, next) => customerController.getCustomerById(req, res, next));
+
+
+// Get all customers
+router.get('/', (req, res, next) => customerController.getCustomers(req, res, next));
+
+// Update customer
 router.put('/:id', (req, res, next) => customerController.updateCustomer(req, res, next));
+
+// Delete customer
 router.delete('/:id', (req, res, next) => customerController.deleteCustomer(req, res, next));
 
 // Export the router
