@@ -77,7 +77,7 @@ const storageForProductImage = new CloudinaryStorage({
   params: async (req: any, file: any) => {
     try {
       let storeId = null;
-      let folderPath = 'products'; // Default generic folder
+      let folderPath = 'products/temp'; // Default temp folder
       
       logger.info('Request body:', req.body);
       
@@ -139,6 +139,47 @@ const storageForProductImage = new CloudinaryStorage({
         body: req.body,
         params: req.params
       });
+      // Return default configuration instead of throwing
+      const timestamp = Date.now().toString();
+      return {
+        folder: 'products/temp',
+        format: 'jpg',
+        public_id: `product-${timestamp}`,
+        transformation: [{ 
+          width: 800, 
+          height: 800, 
+          crop: 'limit',
+          quality: 'auto',
+          fetch_format: 'auto'
+        }],
+        resource_type: 'auto'
+      };
+    }
+  }
+});
+
+// Configure voucher PDF storage in Cloudinary
+const storageForVoucherPDF = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req: any, file: any) => {
+    try {
+      // Generate timestamp for unique file naming
+      const timestamp = Date.now().toString();
+      const folderPath = 'vouchers';
+      logger.info('Using voucher folder path:', folderPath);
+      
+      return {
+        folder: folderPath,
+        format: 'pdf',
+        public_id: `voucher-${timestamp}`,
+        resource_type: 'raw' // Important: Use raw for PDFs
+      };
+    } catch (error) {
+      logger.error('Error in voucher PDF storage configuration:', error);
+      logger.error('Request details:', {
+        body: req.body,
+        params: req.params
+      });
       throw error;
     }
   }
@@ -149,6 +190,15 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
   // Accept images only
   if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
     return cb(new Error('Only image files are allowed!'));
+  }
+  cb(null, true);
+};
+
+// File filter for PDFs
+const pdfFileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  // Accept PDFs only
+  if (!file.originalname.match(/\.pdf$/)) {
+    return cb(new Error('Only PDF files are allowed!'));
   }
   cb(null, true);
 };
@@ -169,6 +219,14 @@ export const uploadProductImage = multer({
     fileSize: 5 * 1024 * 1024 // 5MB limit
   }
 }).single('image');
+
+export const uploadVoucherPDF = multer({
+  storage: storageForVoucherPDF,
+  fileFilter: pdfFileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit for PDFs
+  }
+}).single('pdf');
 
 // Function to delete file from Cloudinary
 export const deleteFile = async (publicUrl: string) => {

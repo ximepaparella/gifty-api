@@ -36,6 +36,9 @@
     "clean-install": "npm run cleanup && npm install"
   },
   "dependencies": {
+    "@types/axios": "^0.9.36",
+    "@types/puppeteer": "^5.4.7",
+    "axios": "^1.8.4",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.41.3",
@@ -55,7 +58,7 @@
     "passport-facebook": "^3.0.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
-    "puppeteer": "^24.4.0",
+    "puppeteer": "^24.6.0",
     "qrcode": "^1.5.4",
     "slugify": "^1.6.6",
     "swagger-jsdoc": "^6.2.8",
