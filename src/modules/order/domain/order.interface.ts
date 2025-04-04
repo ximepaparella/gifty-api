@@ -1,18 +1,21 @@
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
-export interface PaymentDetails {
+export interface IPaymentDetails {
   paymentId: string;
-  paymentStatus: 'pending' | 'completed' | 'failed';
+  status: 'pending' | 'completed' | 'failed';
   paymentEmail: string;
   amount: number;
   provider: 'mercadopago' | 'paypal' | 'stripe';
+  currency?: string;
+  paymentMethod?: string;
+  transactionId?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 export interface VoucherDetails {
-  storeId: string | mongoose.Types.ObjectId;
-  productId: string | mongoose.Types.ObjectId;
+  storeId: string | Types.ObjectId;
+  productId: string | Types.ObjectId;
   code: string;
   status: 'active' | 'redeemed' | 'expired';
   expirationDate: Date;
@@ -22,38 +25,33 @@ export interface VoucherDetails {
   receiverName: string;
   receiverEmail: string;
   message: string;
-  template: 'template1' | 'template2' | 'template3' | 'template4' | 'template5' ;
+  template: 'template1' | 'template2' | 'template3' | 'template4' | 'template5';
   redeemedAt?: Date;
 }
 
+export interface IVoucher {
+  storeId: string | Types.ObjectId;
+  productId: string | Types.ObjectId;
+  code: string;
+  status: 'active' | 'redeemed' | 'expired';
+  isRedeemed: boolean;
+  redeemedAt: Date | null;
+  senderName: string;
+  senderEmail: string;
+  receiverName: string;
+  receiverEmail: string;
+  message?: string;
+  qrCode?: string;
+  amount: number;
+  expirationDate: Date;
+  template: 'template1' | 'template2' | 'template3' | 'template4' | 'template5';
+}
+
 export interface IOrder {
-  _id?: mongoose.Types.ObjectId;
-  customerId: mongoose.Types.ObjectId | string;
-  paymentDetails: {
-    paymentId: string;
-    paymentStatus: 'pending' | 'completed' | 'failed';
-    paymentEmail: string;
-    amount: number;
-    provider: 'mercadopago' | 'paypal' | 'stripe';
-    createdAt?: Date;
-    updatedAt?: Date;
-  };
-  voucher: {
-    storeId: mongoose.Types.ObjectId | string;
-    productId: mongoose.Types.ObjectId | string;
-    code: string;
-    status: 'active' | 'redeemed' | 'expired';
-    isRedeemed: boolean;
-    redeemedAt: Date | null;
-    expirationDate: Date;
-    qrCode?: string;
-    senderName: string;
-    senderEmail: string;
-    receiverName: string;
-    receiverEmail: string;
-    message: string;
-    template: 'template1' | 'template2' | 'template3' | 'template4' | 'template5';
-  };
+  _id?: Types.ObjectId;
+  customerId: string | Types.ObjectId;
+  voucher: IVoucher;
+  paymentDetails: IPaymentDetails;
   emailsSent: boolean;
   pdfGenerated: boolean;
   pdfUrl?: string;
@@ -63,37 +61,18 @@ export interface IOrder {
 
 export interface IOrderInput {
   customerId: string;
-  paymentDetails: {
-    paymentId: string;
-    paymentStatus: 'pending' | 'completed' | 'failed';
-    paymentEmail: string;
-    amount: number;
-    provider: 'mercadopago' | 'paypal' | 'stripe';
-  };
-  voucher: {
-    storeId: string;
-    productId: string;
-    code?: string;
-    expirationDate: Date;
-    senderName: string;
-    senderEmail: string;
-    receiverName: string;
-    receiverEmail: string;
-    message: string;
-    template: 'template1' | 'template2' | 'template3' | 'template4' | 'template5';
-  };
+  voucher: Omit<IVoucher, 'status' | 'isRedeemed' | 'redeemedAt' | 'qrCode'>;
+  paymentDetails: Omit<IPaymentDetails, 'status' | 'createdAt' | 'updatedAt'>;
+  pdfUrl?: string;
+  pdfGenerated?: boolean;
 }
 
 export interface IOrderRepository {
+  create(order: IOrder): Promise<IOrder>;
   findAll(): Promise<IOrder[]>;
   findById(id: string): Promise<IOrder | null>;
   findByCustomerId(customerId: string): Promise<IOrder[]>;
   findByVoucherCode(code: string): Promise<IOrder | null>;
-  create(order: IOrderInput): Promise<IOrder>;
   update(id: string, order: Partial<IOrderInput>): Promise<IOrder | null>;
   delete(id: string): Promise<boolean>;
-  updateEmailSentStatus(id: string, status: boolean): Promise<IOrder | null>;
-  updatePdfGeneratedStatus(id: string, status: boolean): Promise<IOrder | null>;
-  updatePdfUrl(id: string, pdfUrl: string): Promise<IOrder | null>;
-  redeemVoucher(voucherCode: string): Promise<IOrder | null>;
 } 

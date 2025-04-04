@@ -1,17 +1,15 @@
-import { IOrder, IOrderInput, IOrderRepository } from '../domain/order.interface';
-import { notFoundError, validationError } from '@shared/types/appError';
+import { IOrder, IOrderInput } from '../domain/order.interface';
+import { notFoundError, validationError, AppError } from '@shared/types/appError';
 import { validateOrder } from './order.validator';
 import logger from '@shared/infrastructure/logging/logger';
 import path from 'path';
 import puppeteer from 'puppeteer';
 import fs from 'fs';
-import { sendEmail } from '@shared/utils';
 import { OrderRepository } from '../infrastructure/order.repository';
 import { generateRandomCode } from '@shared/utils/codeGenerator';
-import { AppError } from '@shared/types/appError';
-import mongoose from 'mongoose';
 import { sendAllVoucherEmails, resendCustomerEmail, resendReceiverEmail, resendStoreEmail } from '../utils/voucherEmails';
 import { generateVoucherRedemptionQRCode } from '@shared/utils/qrCodeGenerator';
+import { Store } from '../../store/domain/store.schema';
 
 export class OrderService {
   constructor(private orderRepository: OrderRepository) {}
@@ -122,7 +120,13 @@ export class OrderService {
     }
     
     // Update the order
-    return this.orderRepository.update(id, orderData);
+    const updateData = {
+      ...orderData,
+      updatedAt: new Date()
+    } as Partial<IOrderInput>;
+    
+    await this.orderRepository.update(id, updateData);
+    return this.orderRepository.findById(id);
   }
 
   /**
@@ -185,9 +189,8 @@ export class OrderService {
 
   /**
    * Helper method for email resend operations that handles common operations
-   * like checking if order exists, ensuring PDF is generated, and error handling
    */
-  private async prepareOrderForEmailResend(id: string): Promise<{order: IOrder, pdfPath: string} | null> {
+  private async prepareOrderForEmailResend(id: string): Promise<{order: IOrder, pdfUrl: string} | null> {
     // Check if order exists
     const order = await this.orderRepository.findById(id);
     if (!order) {
@@ -195,25 +198,22 @@ export class OrderService {
     }
     
     try {
-      // Check if PDF exists
-      const pdfFilename = `voucher-${order.voucher.code}.pdf`;
-      const pdfPath = path.join(__dirname, '../../../../uploads/vouchers', pdfFilename);
-      
-      if (!fs.existsSync(pdfPath)) {
-        // Generate PDF if it doesn't exist
-        logger.info(`PDF doesn't exist, generating it for order ${id}`);
-        await this.generateVoucherPDF(id);
-        
-        // Check again if PDF exists
-        if (!fs.existsSync(pdfPath)) {
-          throw new Error(`PDF file could not be generated for order ${id}`);
+      // Generate PDF if not already generated
+      if (!order.pdfUrl) {
+        const pdfUrl = await this.generateVoucherPDF(id);
+        if (!pdfUrl) {
+          throw new Error('Failed to generate PDF');
         }
+        order.pdfUrl = pdfUrl;
       }
-      
-      return { order, pdfPath };
-    } catch (error: any) {
-      logger.error(`Error preparing order ${id} for email resend: ${error.message}`, error);
-      throw error;
+
+      return {
+        order,
+        pdfUrl: order.pdfUrl
+      };
+    } catch (error) {
+      logger.error(`Error preparing order for email resend: ${error}`);
+      return null;
     }
   }
 
@@ -228,7 +228,7 @@ export class OrderService {
       if (!result) return false;
       
       // Send all emails
-      const emailResult = await sendAllVoucherEmails(id, result.pdfPath);
+      const emailResult = await sendAllVoucherEmails(id, result.pdfUrl);
       
       if (!emailResult) {
         throw new Error(`Failed to send emails for order ${id}`);
@@ -258,7 +258,7 @@ export class OrderService {
       if (!result) return false;
       
       // Send email only to the customer
-      const emailResult = await resendCustomerEmail(id, result.pdfPath);
+      const emailResult = await resendCustomerEmail(id, result.pdfUrl);
       
       if (!emailResult) {
         throw new Error(`Failed to send customer email for order ${id}`);
@@ -282,7 +282,7 @@ export class OrderService {
       if (!result) return false;
       
       // Send email only to the receiver
-      const emailResult = await resendReceiverEmail(id, result.pdfPath);
+      const emailResult = await resendReceiverEmail(id, result.pdfUrl);
       
       if (!emailResult) {
         throw new Error(`Failed to send receiver email for order ${id}`);
@@ -306,7 +306,7 @@ export class OrderService {
       if (!result) return false;
       
       // Send email only to the store
-      const emailResult = await resendStoreEmail(id, result.pdfPath);
+      const emailResult = await resendStoreEmail(id, result.pdfUrl);
       
       if (!emailResult) {
         throw new Error(`Failed to send store email for order ${id}`);
@@ -328,7 +328,7 @@ export class OrderService {
       if (!result) return false;
       
       // Send all emails
-      const emailResult = await sendAllVoucherEmails(orderId, result.pdfPath);
+      const emailResult = await sendAllVoucherEmails(orderId, result.pdfUrl);
       
       if (!emailResult) {
         throw new Error(`Failed to send emails for order ${orderId}`);
@@ -348,101 +348,104 @@ export class OrderService {
   }
 
   /**
-   * Generate a PDF version of the voucher
+   * Generate voucher PDF and store it locally
    */
-  async generateVoucherPDF(orderId: string): Promise<Buffer | null> {
-    const order = await this.orderRepository.findById(orderId);
-    if (!order) return null;
-    
+  async generateVoucherPDF(orderId: string): Promise<string | null> {
+    logger.info(`Generating voucher PDF for order ${orderId}`);
     let browser = null;
+    
     try {
-      logger.info(`Starting PDF generation for order: ${orderId}`);
-      
-      // Get store and product information
-      logger.info(`Fetching store with ID: ${order.voucher.storeId}`);
-      const Store = mongoose.model('Store');
+      // Get order details
+      const order = await this.orderRepository.findById(orderId);
+      if (!order) {
+        throw new AppError('Order not found', 404);
+      }
+
+      // Get store details
       const store = await Store.findById(order.voucher.storeId);
       if (!store) {
-        throw new Error(`Store not found with ID: ${order.voucher.storeId}`);
+        throw new AppError('Store not found', 404);
       }
-      logger.info(`Store found: ${store.name}`);
 
-      logger.info(`Fetching product with ID: ${order.voucher.productId}`);
-      const Product = mongoose.model('Product');
-      const product = await Product.findById(order.voucher.productId);
-      if (!product) {
-        throw new Error(`Product not found with ID: ${order.voucher.productId}`);
+      // Create vouchers directory if it doesn't exist
+      const vouchersDir = path.join(process.cwd(), 'uploads', 'vouchers');
+      if (!fs.existsSync(vouchersDir)) {
+        fs.mkdirSync(vouchersDir, { recursive: true });
       }
-      logger.info(`Product found: ${product.name}`);
 
-      // Read the template file
-      const templateName = `voucher-${order.voucher.template}`;
-      const templatePath = path.join(
-        __dirname,
-        '../../../templates',
-        `${templateName}.html`
-      );
+      // Generate PDF filename
+      const timestamp = Date.now();
+      const pdfFileName = `voucher-${order.voucher.code}-${timestamp}.pdf`;
+      const pdfPath = path.join(vouchersDir, pdfFileName);
+
+      // Get template content
+      const templateNumber = order.voucher.template || 'template1';
+      const templatePath = path.join(process.cwd(), 'src', 'templates', `voucher-${templateNumber}.html`);
       
-      logger.info(`Template path: ${templatePath}`);
-      logger.info(`Template exists: ${fs.existsSync(templatePath)}`);
+      logger.info(`Using template: ${templatePath}`);
       
       if (!fs.existsSync(templatePath)) {
-        throw new Error(`Template file not found at path: ${templatePath}`);
-      }
-      
-      let templateHtml = fs.readFileSync(templatePath, 'utf8');
-      logger.info(`Template loaded, size: ${templateHtml.length} bytes`);
-
-      // Replace placeholders with actual data
-      logger.info('Replacing placeholders in template');
-      templateHtml = templateHtml
-        .replace(/{{storeName}}/g, store.name)
-        .replace(/{{storeAddress}}/g, store.address)
-        .replace(/{{storePhone}}/g, store.phone)
-        .replace(/{{storeEmail}}/g, store.email)
-        .replace(/{{storeSocial}}/g, 'Follow us on social media')
-        .replace(/{{storeLogo}}/g, 'https://via.placeholder.com/150x50?text=Logo')
-        .replace(/{{productName}}/g, product.name)
-        .replace(/{{productDescription}}/g, product.description || '')
-        .replace(/{{amount}}/g, `$${order.paymentDetails.amount.toFixed(2)}`)
-        .replace(/{{code}}/g, order.voucher.code)
-        .replace(/{{expirationDate}}/g, new Date(order.voucher.expirationDate).toLocaleDateString())
-        .replace(/{{sender_name}}/g, order.voucher.senderName)
-        .replace(/{{receiver_name}}/g, order.voucher.receiverName)
-        .replace(/{{message}}/g, order.voucher.message)
-        .replace(/{{qrCode}}/g, order.voucher.qrCode || '');
-
-      // Create directory for PDFs if it doesn't exist
-      const pdfDir = path.join(__dirname, '../../../../uploads/vouchers');
-      logger.info(`PDF directory path: ${pdfDir}`);
-      
-      if (!fs.existsSync(pdfDir)) {
-        logger.info(`Creating PDF directory: ${pdfDir}`);
-        fs.mkdirSync(pdfDir, { recursive: true });
+        throw new AppError(`Template ${templateNumber} not found`, 404);
       }
 
-      // Generate PDF file path
-      const pdfFilename = `voucher-${order.voucher.code}.pdf`;
-      const pdfPath = path.join(pdfDir, pdfFilename);
-      logger.info(`PDF path: ${pdfPath}`);
+      let templateContent = fs.readFileSync(templatePath, 'utf-8');
 
-      // Launch puppeteer
-      logger.info('Launching puppeteer');
+      // Replace template variables
+      const replacements = {
+        '{{storeLogo}}': store.logo || '',
+        '{{storeName}}': store.name || '',
+        '{{storeAddress}}': store.address || '',
+        '{{storeEmail}}': store.email || '',
+        '{{storePhone}}': store.phone || '',
+        '{{storeSocial}}': store.social ? Object.values(store.social).filter(Boolean).join(', ') : '',
+        '{{sender_name}}': order.voucher.senderName || '',
+        '{{receiver_name}}': order.voucher.receiverName || '',
+        '{{productName}}': `${order.voucher.amount} Gift Card`,
+        '{{message}}': order.voucher.message || '',
+        '{{code}}': order.voucher.code || '',
+        '{{qrCode}}': order.voucher.qrCode || '',
+        '{{expirationDate}}': order.voucher.expirationDate ? new Date(order.voucher.expirationDate).toLocaleDateString() : ''
+      };
+
+      // Replace all placeholders in the template
+      for (const [key, value] of Object.entries(replacements)) {
+        templateContent = templateContent.replace(new RegExp(key, 'g'), value);
+      }
+
+      // Launch browser
       browser = await puppeteer.launch({
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox']
       });
-      
-      logger.info('Creating new page');
+
+      // Create new page
       const page = await browser.newPage();
       
-      // Set content and generate PDF
-      logger.info('Setting page content');
-      await page.setContent(templateHtml, { waitUntil: 'networkidle0' });
+      // Set viewport
+      await page.setViewport({
+        width: 1024,
+        height: 1447  // A4 size at 96 DPI
+      });
       
-      logger.info('Generating PDF');
+      // Set content with timeout and wait for network idle
+      await page.setContent(templateContent, {
+        waitUntil: ['networkidle0', 'load', 'domcontentloaded'],
+        timeout: 30000
+      });
+
+      // Wait for images to load
+      await page.evaluate(() => {
+        return Promise.all(
+          Array.from(document.images)
+            .filter(img => !img.complete)
+            .map(img => new Promise(resolve => {
+              img.onload = img.onerror = resolve;
+            }))
+        );
+      });
+
+      // Generate PDF buffer
       const pdfBuffer = await page.pdf({
-        path: pdfPath,
         format: 'A4',
         printBackground: true,
         margin: {
@@ -450,44 +453,48 @@ export class OrderService {
           right: '20px',
           bottom: '20px',
           left: '20px'
-        }
+        },
+        preferCSSPageSize: true,
+        displayHeaderFooter: false,
+        scale: 1,
+        landscape: false
       });
-      
-      logger.info('Closing browser');
-      await browser.close();
-      browser = null;
-      
-      logger.info(`PDF generated successfully: ${pdfPath}`);
-      
-      // Verify the file was created
-      if (!fs.existsSync(pdfPath)) {
-        throw new Error(`PDF file was not created at path: ${pdfPath}`);
+
+      // Verify PDF buffer
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        throw new AppError('Generated PDF is empty', 500);
       }
-      
-      const fileStats = fs.statSync(pdfPath);
-      logger.info(`PDF file size: ${fileStats.size} bytes`);
-      
-      // Save the PDF path to the order
-      const pdfUrl = `/uploads/vouchers/${pdfFilename}`;
-      if (order._id) {
-        await this.orderRepository.updatePdfUrl(order._id.toString(), pdfUrl);
+
+      // Verify PDF header
+      const pdfHeader = Buffer.from(pdfBuffer).subarray(0, 5).toString('ascii');
+      if (!pdfHeader.startsWith('%PDF-')) {
+        throw new AppError('Generated file is not a valid PDF', 500);
       }
-      
-      return pdfBuffer as Buffer;
+
+      // Save PDF locally
+      fs.writeFileSync(pdfPath, pdfBuffer);
+      logger.info(`PDF saved locally at: ${pdfPath}`);
+
+      // Update order with PDF path
+      const updateData: Partial<IOrderInput> = {
+        pdfUrl: pdfPath,
+        pdfGenerated: true
+      };
+      await this.orderRepository.update(orderId, updateData);
+
+      return pdfPath;
+
     } catch (error: any) {
-      logger.error(`Error generating voucher PDF for order ${orderId}: ${error.message}`);
-      logger.error(error.stack);
-      
-      // Clean up browser if it's still open
+      logger.error(`Error generating voucher PDF: ${error.message}`, error);
+      throw new AppError(error.message || 'Failed to generate voucher PDF', error.status || 500);
+    } finally {
       if (browser) {
         try {
           await browser.close();
-        } catch (closeError) {
-          logger.error(`Error closing browser: ${closeError}`);
+        } catch (error) {
+          logger.error('Error closing browser:', error);
         }
       }
-      
-      return null;
     }
   }
 } 
