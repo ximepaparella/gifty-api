@@ -20,71 +20,43 @@ Retrieves a list of all orders. Admin can access all orders, store managers can 
 **Success Response**:
 ```json
 {
-  "status": "success",
-  "data": [
-    {
-      "_id": "507f1f77bcf86cd799439051",
-      "customerId": "507f1f77bcf86cd799439011",
-      "paymentDetails": {
-        "paymentId": "pay_123456789",
-        "paymentStatus": "completed",
-        "paymentEmail": "john@example.com",
-        "amount": 25.00,
-        "provider": "stripe"
-      },
-      "voucher": {
-        "_id": "507f1f77bcf86cd799439041",
-        "code": "COFFEE-123-ABC",
-        "storeId": "507f1f77bcf86cd799439021",
-        "productId": "507f1f77bcf86cd799439031",
-        "status": "active",
-        "expirationDate": "2023-12-31T23:59:59.000Z",
-        "senderName": "John Doe",
-        "senderEmail": "john@example.com",
-        "receiverName": "Jane Smith",
-        "receiverEmail": "jane@example.com",
-        "message": "Happy Birthday! Enjoy your coffee.",
-        "template": "birthday"
-      },
-      "status": "completed",
-      "createdAt": "2023-01-01T00:00:00.000Z",
-      "updatedAt": "2023-01-01T00:00:00.000Z"
-    },
-    {
-      "_id": "507f1f77bcf86cd799439052",
-      "customerId": "507f1f77bcf86cd799439012",
-      "paymentDetails": {
-        "paymentId": "pay_987654321",
-        "paymentStatus": "completed",
-        "paymentEmail": "alice@example.com",
-        "amount": 50.00,
-        "provider": "paypal"
-      },
-      "voucher": {
-        "_id": "507f1f77bcf86cd799439042",
-        "code": "BOOK-456-DEF",
-        "storeId": "507f1f77bcf86cd799439022",
-        "productId": "507f1f77bcf86cd799439032",
-        "status": "active",
-        "expirationDate": "2023-12-31T23:59:59.000Z",
-        "senderName": "Alice Brown",
-        "senderEmail": "alice@example.com",
-        "receiverName": "Bob Green",
-        "receiverEmail": "bob@example.com",
-        "message": "Happy Holidays! Enjoy your book.",
-        "template": "holiday"
-      },
-      "status": "completed",
-      "createdAt": "2023-01-02T00:00:00.000Z",
-      "updatedAt": "2023-01-02T00:00:00.000Z"
-    }
-  ],
-  "pagination": {
-    "total": 10,
-    "page": 1,
-    "limit": 10,
-    "pages": 1
-  }
+    "success": true,
+    "data": [
+        {
+            "_id": "67ef44fc1617af9e74818e60",
+            "customerId": "67eea5db0f236e3a654ae140",
+            "voucher": {
+                "storeId": "67eed05824675522cea87ee5",
+                "productId": "67ef0286963bc2fd531e77f3",
+                "code": "7U3X8VA0FQ",
+                "status": "active",
+                "isRedeemed": false,
+                "redeemedAt": null,
+                "senderName": "ximena",
+                "senderEmail": "ximena@ximena.com",
+                "receiverName": "Daniela",
+                "receiverEmail": "daniela@daniela.com",
+                "message": "test csf atre w",
+                "qrCode": "data:image/png;base64,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",
+                "amount": 65000,
+                "expirationDate": "2026-04-04T02:33:32.407Z",
+                "template": "template3"
+            },
+            "paymentDetails": {
+                "paymentId": "mock_1743734012407",
+                "status": "completed",
+                "paymentEmail": "ximena@ximena.com",
+                "amount": 65000,
+                "provider": "paypal"
+            },
+            "emailsSent": true,
+            "pdfGenerated": true,
+            "createdAt": "2025-04-04T02:33:32.452Z",
+            "updatedAt": "2025-04-04T02:33:38.317Z",
+            "__v": 0,
+            "pdfUrl": "/uploads/vouchers/voucher-7U3X8VA0FQ-1743734012700.pdf"
+        }
+    ]
 }
 ```
 
@@ -105,34 +77,40 @@ Retrieves an order by its ID.
 ```json
 {
   "status": "success",
-  "data": {
-    "_id": "507f1f77bcf86cd799439051",
-    "customerId": "507f1f77bcf86cd799439011",
-    "paymentDetails": {
-      "paymentId": "pay_123456789",
-      "paymentStatus": "completed",
-      "paymentEmail": "john@example.com",
-      "amount": 25.00,
-      "provider": "stripe"
-    },
-    "voucher": {
-      "_id": "507f1f77bcf86cd799439041",
-      "code": "COFFEE-123-ABC",
-      "storeId": "507f1f77bcf86cd799439021",
-      "productId": "507f1f77bcf86cd799439031",
-      "status": "active",
-      "expirationDate": "2023-12-31T23:59:59.000Z",
-      "senderName": "John Doe",
-      "senderEmail": "john@example.com",
-      "receiverName": "Jane Smith",
-      "receiverEmail": "jane@example.com",
-      "message": "Happy Birthday! Enjoy your coffee.",
-      "template": "birthday"
-    },
-    "status": "completed",
-    "createdAt": "2023-01-01T00:00:00.000Z",
-    "updatedAt": "2023-01-01T00:00:00.000Z"
-  }
+  "data":  {
+            "_id": "67ef466d86cd793aa50aa6fb",
+            "customerId": "67eea5db0f236e3a654ae140",
+            "voucher": {
+                "storeId": "67eed05824675522cea87ee5",
+                "productId": "67eef2fe164e6492a9133084",
+                "code": "T0N8E3UGIE",
+                "status": "active",
+                "isRedeemed": false,
+                "redeemedAt": null,
+                "senderName": "ximena",
+                "senderEmail": "ximena@ximena.com",
+                "receiverName": "Daniela",
+                "receiverEmail": "daniela@daniela.comtes",
+                "message": "testets res tw",
+                "qrCode": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51AAAAAklEQVR4AewaftIAAAvCSURBVO3BUa4cSHIEwfBC3//KrvldiEmIhWLr5U6Y4T9SVbXASVXVEidVVUucVFUtcVJVtcRJVdUSJ1VVS3zyG0C2UzMB8pqaG0C+Sc0EyA01N4BM1NwA8k1qXgMyUTMBsp2aXzmpqlripKpqiZOqqiVOqqqWOKmqWuKkqmqJTy6p+SmAvKZmAmQC5IaaG0AmaiZA6s+ouQFkomai5jU1PwWQP3VSVbXESVXVEidVVUucVFUtcVJVtcRJVdUSn/wFQF5T81OomQCZqJkAuaHmNTUTIBMgrwGZqLmhZgLkNTUbAHlNzUsnVVVLnFRVLXFSVbXESVXVEidVVUucVFUt8cm/mJobQCZqJkAmal4DMlEzATJRMwFyQ80EyATIRM0EyETNBMhEzQTIRE39351UVS1xUlW1xElV1RInVVVLnFRVLXFSVbXEJ/U1aiZAbqi5AWSiZgLkNSATNRMgN9S8BmSiZgLkhpp/o5OqqiVOqqqWOKmqWuKkqmqJk6qqJU6qqpb45C9QswGQiZqJmgmQ19T8FGo2ADJRMwHyTWp+CjU/3UlV1RInVVVLnFRVLXFSVbXESVXVEidVVUt8cgnIvxWQiZoJkImaCZCJmhtqJkAmaiZAJmomQCZqbqiZAJmomQCZqJkAmaiZAJmouQFks5OqqiVOqqqWOKmqWuKkqmqJk6qqJU6qqpb45DfU1P8/NTfU3FBzQ81rQF5TMwHympoJkNfU/Lc6qapa4qSqaomTqqolTqqqljipqlripKpqiU/+AiCvqZkAmai5AWSiZgJkomYCZKLmBpCJmhtAJmomQCZqvgnIDTUTIBM1EzU3gLym5gaQ19T8yklV1RInVVVLnFRVLXFSVbXESVXVEidVVUt88oOouaFmAmSi5jU1EyCvAfkpgNwA8lOomQC5AWQDIBM1P8FJVdUSJ1VVS5xUVS1xUlW1xElV1RInVVVLfPIbQF5TMwHymprXgEzU3FAzAXJDzQTIBmpeAzIBMlEzATJR8xqQiZobQG6omQCZqPlTJ1VVS5xUVS1xUlW1xElV1RInVVVLnFRVLYH/yAUgEzUTIBM12wHZQM0EyETNfzMgEzXfBGSi5gaQ19RMgNxQ8ysnVVVLnFRVLXFSVbXESVXVEidVVUucVFUt8clvAHlNzQTIRM0EyA01EyATNTfUbAfkhpobQG6ouaFmAuSGmgmQiZoJkImaG2omQCZAJmomQP7USVXVEidVVUucVFUtcVJVtcRJVdUSJ1VVS3zyG2puALmh5oaabwLyTUC+Sc0EyETNBMhram4AuaFmAuSGmgmQiZobaiZAbqiZAHnppKpqiZOqqiVOqqqWOKmqWuKkqmqJk6qqJT65BOQ1IK+puaHmBpAbQCZqbgCZqJkAmaiZALmhZgJkAmSiZqJmAmQC5DUgEzUTIDfU3FDzmpo/dVJVtcRJVdUSJ1VVS5xUVS1xUlW1xElV1RKf/AaQ19TcADJR8xqQ14DcAHJDzTepmQCZAJmoeQ3IDTUTIK8B2U7NBMhEza+cVFUtcVJVtcRJVdUSJ1VVS5xUVS1xUlW1BP4jjwG5oWYC5DU1PwWQiZoJkBtqbgCZqLkBZKJmAuSGmgmQn0LNBMhEzQTIRM0EyGtq/tRJVdUSJ1VVS5xUVS1xUlW1xElV1RInVVVLfPJlaiZAJmpeA/JNal5TcwPIDTUTIBM1N4BM1NwA8t8MyETNBMhraiZAJmp+5aSqaomTqqolTqqqljipqlripKpqiZOqqiU++Q0gEzU3gNwA8k1qvknNBMgNNTfUTIBM1NxQ8xqQG2omQG6ouQHkhpoN1Pypk6qqJU6qqpY4qapa4qSqaomTqqolTqqqlvjkL1AzATJR8xqQ14BM1HyTmvrf1NwA8hqQiZrt1NwAMlHzKydVVUucVFUtcVJVtcRJVdUSJ1VVS5xUVS3xyW+o+SmA3FDzTUAmaiZAJmomQCZqJmpeAzJRMwEyUfNTqHkNyHZAbqj5UydVVUucVFUtcVJVtcRJVdUSJ1VVS5xUVS2B/8gFIBM1EyCvqZkA+SY1rwG5oWYC5IaabwIyUTMBMlFzA8hEzQTIa2omQG6oeQ3IDTW/clJVtcRJVdUSJ1VVS5xUVS1xUlW1xElV1RL4jwyA/BRqJkBuqJkAeU3NDSATNRMgN9RMgNxQMwHympoJkBtqJkBuqJkAmaj5JiA31Lx0UlW1xElV1RInVVVLnFRVLXFSVbXESVXVEp9cUjMBMlHzmpobQCZqJkBuAJmomaiZAJmo+SY1PwWQiZoJkBtqbgD5JiATNRM1EyDfclJVtcRJVdUSJ1VVS5xUVS1xUlW1xElV1RL4j3wRkBtqJkAmaiZAbqiZAJmomQC5oeYGkImaG0BuqJkAmaiZAJmoeQ3IRM0EyERN/aeTqqolTqqqljipqlripKpqiZOqqiVOqqqW+OQ3gEzUTIDcUHNDzQTIRM0NIDeATNRMgNwA8hqQiZoJkNeATNRMgEzUTIBM1EyA3ACygZoJkBtqfuWkqmqJk6qqJU6qqpY4qapa4qSqaomTqqolPvlBgLymZgLkhpoJkA3U3FAzAXIDyGtAJmomQCZqbqi5AWSiZgLkNTU/wUlV1RInVVVLnFRVLXFSVbXESVXVEidVVUt88htqJkBuqJkAmai5AWSiZgLkhpoJkBtqbqi5AeSGmp8CyGtAJmpuALkB5JuATNR8y0lV1RInVVVLnFRVLXFSVbXESVXVEidVVUt88htAJmp+CiA/BZAbQCZqJkC+Sc1rQCZqbqi5oeYGkIma19RMgNxQMwEyAXJDzZ86qapa4qSqaomTqqolTqqqljipqlripKpqCfxHBkAmaiZAJmomQG6omQCZqPkmIBM1EyA31NwA8pqaG0AmaiZAJmomQL5JzQ0gEzU3gEzUTIBM1EyATNT8yklV1RInVVVLnFRVLXFSVbXESVXVEidVVUt88heomQB5DchEzQTIDTUTIBM1N9T8FGomQDYAMlHzUwCZqJkAuaHmm9T8qZOqqiVOqqqWOKmqWuKkqmqJk6qqJU6qqpb45C8AckPNBMhEzWtqXgMyUTMBMlFzA8gNIBM1N4DcADJR8xqQiZoJkImaiZrX1EyATNRM1EyA3FDzKydVVUucVFUtcVJVtcRJVdUSJ1VVS5xUVS3xyQ8CZKJmAmSi5gaQG2omQCZAJmomQF5TcwPIN6mZALmhZqLmm4C8BuQGkNfU/KmTqqolTqqqljipqlripKpqiZOqqiVOqqqW+OQ31NxQ801qvknNT6FmAmSiZgLkm9S8pmYC5AaQiZpvUvMakIma14BM1PzKSVXVEidVVUucVFUtcVJVtcRJVdUSJ1VVS3zyG0C2UzNRMwEyATJRM1HzGpCJmtfUvAZkomYC5IaaG2peA/IakIma14BM1EzU/KmTqqolTqqqljipqlripKpqiZOqqiVOqqqW+OSSmp8CyL+VmtfU3AByQ80NNRMgP4WaCZDX1LwGZKLmBpCJml85qapa4qSqaomTqqolTqqqljipqlripKpqiU/+AiCvqXkNyETNa0AmaiZAXlPzTWomQG6omai5AWSi5gaQiZoJkAmQb1IzATJR89JJVdUSJ1VVS5xUVS1xUlW1xElV1RInVVVLfFJ/DMhEzWtqbgCZAPkmIDfU3AAyUTNRMwEyUTNRMwEyUTMBMlEzATJRc0PNBMhLJ1VVS5xUVS1xUlW1xElV1RInVVVLnFRVLfFJ/RKQiZrXgEzU3FAzATJR81MAmaiZqJkA+SYg3wTkBpCJmtfU/KmTqqolTqqqljipqlripKpqiZOqqiVOqqqW+OQvULOBmhtAJmomarYD8pqa14BM1HyTmhtAbqi5AeSnO6mqWuKkqmqJk6qqJU6qqpY4qapa4qSqaolPLgH5t1LzGpCJmg3UTIBMgHwTkBtqJkAmam6oeQ3IN6l56aSqaomTqqolTqqqljipqlripKpqiZOqqiXwH6mqWuCkqmqJk6qqJU6qqpY4qapa4qSqaon/AbIB9lORriP0AAAAAElFTkSuQmCC",
+                "amount": 65000,
+                "expirationDate": "2026-04-04T02:39:41.113Z",
+                "template": "template3"
+            },
+            "paymentDetails": {
+                "paymentId": "mock_1743734381113",
+                "status": "completed",
+                "paymentEmail": "ximena@ximena.com",
+                "amount": 65000,
+                "provider": "stripe"
+            },
+            "emailsSent": true,
+            "pdfGenerated": true,
+            "createdAt": "2025-04-04T02:39:41.161Z",
+            "updatedAt": "2025-04-04T02:39:47.045Z",
+            "__v": 0,
+            "pdfUrl": "C:\\Users\\ximen\\OneDrive\\Documentos\\Estudio Equis\\repositorios\\ai4devs\\gifty-api\\uploads\\vouchers\\voucher-T0N8E3UGIE-1743734381447.pdf"
+        }
 }
 ```
 
@@ -263,25 +241,25 @@ Creates a new order, which typically also creates a new voucher.
 **Request Body**:
 ```json
 {
-  "customerId": "507f1f77bcf86cd799439011",
-  "paymentDetails": {
-    "paymentId": "pay_123456789",
-    "paymentStatus": "completed",
-    "paymentEmail": "john@example.com",
-    "amount": 25.00,
-    "provider": "stripe"
-  },
-  "voucher": {
-    "storeId": "507f1f77bcf86cd799439021",
-    "productId": "507f1f77bcf86cd799439031",
-    "expirationDate": "2023-12-31T23:59:59.000Z",
-    "senderName": "John Doe",
-    "senderEmail": "john@example.com",
-    "receiverName": "Jane Smith",
-    "receiverEmail": "jane@example.com",
-    "message": "Happy Birthday! Enjoy your coffee.",
-    "template": "birthday"
-  }
+    "customerId": "67eea5db0f236e3a654ae140",
+    "paymentDetails": {
+        "paymentId": "mock_1743734012407",
+        "status": "completed",
+        "paymentEmail": "ximena@ximena.com",
+        "amount": 65000,
+        "provider": "paypal"
+    },
+    "voucher": {
+        "storeId": "67eed05824675522cea87ee5",
+        "productId": "67ef0286963bc2fd531e77f3",
+        "senderName": "ximena",
+        "senderEmail": "ximena@ximena.com",
+        "receiverName": "Daniela",
+        "receiverEmail": "daniela@daniela.com",
+        "message": "test csf atre w",
+        "template": "template3",
+        "expirationDate": "2026-04-04T02:33:32.407Z"
+    }
 }
 ```
 

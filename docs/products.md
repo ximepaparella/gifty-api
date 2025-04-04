@@ -20,35 +20,20 @@ Retrieves a list of all products. This is a public endpoint that does not requir
 **Success Response**:
 ```json
 {
-  "status": "success",
-  "data": [
-    {
-      "_id": "507f1f77bcf86cd799439031",
-      "storeId": "507f1f77bcf86cd799439021",
-      "name": "Coffee Gift Card",
-      "description": "Gift card for coffee and pastries",
-      "price": 25.00,
-      "isActive": true,
-      "createdAt": "2023-01-01T00:00:00.000Z",
-      "updatedAt": "2023-01-01T00:00:00.000Z"
-    },
-    {
-      "_id": "507f1f77bcf86cd799439032",
-      "storeId": "507f1f77bcf86cd799439022",
-      "name": "Book Voucher",
-      "description": "Voucher for any book in store",
-      "price": 50.00,
-      "isActive": true,
-      "createdAt": "2023-01-02T00:00:00.000Z",
-      "updatedAt": "2023-01-02T00:00:00.000Z"
-    }
-  ],
-  "pagination": {
-    "total": 10,
-    "page": 1,
-    "limit": 10,
-    "pages": 1
-  }
+    "status": "success",
+    "data": [
+        {
+            "_id": "67ef5b443caff196610ef9c7",
+            "name": "Santal Cafe - Avocado Party",
+            "description": "Disfrutá de 5 Avocados para Take Away por el mostrador de cualquier sucursal de Santal Café.",
+            "price": 40000,
+            "storeId": "67eef3734b0768878af12957",
+            "image": "https://res.cloudinary.com/estudio-equis/image/upload/v1743739846/products/temp/product-1743739714360.jpg",
+            "createdAt": "2025-04-04T04:08:36.456Z",
+            "updatedAt": "2025-04-04T04:08:36.456Z",
+            "__v": 0
+        }
+    ]
 }
 ```
 
@@ -145,11 +130,11 @@ Creates a new product.
 **Request Body**:
 ```json
 {
-  "storeId": "507f1f77bcf86cd799439021",
-  "name": "New Product",
-  "description": "Description of the new product",
-  "price": 35.00,
-  "isActive": true
+    "name": "Santal Cafe - Avocado Party",
+    "description": "Disfrutá de 5 Avocados para Take Away por el mostrador de cualquier sucursal de Santal Café.",
+    "price": 40000,
+    "storeId": "67eef3734b0768878af12957",
+    "image": "https://res.cloudinary.com/estudio-equis/image/upload/v1743739846/products/temp/product-1743739714360.jpg"
 }
 ```
 
