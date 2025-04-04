@@ -151,40 +151,53 @@ export class OrderService {
   async redeemVoucher(code: string): Promise<IOrder | null> {
     logger.info(`Redeeming voucher with code ${code}`);
     
-    // Find the order by voucher code
-    const order = await this.orderRepository.findByVoucherCode(code);
-    if (!order) {
-      throw notFoundError('Voucher not found');
+    try {
+      // Use atomic findOneAndUpdate to prevent race conditions
+      const now = new Date();
+      const updatedOrder = await this.orderRepository.findOneAndUpdate(
+        {
+          'voucher.code': code,
+          'voucher.status': 'active',
+          'voucher.isRedeemed': false,
+          'voucher.expirationDate': { $gte: now }
+        },
+        {
+          $set: {
+            'voucher.status': 'redeemed',
+            'voucher.isRedeemed': true,
+            'voucher.redeemedAt': now,
+            status: 'redeemed',
+            updatedAt: now
+          }
+        },
+        { new: true }
+      );
+
+      if (!updatedOrder) {
+        // Check if voucher exists and why it can't be redeemed
+        const existingOrder = await this.orderRepository.findByVoucherCode(code);
+        
+        if (!existingOrder) {
+          throw notFoundError('Voucher not found');
+        }
+        
+        if (existingOrder.voucher.isRedeemed) {
+          throw new AppError('Voucher has already been redeemed', 400);
+        }
+        
+        if (existingOrder.voucher.expirationDate < now) {
+          throw new AppError('Voucher has expired', 400);
+        }
+        
+        throw new AppError('Voucher cannot be redeemed', 400);
+      }
+
+      logger.info(`Voucher with code ${code} redeemed successfully`);
+      return updatedOrder;
+    } catch (error: any) {
+      logger.error(`Error redeeming voucher with code ${code}:`, error);
+      throw error;
     }
-    
-    // Check if voucher is already redeemed
-    if (order.voucher.isRedeemed) {
-      throw new AppError('Voucher has already been redeemed', 400);
-    }
-    
-    // Check if voucher is expired
-    if (order.voucher.status === 'expired') {
-      throw new AppError('Voucher has expired', 400);
-    }
-    
-    // Update voucher status to redeemed
-    const updatedOrder: any = {
-      voucher: {
-        ...order.voucher,
-        status: 'redeemed' as const,
-        isRedeemed: true,
-        redeemedAt: new Date()
-      },
-      updatedAt: new Date()
-    };
-    
-    // Update the order
-    if (order._id) {
-      await this.orderRepository.update(order._id.toString(), updatedOrder);
-      return this.orderRepository.findById(order._id.toString());
-    }
-    
-    return null;
   }
 
   /**
