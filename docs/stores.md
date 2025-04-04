@@ -20,43 +20,34 @@ Retrieves a list of all stores.
 **Success Response**:
 ```json
 {
-  "status": "success",
-  "data": [
-    {
-      "_id": "507f1f77bcf86cd799439021",
-      "ownerId": "507f1f77bcf86cd799439011",
-      "name": "Coffee Shop",
-      "description": "Specialty coffee and pastries",
-      "logo": "https://example.com/logo.jpg",
-      "address": "123 Main St, City",
-      "phone": "+1234567890",
-      "email": "contact@coffeeshop.com",
-      "website": "https://coffeeshop.com",
-      "isActive": true,
-      "createdAt": "2023-01-01T00:00:00.000Z",
-      "updatedAt": "2023-01-01T00:00:00.000Z"
-    },
-    {
-      "_id": "507f1f77bcf86cd799439022",
-      "ownerId": "507f1f77bcf86cd799439012",
-      "name": "Bookstore",
-      "description": "Books and stationery",
-      "logo": "https://example.com/bookstore-logo.jpg",
-      "address": "456 Oak St, City",
-      "phone": "+1234567891",
-      "email": "contact@bookstore.com",
-      "website": "https://bookstore.com",
-      "isActive": true,
-      "createdAt": "2023-01-02T00:00:00.000Z",
-      "updatedAt": "2023-01-02T00:00:00.000Z"
-    }
-  ],
-  "pagination": {
-    "total": 10,
-    "page": 1,
-    "limit": 10,
-    "pages": 1
-  }
+    "status": "success",
+    "data": [
+        {
+            "social": {
+                "instagram": "@wspa",
+                "facebook": "https://facebook.com/wspa",
+                "tiktok": "@wspa",
+                "youtube": "https://youtube.com/@wspa",
+                "others": [
+                    {
+                        "name": "LinkedIn",
+                        "url": "https://linkedin.com/company/wspa",
+                        "_id": "67eed05824675522cea87ee6"
+                    }
+                ]
+            },
+            "_id": "67eed05824675522cea87ee5",
+            "name": "WSpa",
+            "ownerId": "67eed02624675522cea87ede",
+            "email": "info@wspa.com.ar",
+            "phone": "+5491134209650",
+            "address": "Avenida del puerto 240, Bahía Grande, Nordelta",
+            "logo": "https://res.cloudinary.com/estudio-equis/image/upload/v1743716936/stores/67eed05824675522cea87ee5/logo.png",
+            "createdAt": "2025-04-03T18:15:52.107Z",
+            "updatedAt": "2025-04-03T21:46:47.044Z",
+            "__v": 0
+        }
+    ]
 }
 ```
 
@@ -151,15 +142,24 @@ Creates a new store.
 **Request Body**:
 ```json
 {
-  "ownerId": "507f1f77bcf86cd799439011",
-  "name": "New Store",
-  "description": "Store description",
-  "logo": "https://example.com/new-logo.jpg",
-  "address": "789 Pine St, City",
-  "phone": "+1234567892",
-  "email": "contact@newstore.com",
-  "website": "https://newstore.com",
-  "isActive": true
+    "name": "WSpa",
+    "ownerId": "67eed02624675522cea87ede",
+    "email": "info@wspa.com.ar",
+    "phone": "+5491134209650",
+    "address": "Avenida del puerto 240, Bahía Grande, Nordelta",
+    "logo": "https://res.cloudinary.com/estudio-equis/image/upload/v1743716936/stores/67eed05824675522cea87ee5/logo.png",
+    "social": {
+        "instagram": "@wspa",
+        "facebook": "https://facebook.com/wspa",
+        "tiktok": "@wspa",
+        "youtube": "https://youtube.com/@wspa",
+        "others": [
+            {
+                "name": "LinkedIn",
+                "url": "https://linkedin.com/company/wspa"
+            }
+        ]
+    }
 }
 ```
 
