@@ -1,10 +1,11 @@
 import { StoreService } from '@modules/store/application/store.service';
 import { IStore } from '@modules/store/domain/store.entity';
+import { IStoreRepository } from '@modules/store/domain/store.repository';
 import mongoose from 'mongoose';
 
 describe('Store Service', () => {
   let storeService: StoreService;
-  const mockRepository = {
+  const mockRepository: jest.Mocked<IStoreRepository> = {
     create: jest.fn(),
     findById: jest.fn(),
     findByEmail: jest.fn(),
@@ -21,15 +22,21 @@ describe('Store Service', () => {
 
   const mockStoreData = {
     name: 'Test Store',
-    ownerId: new mongoose.Types.ObjectId().toString(),
+    ownerId: new mongoose.Types.ObjectId(),
     email: 'store@test.com',
     phone: '1234567890',
-    address: '123 Test St'
+    address: '123 Test St',
+    logo: 'https://example.com/logo.png',
+    social: {
+      instagram: 'https://instagram.com/teststore',
+      facebook: 'https://facebook.com/teststore',
+      twitter: 'https://twitter.com/teststore'
+    }
   };
 
   const mockStore: IStore = {
     ...mockStoreData,
-    ownerId: new mongoose.Types.ObjectId(mockStoreData.ownerId)
+    _id: new mongoose.Types.ObjectId()
   };
 
   describe('createStore', () => {
@@ -40,8 +47,7 @@ describe('Store Service', () => {
       const result = await storeService.createStore(mockStoreData);
       expect(result).toEqual(mockStore);
       expect(mockRepository.create).toHaveBeenCalledWith(expect.objectContaining({
-        ...mockStoreData,
-        ownerId: expect.any(mongoose.Types.ObjectId)
+        ...mockStoreData
       }));
     });
 
@@ -50,7 +56,7 @@ describe('Store Service', () => {
 
       await expect(storeService.createStore(mockStoreData))
         .rejects
-        .toThrow('Email already registered');
+        .toThrow('Store with this email already exists');
     });
   });
 
@@ -87,16 +93,23 @@ describe('Store Service', () => {
       email: 'updated@test.com',
       phone: '0987654321',
       address: '321 Updated St',
-      ownerId: new mongoose.Types.ObjectId().toString()
+      logo: 'https://example.com/updated-logo.png',
+      social: {
+        instagram: 'https://instagram.com/updatedstore',
+        facebook: 'https://facebook.com/updatedstore',
+        twitter: 'https://twitter.com/updatedstore'
+      }
     };
 
     it('should update store successfully', async () => {
       mockRepository.findById.mockResolvedValue(mockStore);
       mockRepository.findByEmail.mockResolvedValue(null);
-      mockRepository.update.mockResolvedValue({ ...mockStore, ...updateData, ownerId: new mongoose.Types.ObjectId(updateData.ownerId) });
+      mockRepository.update.mockResolvedValue({ ...mockStore, ...updateData });
 
       const result = await storeService.updateStore('someId', updateData);
       expect(result.name).toBe(updateData.name);
+      expect(result.logo).toBe(updateData.logo);
+      expect(result.social).toEqual(updateData.social);
     });
 
     it('should throw error if store not found', async () => {
@@ -107,6 +120,33 @@ describe('Store Service', () => {
       await expect(storeService.updateStore('someId', updateData))
         .rejects
         .toThrow('Store not found');
+    });
+
+    it('should update only social media links', async () => {
+      const socialUpdateData = {
+        social: {
+          instagram: 'https://instagram.com/newstore',
+          facebook: 'https://facebook.com/newstore'
+        }
+      };
+
+      mockRepository.findById.mockResolvedValue(mockStore);
+      mockRepository.update.mockResolvedValue({ ...mockStore, ...socialUpdateData });
+
+      const result = await storeService.updateStore('someId', socialUpdateData);
+      expect(result.social).toEqual(socialUpdateData.social);
+    });
+
+    it('should update logo', async () => {
+      const logoUpdateData = {
+        logo: 'https://example.com/new-logo.png'
+      };
+
+      mockRepository.findById.mockResolvedValue(mockStore);
+      mockRepository.update.mockResolvedValue({ ...mockStore, ...logoUpdateData });
+
+      const result = await storeService.updateStore('someId', logoUpdateData);
+      expect(result.logo).toBe(logoUpdateData.logo);
     });
   });
 

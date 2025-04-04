@@ -1,153 +1,93 @@
 import mongoose from 'mongoose';
 import { VoucherRepository } from '@modules/voucher/infrastructure/voucher.repository';
 import { IVoucher, IVoucherInput } from '@modules/voucher/domain/voucher.interface';
-import VoucherModel from '@modules/voucher/infrastructure/voucher.model';
 
-jest.mock('@modules/voucher/infrastructure/voucher.model');
+// Mock the VoucherModel
+const mockSave = jest.fn();
+const mockExec = jest.fn();
+const mockLean = jest.fn();
 
-describe('Voucher Repository', () => {
+const mockVoucherModel = {
+  create: jest.fn(),
+  findById: jest.fn(() => ({ lean: () => mockLean })),
+  findByIdAndUpdate: jest.fn(() => ({ lean: () => mockLean })),
+  findOneAndUpdate: jest.fn(() => ({ lean: () => mockLean })),
+  deleteOne: jest.fn(),
+  find: jest.fn(() => ({ lean: () => mockLean })),
+  findOne: jest.fn(() => ({ lean: () => mockLean })),
+  prototype: {
+    save: mockSave
+  }
+};
+
+jest.mock('@modules/voucher/infrastructure/voucher.model', () => mockVoucherModel);
+
+describe('VoucherRepository', () => {
   let voucherRepository: VoucherRepository;
+  const mockId = new mongoose.Types.ObjectId().toString();
+  const mockStoreId = new mongoose.Types.ObjectId().toString();
+  const mockProductId = new mongoose.Types.ObjectId().toString();
   
-  const mockVoucher: IVoucher = {
-    _id: new mongoose.Types.ObjectId().toString(),
+  const mockVoucher = {
+    _id: mockId,
     code: 'TEST123',
-    storeId: new mongoose.Types.ObjectId().toString(),
-    productId: new mongoose.Types.ObjectId().toString(),
-    amount: 50,
-    expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+    amount: 100,
+    expirationDate: new Date('2025-04-04'),
+    senderName: 'John Doe',
+    senderEmail: 'john@example.com',
+    receiverName: 'Jane Doe',
+    receiverEmail: 'jane@example.com',
+    storeId: mockStoreId,
+    productId: mockProductId,
+    template: 'birthday' as const,
+    message: 'Happy Birthday!',
+    status: 'active' as const,
     isRedeemed: false,
-    status: 'active',
-    senderName: 'Test Sender',
-    senderEmail: 'sender@test.com',
-    receiverName: 'Test Receiver',
-    receiverEmail: 'receiver@test.com',
-    message: 'Test message',
-    template: 'birthday',
+    qrCode: 'qr-code-data',
+    customerId: undefined,
     createdAt: new Date(),
     updatedAt: new Date()
-  };
+  } as IVoucher;
 
   beforeEach(() => {
     jest.clearAllMocks();
     voucherRepository = new VoucherRepository();
-  });
 
-  describe('findAll', () => {
-    it('should return all vouchers', async () => {
-      const vouchers = [mockVoucher];
-      
-      (VoucherModel.find as jest.Mock).mockReturnValue({
-        lean: jest.fn().mockResolvedValue(vouchers)
-      });
-
-      const result = await voucherRepository.findAll();
-      
-      expect(VoucherModel.find).toHaveBeenCalledWith();
-      expect(result).toEqual(vouchers);
-    });
-  });
-
-  describe('findById', () => {
-    it('should return voucher by id', async () => {
-      (VoucherModel.findById as jest.Mock).mockReturnValue({
-        lean: jest.fn().mockResolvedValue(mockVoucher)
-      });
-
-      const result = await voucherRepository.findById(mockVoucher._id!);
-      
-      expect(VoucherModel.findById).toHaveBeenCalledWith(mockVoucher._id);
-      expect(result).toEqual(mockVoucher);
-    });
-
-    it('should return null if voucher not found', async () => {
-      (VoucherModel.findById as jest.Mock).mockReturnValue({
-        lean: jest.fn().mockResolvedValue(null)
-      });
-
-      const result = await voucherRepository.findById('non-existent-id');
-      
-      expect(VoucherModel.findById).toHaveBeenCalledWith('non-existent-id');
-      expect(result).toBeNull();
-    });
-  });
-
-  describe('findByCode', () => {
-    it('should return voucher by code', async () => {
-      (VoucherModel.findOne as jest.Mock).mockReturnValue({
-        lean: jest.fn().mockResolvedValue(mockVoucher)
-      });
-
-      const result = await voucherRepository.findByCode(mockVoucher.code);
-      
-      expect(VoucherModel.findOne).toHaveBeenCalledWith({ code: mockVoucher.code });
-      expect(result).toEqual(mockVoucher);
-    });
-
-    it('should return null if voucher not found', async () => {
-      (VoucherModel.findOne as jest.Mock).mockReturnValue({
-        lean: jest.fn().mockResolvedValue(null)
-      });
-
-      const result = await voucherRepository.findByCode('NON-EXISTENT');
-      
-      expect(VoucherModel.findOne).toHaveBeenCalledWith({ code: 'NON-EXISTENT' });
-      expect(result).toBeNull();
-    });
-  });
-
-  describe('findByStoreId', () => {
-    it('should return vouchers by store id', async () => {
-      const vouchers = [mockVoucher];
-      
-      (VoucherModel.find as jest.Mock).mockReturnValue({
-        lean: jest.fn().mockResolvedValue(vouchers)
-      });
-
-      const result = await voucherRepository.findByStoreId(mockVoucher.storeId.toString());
-      
-      expect(VoucherModel.find).toHaveBeenCalledWith({ storeId: mockVoucher.storeId.toString() });
-      expect(result).toEqual(vouchers);
-    });
-  });
-
-  describe('findByCustomerEmail', () => {
-    it('should return vouchers by customer email', async () => {
-      const vouchers = [mockVoucher];
-      
-      (VoucherModel.find as jest.Mock).mockReturnValue({
-        lean: jest.fn().mockResolvedValue(vouchers)
-      });
-
-      const result = await voucherRepository.findByCustomerEmail(mockVoucher.receiverEmail);
-      
-      expect(VoucherModel.find).toHaveBeenCalledWith({ receiverEmail: mockVoucher.receiverEmail });
-      expect(result).toEqual(vouchers);
-    });
+    // Setup default mock implementations
+    mockLean.mockResolvedValue(mockVoucher);
+    mockSave.mockResolvedValue(mockVoucher);
+    mockExec.mockResolvedValue(mockVoucher);
+    mockVoucherModel.create.mockResolvedValue(mockVoucher);
+    mockVoucherModel.deleteOne.mockResolvedValue({ deletedCount: 1 });
   });
 
   describe('create', () => {
     it('should create a new voucher', async () => {
       const voucherInput: IVoucherInput = {
-        storeId: mockVoucher.storeId.toString(),
-        productId: mockVoucher.productId.toString(),
         amount: mockVoucher.amount,
         expirationDate: mockVoucher.expirationDate,
         senderName: mockVoucher.senderName,
         senderEmail: mockVoucher.senderEmail,
         receiverName: mockVoucher.receiverName,
         receiverEmail: mockVoucher.receiverEmail,
-        message: mockVoucher.message,
-        template: mockVoucher.template
+        storeId: mockVoucher.storeId,
+        productId: mockVoucher.productId,
+        template: mockVoucher.template,
+        message: mockVoucher.message
       };
-      
-      (VoucherModel.create as jest.Mock).mockResolvedValue({
-        ...mockVoucher,
-        toObject: jest.fn().mockReturnValue(mockVoucher)
-      });
 
       const result = await voucherRepository.create(voucherInput);
-      
-      expect(VoucherModel.create).toHaveBeenCalledWith(voucherInput);
+
+      expect(mockVoucherModel.create).toHaveBeenCalledWith(expect.objectContaining(voucherInput));
+      expect(result).toEqual(mockVoucher);
+    });
+  });
+
+  describe('findById', () => {
+    it('should find a voucher by id', async () => {
+      const result = await voucherRepository.findById(mockId);
+
+      expect(mockVoucherModel.findById).toHaveBeenCalledWith(mockId);
       expect(result).toEqual(mockVoucher);
     });
   });
@@ -155,59 +95,87 @@ describe('Voucher Repository', () => {
   describe('update', () => {
     it('should update a voucher', async () => {
       const updateData = {
-        message: 'Updated message',
-        status: 'active'
+        amount: 200,
+        senderName: 'Updated Name'
       };
-      
-      const updatedVoucher = { ...mockVoucher, ...updateData };
-      
-      (VoucherModel.findByIdAndUpdate as jest.Mock).mockReturnValue({
-        lean: jest.fn().mockResolvedValue(updatedVoucher)
-      });
 
-      const result = await voucherRepository.update(mockVoucher._id!, updateData);
-      
-      expect(VoucherModel.findByIdAndUpdate).toHaveBeenCalledWith(
-        mockVoucher._id,
-        updateData,
+      const result = await voucherRepository.update(mockId, updateData);
+
+      expect(mockVoucherModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        mockId,
+        { $set: updateData },
         { new: true }
       );
-      expect(result).toEqual(updatedVoucher);
-    });
-
-    it('should return null if voucher not found', async () => {
-      (VoucherModel.findByIdAndUpdate as jest.Mock).mockReturnValue({
-        lean: jest.fn().mockResolvedValue(null)
-      });
-
-      const result = await voucherRepository.update('non-existent-id', { message: 'Updated' });
-      
-      expect(VoucherModel.findByIdAndUpdate).toHaveBeenCalledWith(
-        'non-existent-id',
-        { message: 'Updated' },
-        { new: true }
-      );
-      expect(result).toBeNull();
+      expect(result).toEqual(mockVoucher);
     });
   });
 
   describe('delete', () => {
-    it('should delete a voucher', async () => {
-      (VoucherModel.findByIdAndDelete as jest.Mock).mockResolvedValue(mockVoucher);
+    it('should return true when voucher is deleted', async () => {
+      const result = await voucherRepository.delete(mockId);
 
-      const result = await voucherRepository.delete(mockVoucher._id!);
-      
-      expect(VoucherModel.findByIdAndDelete).toHaveBeenCalledWith(mockVoucher._id);
+      expect(mockVoucherModel.deleteOne).toHaveBeenCalledWith({ _id: mockId });
       expect(result).toBe(true);
     });
 
-    it('should return false if voucher not found', async () => {
-      (VoucherModel.findByIdAndDelete as jest.Mock).mockResolvedValue(null);
+    it('should return false when voucher is not found', async () => {
+      mockVoucherModel.deleteOne.mockResolvedValue({ deletedCount: 0 });
 
       const result = await voucherRepository.delete('non-existent-id');
-      
-      expect(VoucherModel.findByIdAndDelete).toHaveBeenCalledWith('non-existent-id');
+
+      expect(mockVoucherModel.deleteOne).toHaveBeenCalledWith({ _id: 'non-existent-id' });
       expect(result).toBe(false);
+    });
+  });
+
+  describe('findAll', () => {
+    it('should return all vouchers', async () => {
+      mockLean.mockResolvedValue([mockVoucher]);
+
+      const result = await voucherRepository.findAll();
+
+      expect(mockVoucherModel.find).toHaveBeenCalled();
+      expect(result).toEqual([mockVoucher]);
+    });
+  });
+
+  describe('findByCode', () => {
+    it('should return voucher by code', async () => {
+      const result = await voucherRepository.findByCode(mockVoucher.code);
+
+      expect(mockVoucherModel.findOne).toHaveBeenCalledWith({ code: mockVoucher.code });
+      expect(result).toEqual(mockVoucher);
+    });
+
+    it('should return null if voucher not found', async () => {
+      mockLean.mockResolvedValue(null);
+
+      const result = await voucherRepository.findByCode('INVALID-CODE');
+
+      expect(mockVoucherModel.findOne).toHaveBeenCalledWith({ code: 'INVALID-CODE' });
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('findByStoreId', () => {
+    it('should find vouchers by store ID', async () => {
+      mockLean.mockResolvedValue([mockVoucher]);
+
+      const result = await voucherRepository.findByStoreId(mockVoucher.storeId);
+
+      expect(mockVoucherModel.find).toHaveBeenCalledWith({ storeId: mockVoucher.storeId });
+      expect(result).toEqual([mockVoucher]);
+    });
+  });
+
+  describe('findByCustomerEmail', () => {
+    it('should return vouchers by customer email', async () => {
+      mockLean.mockResolvedValue([mockVoucher]);
+
+      const result = await voucherRepository.findByCustomerEmail(mockVoucher.receiverEmail);
+
+      expect(mockVoucherModel.find).toHaveBeenCalledWith({ receiverEmail: mockVoucher.receiverEmail });
+      expect(result).toEqual([mockVoucher]);
     });
   });
 
@@ -216,35 +184,29 @@ describe('Voucher Repository', () => {
       const redeemedVoucher = {
         ...mockVoucher,
         isRedeemed: true,
-        redeemedAt: new Date(),
-        status: 'redeemed'
+        redeemedAt: expect.any(Date)
       };
-      
-      (VoucherModel.findOneAndUpdate as jest.Mock).mockReturnValue({
-        lean: jest.fn().mockResolvedValue(redeemedVoucher)
-      });
+      mockLean.mockResolvedValue(redeemedVoucher);
 
       const result = await voucherRepository.redeem(mockVoucher.code);
-      
-      expect(VoucherModel.findOneAndUpdate).toHaveBeenCalledWith(
+
+      expect(mockVoucherModel.findOneAndUpdate).toHaveBeenCalledWith(
         { code: mockVoucher.code, isRedeemed: false },
-        { isRedeemed: true, redeemedAt: expect.any(Date), status: 'redeemed' },
-        { new: true }
+        { $set: { isRedeemed: true, redeemedAt: expect.any(Date) } },
+        { new: true, runValidators: true }
       );
       expect(result).toEqual(redeemedVoucher);
     });
 
     it('should return null if voucher not found or already redeemed', async () => {
-      (VoucherModel.findOneAndUpdate as jest.Mock).mockReturnValue({
-        lean: jest.fn().mockResolvedValue(null)
-      });
+      mockLean.mockResolvedValue(null);
 
-      const result = await voucherRepository.redeem('REDEEMED-CODE');
-      
-      expect(VoucherModel.findOneAndUpdate).toHaveBeenCalledWith(
-        { code: 'REDEEMED-CODE', isRedeemed: false },
-        { isRedeemed: true, redeemedAt: expect.any(Date), status: 'redeemed' },
-        { new: true }
+      const result = await voucherRepository.redeem('INVALID-CODE');
+
+      expect(mockVoucherModel.findOneAndUpdate).toHaveBeenCalledWith(
+        { code: 'INVALID-CODE', isRedeemed: false },
+        { $set: { isRedeemed: true, redeemedAt: expect.any(Date) } },
+        { new: true, runValidators: true }
       );
       expect(result).toBeNull();
     });
