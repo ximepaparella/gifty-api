@@ -24,7 +24,12 @@ export class OrderRepository implements IOrderRepository {
   }
 
   async findByVoucherCode(code: string): Promise<IOrder | null> {
-    return OrderModel.findOne({ 'voucher.code': code }).exec();
+    try {
+      return await OrderModel.findOne({ 'voucher.code': code }).exec();
+    } catch (error: any) {
+      logger.error(`Error finding order by voucher code ${code}:`, error);
+      throw error;
+    }
   }
 
   async create(order: IOrderInput): Promise<IOrder> {
@@ -180,6 +185,19 @@ export class OrderRepository implements IOrderRepository {
       return updatedOrder;
     } catch (error: any) {
       logger.error(`Error updating PDF URL for order ${id}:`, error);
+      throw error;
+    }
+  }
+
+  async findOneAndUpdate(
+    filter: any,
+    update: any,
+    options: any = {}
+  ): Promise<IOrder | null> {
+    try {
+      return await OrderModel.findOneAndUpdate(filter, update, options).exec();
+    } catch (error: any) {
+      logger.error('Error updating order:', error);
       throw error;
     }
   }
