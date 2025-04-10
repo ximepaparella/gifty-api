@@ -73,7 +73,7 @@ Each documentation file includes:
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/gifty-api.git
+   git clone https://github.com/estudioequis/gifty-api.git
    cd gifty-api
    ```
 
