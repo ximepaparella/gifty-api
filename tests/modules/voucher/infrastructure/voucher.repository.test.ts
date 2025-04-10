@@ -16,8 +16,8 @@ const mockVoucherModel = {
   find: jest.fn(() => ({ lean: () => mockLean })),
   findOne: jest.fn(() => ({ lean: () => mockLean })),
   prototype: {
-    save: mockSave
-  }
+    save: mockSave,
+  },
 };
 
 jest.mock('@modules/voucher/infrastructure/voucher.model', () => mockVoucherModel);
@@ -27,7 +27,7 @@ describe('VoucherRepository', () => {
   const mockId = new mongoose.Types.ObjectId().toString();
   const mockStoreId = new mongoose.Types.ObjectId().toString();
   const mockProductId = new mongoose.Types.ObjectId().toString();
-  
+
   const mockVoucher = {
     _id: mockId,
     code: 'TEST123',
@@ -46,7 +46,7 @@ describe('VoucherRepository', () => {
     qrCode: 'qr-code-data',
     customerId: undefined,
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   } as IVoucher;
 
   beforeEach(() => {
@@ -73,7 +73,7 @@ describe('VoucherRepository', () => {
         storeId: mockVoucher.storeId,
         productId: mockVoucher.productId,
         template: mockVoucher.template,
-        message: mockVoucher.message
+        message: mockVoucher.message,
       };
 
       const result = await voucherRepository.create(voucherInput);
@@ -96,7 +96,7 @@ describe('VoucherRepository', () => {
     it('should update a voucher', async () => {
       const updateData = {
         amount: 200,
-        senderName: 'Updated Name'
+        senderName: 'Updated Name',
       };
 
       const result = await voucherRepository.update(mockId, updateData);
@@ -174,7 +174,9 @@ describe('VoucherRepository', () => {
 
       const result = await voucherRepository.findByCustomerEmail(mockVoucher.receiverEmail);
 
-      expect(mockVoucherModel.find).toHaveBeenCalledWith({ receiverEmail: mockVoucher.receiverEmail });
+      expect(mockVoucherModel.find).toHaveBeenCalledWith({
+        receiverEmail: mockVoucher.receiverEmail,
+      });
       expect(result).toEqual([mockVoucher]);
     });
   });
@@ -184,7 +186,7 @@ describe('VoucherRepository', () => {
       const redeemedVoucher = {
         ...mockVoucher,
         isRedeemed: true,
-        redeemedAt: expect.any(Date)
+        redeemedAt: expect.any(Date),
       };
       mockLean.mockResolvedValue(redeemedVoucher);
 
@@ -211,4 +213,4 @@ describe('VoucherRepository', () => {
       expect(result).toBeNull();
     });
   });
-}); 
+});

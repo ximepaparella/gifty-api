@@ -1,13 +1,27 @@
 import { UserService } from '../../../../src/modules/user/application/user.service';
 import { UserRepository } from '../../../../src/modules/user/domain/user.repository';
-import { User, UserRole, CreateUserDTO, UpdateUserDTO } from '../../../../src/modules/user/domain/user.entity';
-import { ValidationError, NotFoundError, AuthenticationError } from '../../../../src/shared/infrastructure/errors';
+import {
+  User,
+  UserRole,
+  CreateUserDTO,
+  UpdateUserDTO,
+} from '../../../../src/modules/user/domain/user.entity';
+import { AppError, ErrorTypes } from '../../../../src/shared/types/appError';
 import * as authMiddleware from '../../../../src/shared/infrastructure/middleware/auth';
 
 // Mock the auth middleware
 jest.mock('../../../../src/shared/infrastructure/middleware/auth', () => ({
-  generateToken: jest.fn().mockReturnValue('mock-token')
+  generateToken: jest.fn().mockReturnValue('mock-token'),
 }));
+
+// Mock the user repository
+const userRepositoryMock = {
+  findById: jest.fn(),
+  findByEmail: jest.fn(),
+  create: jest.fn(),
+  update: jest.fn(),
+  delete: jest.fn(),
+};
 
 describe('UserService', () => {
   let userService: UserService;
@@ -20,7 +34,7 @@ describe('UserService', () => {
     password: 'hashedPassword123',
     role: UserRole.CUSTOMER,
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   };
 
   beforeEach(() => {
@@ -32,7 +46,7 @@ describe('UserService', () => {
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
-      count: jest.fn()
+      count: jest.fn(),
     } as jest.Mocked<UserRepository>;
 
     // Create the service with the mock repository
@@ -52,8 +66,8 @@ describe('UserService', () => {
           total: 1,
           page: 1,
           limit: 10,
-          pages: 1
-        }
+          pages: 1,
+        },
       };
 
       mockUserRepository.findAll.mockResolvedValue(mockPaginatedResult);
@@ -89,14 +103,14 @@ describe('UserService', () => {
       const createUserData: CreateUserDTO = {
         name: 'New User',
         email: 'new@example.com',
-        password: 'password123'
+        password: 'password123',
       };
 
       mockUserRepository.findByEmail.mockResolvedValue(null);
       mockUserRepository.create.mockResolvedValue({
         ...mockUser,
         name: createUserData.name,
-        email: createUserData.email
+        email: createUserData.email,
       });
 
       const result = await userService.createUser(createUserData);
@@ -111,7 +125,7 @@ describe('UserService', () => {
       const createUserData: CreateUserDTO = {
         name: 'New User',
         email: 'existing@example.com',
-        password: 'password123'
+        password: 'password123',
       };
 
       mockUserRepository.findByEmail.mockResolvedValue(mockUser);
@@ -123,13 +137,13 @@ describe('UserService', () => {
   describe('updateUser', () => {
     it('should update an existing user', async () => {
       const updateUserData: UpdateUserDTO = {
-        name: 'Updated User'
+        name: 'Updated User',
       };
 
       mockUserRepository.findById.mockResolvedValue(mockUser);
       mockUserRepository.update.mockResolvedValue({
         ...mockUser,
-        name: updateUserData.name || mockUser.name
+        name: updateUserData.name || mockUser.name,
       });
 
       const result = await userService.updateUser('123', updateUserData);
@@ -142,12 +156,14 @@ describe('UserService', () => {
     it('should throw NotFoundError if user does not exist', async () => {
       mockUserRepository.findById.mockResolvedValue(null);
 
-      await expect(userService.updateUser('123', { name: 'Updated User' })).rejects.toThrow(NotFoundError);
+      await expect(userService.updateUser('123', { name: 'Updated User' })).rejects.toThrow(
+        NotFoundError
+      );
     });
 
     it('should throw ValidationError if updating email to one that already exists', async () => {
       const updateUserData: UpdateUserDTO = {
-        email: 'existing@example.com'
+        email: 'existing@example.com',
       };
 
       mockUserRepository.findById.mockResolvedValue(mockUser);
@@ -179,20 +195,20 @@ describe('UserService', () => {
   describe('login', () => {
     it('should login a user with valid credentials', async () => {
       mockUserRepository.findByEmail.mockResolvedValue(mockUser);
-      
+
       // Mock the comparePassword method
       jest.spyOn(userService as any, 'comparePassword').mockResolvedValue(true);
 
       const result = await userService.login({
         email: 'test@example.com',
-        password: 'password123'
+        password: 'password123',
       });
 
       expect(mockUserRepository.findByEmail).toHaveBeenCalledWith('test@example.com');
       expect(authMiddleware.generateToken).toHaveBeenCalledWith({
         id: mockUser.id,
         email: mockUser.email,
-        role: mockUser.role
+        role: mockUser.role,
       });
       expect(result.token).toBe('mock-token');
       expect(result.user.id).toBe(mockUser.id);
@@ -201,22 +217,26 @@ describe('UserService', () => {
     it('should throw NotFoundError if user does not exist', async () => {
       mockUserRepository.findByEmail.mockResolvedValue(null);
 
-      await expect(userService.login({
-        email: 'nonexistent@example.com',
-        password: 'password123'
-      })).rejects.toThrow(NotFoundError);
+      await expect(
+        userService.login({
+          email: 'nonexistent@example.com',
+          password: 'password123',
+        })
+      ).rejects.toThrow(NotFoundError);
     });
 
-    it('should throw AuthenticationError if password is invalid', async () => {
+    it('should throw UNAUTHORIZED error when password is incorrect', async () => {
       mockUserRepository.findByEmail.mockResolvedValue(mockUser);
-      
+
       // Mock the comparePassword method to return false
       jest.spyOn(userService as any, 'comparePassword').mockResolvedValue(false);
 
-      await expect(userService.login({
-        email: 'test@example.com',
-        password: 'wrongpassword'
-      })).rejects.toThrow(AuthenticationError);
+      await expect(
+        userService.login({
+          email: 'test@example.com',
+          password: 'wrongpassword',
+        })
+      ).rejects.toEqual(ErrorTypes.UNAUTHORIZED('Invalid credentials'));
     });
   });
-}); 
+});

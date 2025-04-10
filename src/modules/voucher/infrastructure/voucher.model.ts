@@ -83,4 +83,4 @@ const VoucherSchema: Schema = new Schema(
   }
 );
 
-export default mongoose.model<IVoucherDocument>('Voucher', VoucherSchema); 
+export default mongoose.model<IVoucherDocument>('Voucher', VoucherSchema);

@@ -78,4 +78,4 @@ The current version of the API is v1. The version is included in the URL path.
 
 ## Support
 
-For API support, please contact support@gifty-api.com or open an issue in our GitHub repository. 
+For API support, please contact support@gifty-api.com or open an issue in our GitHub repository.

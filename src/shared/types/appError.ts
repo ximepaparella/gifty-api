@@ -3,74 +3,27 @@
  * Extends the built-in Error class with additional properties
  */
 export class AppError extends Error {
-  public readonly statusCode: number;
-  public readonly status: string;
   public readonly isOperational: boolean;
-  
-  constructor(message: string, statusCode: number, isOperational = true) {
+  public readonly status: number;
+
+  constructor(message: string, status: number = 500, isOperational: boolean = true) {
     super(message);
-    this.statusCode = statusCode;
-    this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
+    this.name = this.constructor.name;
+    this.status = status;
     this.isOperational = isOperational;
-    
     Error.captureStackTrace(this, this.constructor);
   }
 }
 
 /**
- * Factory function to create a not found error
- * @param resource - The resource that was not found
- * @returns AppError instance
+ * Standard error types for consistent error handling across the application
  */
-export const notFoundError = (resource: string): AppError => {
-  return new AppError(`${resource} not found`, 404);
-};
-
-/**
- * Factory function to create a validation error
- * @param message - The validation error message
- * @returns AppError instance
- */
-export const validationError = (message: string): AppError => {
-  return new AppError(message, 422);
-};
-
-/**
- * Factory function to create an unauthorized error
- * @param message - The unauthorized error message
- * @returns AppError instance
- */
-export const unauthorizedError = (message: string): AppError => {
-  return new AppError(message, 401);
-};
-
-/**
- * Factory function to create a forbidden error
- * @param message - The forbidden error message
- * @returns AppError instance
- */
-export const forbiddenError = (message: string): AppError => {
-  return new AppError(message, 403);
-};
-
-/**
- * Factory function to create a conflict error
- * @param message - The conflict error message
- * @returns AppError instance
- */
-export const conflictError = (message: string): AppError => {
-  return new AppError(message, 409);
-};
-
-/**
- * Factory function to create a server error
- * @param message - The server error message
- * @returns AppError instance
- */
-export const internalServerError = (message: string): AppError => {
-  return new AppError(message, 500, false);
-};
-
-export const badRequestError = (message: string): AppError => {
-  return new AppError(message, 400);
-}; 
+export const ErrorTypes = {
+  NOT_FOUND: (resource: string = 'Resource') => new AppError(`${resource} not found`, 404),
+  VALIDATION: (message: string) => new AppError(message, 422),
+  UNAUTHORIZED: (message: string = 'Unauthorized access') => new AppError(message, 401),
+  FORBIDDEN: (message: string = 'Access forbidden') => new AppError(message, 403),
+  CONFLICT: (message: string) => new AppError(message, 409),
+  INTERNAL: (message: string = 'Internal server error') => new AppError(message, 500, false),
+  BAD_REQUEST: (message: string) => new AppError(message, 400),
+} as const;

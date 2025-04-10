@@ -8,9 +8,9 @@ export interface IVoucher {
   customerId?: string | Types.ObjectId;
   amount: number;
   expirationDate: Date;
+  status: 'active' | 'redeemed' | 'expired';
   isRedeemed: boolean;
-  redeemedAt?: Date;
-  status?: string;
+  redeemedAt?: Date | null;
   qrCode?: string;
   senderName: string;
   senderEmail: string;
@@ -27,7 +27,9 @@ export interface IVoucherInput {
   productId: string;
   customerId?: string;
   code?: string;
-  status?: string;
+  status?: 'active' | 'redeemed' | 'expired';
+  isRedeemed?: boolean;
+  redeemedAt?: Date | null;
   amount: number;
   expirationDate: Date;
   qrCode?: string;
@@ -49,4 +51,5 @@ export interface IVoucherRepository {
   update(id: string, voucher: Partial<IVoucherInput>): Promise<IVoucher | null>;
   delete(id: string): Promise<boolean>;
   redeem(code: string): Promise<IVoucher | null>;
-} 
+  generateVoucher(input: IVoucherInput): Promise<IVoucher>;
+}

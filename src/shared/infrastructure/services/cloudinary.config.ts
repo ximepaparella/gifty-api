@@ -37,7 +37,7 @@ interface ImagePresets {
 const IMAGE_PRESETS: ImagePresets = {
   thumbnail: { width: 150, height: 150, crop: 'fill' },
   medium: { width: 800, height: 600, crop: 'fill' },
-  large: { width: 1920, height: 1080, crop: 'fill' }
+  large: { width: 1920, height: 1080, crop: 'fill' },
 };
 
 // Allowed image formats
@@ -54,7 +54,9 @@ export const initCloudinary = (): void => {
     const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
     if (!cloudName || !apiKey || !apiSecret) {
-      logger.warn('Cloudinary credentials not found in environment variables. Image upload functionality will not work.');
+      logger.warn(
+        'Cloudinary credentials not found in environment variables. Image upload functionality will not work.'
+      );
       return;
     }
 
@@ -62,7 +64,7 @@ export const initCloudinary = (): void => {
       cloud_name: cloudName,
       api_key: apiKey,
       api_secret: apiSecret,
-      secure: true
+      secure: true,
     });
 
     logger.info('Cloudinary initialized successfully');
@@ -88,7 +90,7 @@ export const uploadImage = async (
     // Upload to Cloudinary
     const result = await cloudinary.uploader.upload(base64Image, {
       folder,
-      resource_type: 'image'
+      resource_type: 'image',
     });
 
     return result as unknown as UploadApiResponse;
@@ -103,9 +105,7 @@ export const uploadImage = async (
  * @param publicId - The public ID of the image to delete
  * @returns The Cloudinary deletion result
  */
-export const deleteImage = async (
-  publicId: string
-): Promise<DeleteApiResponse> => {
+export const deleteImage = async (publicId: string): Promise<DeleteApiResponse> => {
   try {
     const result = await cloudinary.uploader.destroy(publicId);
     return result as unknown as DeleteApiResponse;
@@ -120,15 +120,10 @@ const generateImageUrl = (publicId: string, preset: string = 'medium'): string =
   return cloudinary.url(publicId, {
     ...transformations,
     fetch_format: 'auto',
-    quality: 'auto'
+    quality: 'auto',
   });
 };
 
 export default cloudinary;
 
-export {
-  generateImageUrl,
-  IMAGE_PRESETS,
-  ALLOWED_FORMATS,
-  MAX_FILE_SIZE
-}; 
+export { generateImageUrl, IMAGE_PRESETS, ALLOWED_FORMATS, MAX_FILE_SIZE };

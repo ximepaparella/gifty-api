@@ -51,4 +51,4 @@ export interface IVoucherRepository {
   update(id: string, voucher: Partial<IVoucherInput>): Promise<IVoucher | null>;
   delete(id: string): Promise<IVoucher | null>;
   redeemVoucher(code: string): Promise<IVoucher | null>;
-} 
+}

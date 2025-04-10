@@ -25,11 +25,17 @@ moduleAlias.addAliases({
   '@store-service': path.resolve(__dirname, 'modules/store/application/store.service'),
   '@store-controller': path.resolve(__dirname, 'modules/store/interface/store.controller'),
   '@product-model': path.resolve(__dirname, 'modules/product/infrastructure/product.model'),
-  '@product-repository': path.resolve(__dirname, 'modules/product/infrastructure/product.repository'),
+  '@product-repository': path.resolve(
+    __dirname,
+    'modules/product/infrastructure/product.repository'
+  ),
   '@product-service': path.resolve(__dirname, 'modules/product/application/product.service'),
   '@product-controller': path.resolve(__dirname, 'modules/product/interface/product.controller'),
   '@voucher-model': path.resolve(__dirname, 'modules/voucher/infrastructure/voucher.model'),
-  '@voucher-repository': path.resolve(__dirname, 'modules/voucher/infrastructure/voucher.repository'),
+  '@voucher-repository': path.resolve(
+    __dirname,
+    'modules/voucher/infrastructure/voucher.repository'
+  ),
   '@voucher-service': path.resolve(__dirname, 'modules/voucher/application/voucher.service'),
   '@voucher-controller': path.resolve(__dirname, 'modules/voucher/interface/voucher.controller'),
   '@order-model': path.resolve(__dirname, 'modules/order/infrastructure/order.model'),
@@ -37,7 +43,10 @@ moduleAlias.addAliases({
   '@order-service': path.resolve(__dirname, 'modules/order/application/order.service'),
   '@order-controller': path.resolve(__dirname, 'modules/order/interface/order.controller'),
   '@customer-model': path.resolve(__dirname, 'modules/customer/infrastructure/customer.model'),
-  '@customer-repository': path.resolve(__dirname, 'modules/customer/infrastructure/customer.repository'),
+  '@customer-repository': path.resolve(
+    __dirname,
+    'modules/customer/infrastructure/customer.repository'
+  ),
   '@customer-service': path.resolve(__dirname, 'modules/customer/application/customer.service'),
   '@customer-controller': path.resolve(__dirname, 'modules/customer/interface/customer.controller'),
-}); 
+});

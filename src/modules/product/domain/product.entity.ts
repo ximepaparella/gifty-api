@@ -1,4 +1,4 @@
-import mongoose, { Types } from 'mongoose';
+import { Types } from 'mongoose';
 
 export interface IProduct {
   _id?: Types.ObjectId;
@@ -34,4 +34,4 @@ export class Product implements IProduct {
     this.createdAt = product.createdAt;
     this.updatedAt = product.updatedAt;
   }
-} 
+}

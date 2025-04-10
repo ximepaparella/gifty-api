@@ -17,15 +17,15 @@ const errorSchema = {
       status: {
         type: 'string',
         description: 'Error status',
-        example: 'error'
+        example: 'error',
       },
       message: {
         type: 'string',
         description: 'Error message',
-        example: 'Error message description'
-      }
-    }
-  }
+        example: 'Error message description',
+      },
+    },
+  },
 };
 
 /**
@@ -40,26 +40,26 @@ const swaggerOptions: swaggerJsdoc.Options = {
       description: 'API for the Gifty gift vouchers platform',
       contact: {
         name: 'Gifty API Team',
-        email: 'support@gifty-api.com'
+        email: 'support@gifty-api.com',
       },
       license: {
         name: 'MIT',
-        url: 'https://opensource.org/licenses/MIT'
-      }
+        url: 'https://opensource.org/licenses/MIT',
+      },
     },
     servers: [
       {
         url: 'http://localhost:3000',
-        description: 'Development server'
-      }
+        description: 'Development server',
+      },
     ],
     components: {
       securitySchemes: {
         bearerAuth: {
           type: 'http',
           scheme: 'bearer',
-          bearerFormat: 'JWT'
-        }
+          bearerFormat: 'JWT',
+        },
       },
       schemas: {
         ...errorSchema,
@@ -68,7 +68,7 @@ const swaggerOptions: swaggerJsdoc.Options = {
         ...authSwagger.components.schemas,
         ...productSwagger.components.schemas,
         ...voucherSwagger.components.schemas,
-        ...orderSwagger.components.schemas
+        ...orderSwagger.components.schemas,
       },
       responses: {
         UnauthorizedError: {
@@ -76,58 +76,58 @@ const swaggerOptions: swaggerJsdoc.Options = {
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/Error',
               },
               example: {
                 status: 'fail',
-                message: 'Authentication required. Please log in.'
-              }
-            }
-          }
+                message: 'Authentication required. Please log in.',
+              },
+            },
+          },
         },
         ForbiddenError: {
           description: 'User does not have permission to access the resource',
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/Error',
               },
               example: {
                 status: 'fail',
-                message: 'You do not have permission to perform this action'
-              }
-            }
-          }
+                message: 'You do not have permission to perform this action',
+              },
+            },
+          },
         },
         NotFoundError: {
           description: 'The requested resource was not found',
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/Error',
               },
               example: {
                 status: 'fail',
-                message: 'Resource not found'
-              }
-            }
-          }
+                message: 'Resource not found',
+              },
+            },
+          },
         },
         ValidationError: {
           description: 'Invalid input data',
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/Error',
               },
               example: {
                 status: 'fail',
-                message: 'Validation error'
-              }
-            }
-          }
-        }
-      }
+                message: 'Validation error',
+              },
+            },
+          },
+        },
+      },
     },
     paths: {
       '/api/v1/auth/login': authSwagger.paths['/auth/login'],
@@ -151,16 +151,16 @@ const swaggerOptions: swaggerJsdoc.Options = {
                       status: { type: 'string', example: 'success' },
                       data: {
                         type: 'array',
-                        items: { $ref: '#/components/schemas/Store' }
-                      }
-                    }
-                  }
-                }
-              }
+                        items: { $ref: '#/components/schemas/Store' },
+                      },
+                    },
+                  },
+                },
+              },
             },
-            401: { $ref: '#/components/responses/UnauthorizedError' }
-          }
-        }
+            401: { $ref: '#/components/responses/UnauthorizedError' },
+          },
+        },
       },
       '/api/v1/stores/{id}': storePaths['/stores/{id}'],
       '/api/v1/stores/owner/{ownerId}': storePaths['/stores/owner/{ownerId}'],
@@ -168,36 +168,36 @@ const swaggerOptions: swaggerJsdoc.Options = {
       '/api/v1/products/{id}': productSwagger.paths['/products/{id}'],
       '/api/v1/products/store/{storeId}': productSwagger.paths['/products/store/{storeId}'],
       ...voucherSwagger.paths,
-      ...orderSwagger.paths
+      ...orderSwagger.paths,
     },
     tags: [
       {
         name: 'Auth',
-        description: 'Authentication endpoints'
+        description: 'Authentication endpoints',
       },
       {
         name: 'Users',
-        description: 'User management endpoints'
+        description: 'User management endpoints',
       },
       {
         name: 'Stores',
-        description: 'Store management endpoints'
+        description: 'Store management endpoints',
       },
       {
         name: 'Products',
-        description: 'Product management endpoints'
+        description: 'Product management endpoints',
       },
       {
         name: 'Vouchers',
-        description: 'Voucher management endpoints'
+        description: 'Voucher management endpoints',
       },
       {
         name: 'Orders',
-        description: 'Order management endpoints'
-      }
-    ]
+        description: 'Order management endpoints',
+      },
+    ],
   },
-  apis: []  // We're defining everything in the definition
+  apis: [], // We're defining everything in the definition
 };
 
 /**
@@ -205,8 +205,8 @@ const swaggerOptions: swaggerJsdoc.Options = {
  */
 export const setupSwagger = (app: Express): void => {
   const swaggerSpec = swaggerJsdoc(swaggerOptions) as {
-    components: { schemas: Record<string, any> },
-    paths: Record<string, any>
+    components: { schemas: Record<string, any> };
+    paths: Record<string, any>;
   };
 
   // Debug: Log the available schemas
@@ -214,16 +214,19 @@ export const setupSwagger = (app: Express): void => {
   console.log('Available paths:', Object.keys(swaggerSpec.paths));
 
   app.use('/api-docs', swaggerUi.serve);
-  app.get('/api-docs', swaggerUi.setup(swaggerSpec, {
-    explorer: true,
-    customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'Gifty API Documentation',
-    customfavIcon: '/assets/favicon.ico'
-  }));
+  app.get(
+    '/api-docs',
+    swaggerUi.setup(swaggerSpec, {
+      explorer: true,
+      customCss: '.swagger-ui .topbar { display: none }',
+      customSiteTitle: 'Gifty API Documentation',
+      customfavIcon: '/assets/favicon.ico',
+    })
+  );
 
   // Also serve swagger spec as JSON if needed
   app.get('/swagger.json', (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(swaggerSpec);
   });
-}; 
+};

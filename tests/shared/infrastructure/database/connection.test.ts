@@ -8,20 +8,20 @@ const connectDatabase = async (): Promise<void> => {
 
   try {
     await mongoose.connect(process.env.MONGO_URI || process.env.MONGODB_URI || '');
-    
+
     mongoose.connection.on('connected', () => {
       // Connected handler
     });
-    
+
     mongoose.connection.on('error', (err) => {
       // Error handler
       process.exit(1);
     });
-    
+
     mongoose.connection.on('disconnected', () => {
       // Disconnected handler
     });
-    
+
     // Handle application termination
     process.on('SIGINT', async () => {
       try {
@@ -45,8 +45,8 @@ jest.mock('mongoose', () => ({
   connect: jest.fn().mockResolvedValue({}),
   connection: {
     on: jest.fn(),
-    close: jest.fn().mockResolvedValue(true)
-  }
+    close: jest.fn().mockResolvedValue(true),
+  },
 }));
 
 // Mock process
@@ -62,7 +62,7 @@ const originalProcessOn = process.on;
 jest.mock('../../../../src/shared/infrastructure/logging/logger', () => ({
   info: jest.fn(),
   error: jest.fn(),
-  warn: jest.fn()
+  warn: jest.fn(),
 }));
 
 describe('Database Connection', () => {
@@ -72,7 +72,7 @@ describe('Database Connection', () => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
     process.env.MONGO_URI = 'mongodb://localhost:27017/test';
-    
+
     // Ensure mockProcessOn is set up correctly
     mockProcessOn = jest.fn((event, callback) => {
       if (event === 'SIGINT') {
@@ -91,9 +91,7 @@ describe('Database Connection', () => {
   it('should connect to MongoDB successfully', async () => {
     await connectDatabase();
 
-    expect(mongoose.connect).toHaveBeenCalledWith(
-      'mongodb://localhost:27017/test'
-    );
+    expect(mongoose.connect).toHaveBeenCalledWith('mongodb://localhost:27017/test');
     expect(mongoose.connection.on).toHaveBeenCalledWith('connected', expect.any(Function));
     expect(mongoose.connection.on).toHaveBeenCalledWith('error', expect.any(Function));
     expect(mongoose.connection.on).toHaveBeenCalledWith('disconnected', expect.any(Function));
@@ -122,8 +120,8 @@ describe('Database Connection', () => {
     await connectDatabase();
 
     // Get the SIGINT handler
-    const sigintHandler = mockProcessOn.mock.calls.find(call => call[0] === 'SIGINT')?.[1];
-    
+    const sigintHandler = mockProcessOn.mock.calls.find((call) => call[0] === 'SIGINT')?.[1];
+
     // Call the handler if it exists
     if (sigintHandler) {
       await sigintHandler();
@@ -135,4 +133,4 @@ describe('Database Connection', () => {
     const connection = getConnection();
     expect(connection).toBe(mongoose.connection);
   });
-}); 
+});

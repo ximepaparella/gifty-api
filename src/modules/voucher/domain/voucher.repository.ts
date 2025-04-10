@@ -7,7 +7,7 @@ import { generateQRCode } from '@shared/utils/qrCodeGenerator';
 export class VoucherRepository implements IVoucherRepository {
   async findAll(): Promise<IVoucher[]> {
     const vouchers = await Voucher.find().sort({ createdAt: -1 });
-    return vouchers.map(v => v.toObject() as IVoucher);
+    return vouchers.map((v) => v.toObject() as IVoucher);
   }
 
   async findById(id: string): Promise<IVoucher | null> {
@@ -15,12 +15,12 @@ export class VoucherRepository implements IVoucherRepository {
       return null;
     }
     const voucher = await Voucher.findById(id);
-    return voucher ? voucher.toObject() as IVoucher : null;
+    return voucher ? (voucher.toObject() as IVoucher) : null;
   }
 
   async findByCode(code: string): Promise<IVoucher | null> {
     const voucher = await Voucher.findOne({ code });
-    return voucher ? voucher.toObject() as IVoucher : null;
+    return voucher ? (voucher.toObject() as IVoucher) : null;
   }
 
   async findByStoreId(storeId: string): Promise<IVoucher[]> {
@@ -28,7 +28,7 @@ export class VoucherRepository implements IVoucherRepository {
       return [];
     }
     const vouchers = await Voucher.find({ storeId }).sort({ createdAt: -1 });
-    return vouchers.map(v => v.toObject() as IVoucher);
+    return vouchers.map((v) => v.toObject() as IVoucher);
   }
 
   async findByCustomerId(customerId: string): Promise<IVoucher[]> {
@@ -36,7 +36,7 @@ export class VoucherRepository implements IVoucherRepository {
       return [];
     }
     const vouchers = await Voucher.find({ customerId }).sort({ createdAt: -1 });
-    return vouchers.map(v => v.toObject() as IVoucher);
+    return vouchers.map((v) => v.toObject() as IVoucher);
   }
 
   async create(voucherData: IVoucherInput): Promise<IVoucher> {
@@ -76,7 +76,7 @@ export class VoucherRepository implements IVoucherRepository {
       { $set: voucherData },
       { new: true, runValidators: true }
     );
-    return updatedVoucher ? updatedVoucher.toObject() as IVoucher : null;
+    return updatedVoucher ? (updatedVoucher.toObject() as IVoucher) : null;
   }
 
   async delete(id: string): Promise<IVoucher | null> {
@@ -84,53 +84,53 @@ export class VoucherRepository implements IVoucherRepository {
       return null;
     }
     const deletedVoucher = await Voucher.findByIdAndDelete(id);
-    return deletedVoucher ? deletedVoucher.toObject() as IVoucher : null;
+    return deletedVoucher ? (deletedVoucher.toObject() as IVoucher) : null;
   }
 
   async redeemVoucher(code: string): Promise<IVoucher | null> {
     const now = new Date();
-    
+
     // Use atomic findOneAndUpdate to prevent race conditions
     const redeemedVoucher = await Voucher.findOneAndUpdate(
-      { 
-        code, 
+      {
+        code,
         status: 'active',
-        expirationDate: { $gte: now }
+        expirationDate: { $gte: now },
       },
-      { 
-        $set: { 
+      {
+        $set: {
           status: 'redeemed',
           isRedeemed: true,
-          redeemedAt: now
-        } 
+          redeemedAt: now,
+        },
       },
-      { 
-        new: true // Return the updated document
+      {
+        new: true, // Return the updated document
       }
     );
-    
+
     if (!redeemedVoucher) {
       // Check if the voucher exists but is expired
       const expiredVoucher = await Voucher.findOneAndUpdate(
-        { 
-          code, 
+        {
+          code,
           status: 'active',
-          expirationDate: { $lt: now }
+          expirationDate: { $lt: now },
         },
-        { 
-          $set: { status: 'expired' } 
+        {
+          $set: { status: 'expired' },
         },
-        { 
-          new: true
+        {
+          new: true,
         }
       );
-      
+
       if (expiredVoucher) {
         return null; // Expired voucher
       }
     }
-    
-    return redeemedVoucher ? redeemedVoucher.toObject() as IVoucher : null;
+
+    return redeemedVoucher ? (redeemedVoucher.toObject() as IVoucher) : null;
   }
 
   // Helper method to generate a unique voucher code
@@ -140,20 +140,20 @@ export class VoucherRepository implements IVoucherRepository {
     let attempts = 0;
     let code = generateRandomCode(10);
     let existingVoucher = await Voucher.findOne({ code });
-    
+
     // Keep generating until we find a unique code or reach max attempts
     while (existingVoucher && attempts < MAX_ATTEMPTS) {
       code = generateRandomCode(10);
       existingVoucher = await Voucher.findOne({ code });
       attempts++;
     }
-    
+
     // If we reached max attempts, add a timestamp to ensure uniqueness
     if (attempts >= MAX_ATTEMPTS) {
       const timestamp = Date.now().toString(36);
       code = code.substring(0, 6) + timestamp;
     }
-    
+
     return code;
   }
-} 
+}

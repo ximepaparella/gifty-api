@@ -23,7 +23,9 @@ const authorize = (roles: string[]) => {
     }
 
     if (!roles.includes(req.user.role)) {
-      return next(new ForbiddenError('Access denied. You do not have permission to perform this action.'));
+      return next(
+        new ForbiddenError('Access denied. You do not have permission to perform this action.')
+      );
     }
 
     next();
@@ -47,12 +49,12 @@ describe('Authorization Middleware', () => {
       user: {
         id: '123',
         email: 'test@example.com',
-        role: 'user'
-      }
+        role: 'user',
+      },
     };
     mockResponse = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn()
+      json: jest.fn(),
     };
     nextFunction = jest.fn();
   });
@@ -64,7 +66,11 @@ describe('Authorization Middleware', () => {
   it('should call next if user has required role', () => {
     const middleware = authorize(['user', 'admin']);
 
-    middleware(mockRequest as Request, mockResponse as Response, nextFunction as unknown as NextFunction);
+    middleware(
+      mockRequest as Request,
+      mockResponse as Response,
+      nextFunction as unknown as NextFunction
+    );
 
     expect(nextFunction).toHaveBeenCalledWith();
   });
@@ -72,7 +78,11 @@ describe('Authorization Middleware', () => {
   it('should throw ForbiddenError if user does not have required role', () => {
     const middleware = authorize(['admin']);
 
-    middleware(mockRequest as Request, mockResponse as Response, nextFunction as unknown as NextFunction);
+    middleware(
+      mockRequest as Request,
+      mockResponse as Response,
+      nextFunction as unknown as NextFunction
+    );
 
     expect(nextFunction).toHaveBeenCalledWith(expect.any(ForbiddenError));
   });
@@ -81,8 +91,12 @@ describe('Authorization Middleware', () => {
     mockRequest.user = undefined;
     const middleware = authorize(['user']);
 
-    middleware(mockRequest as Request, mockResponse as Response, nextFunction as unknown as NextFunction);
+    middleware(
+      mockRequest as Request,
+      mockResponse as Response,
+      nextFunction as unknown as NextFunction
+    );
 
     expect(nextFunction).toHaveBeenCalledWith(expect.any(ForbiddenError));
   });
-}); 
+});

@@ -57,40 +57,40 @@ class PasswordResetService {
 
   async forgotPassword(email: string): Promise<void> {
     const user = await this.userRepository.findByEmail(email);
-    
+
     if (!user) {
       throw new NotFoundError(`No user found with email ${email}`);
     }
-    
+
     const resetToken = user.createPasswordResetToken();
     await user.save();
-    
+
     await this.emailService.sendPasswordResetEmail(email, resetToken);
   }
 
   async resetPassword(token: string, newPassword: string, email: string): Promise<void> {
     const user = await this.userRepository.findByEmail(email);
-    
+
     if (!user) {
       throw new NotFoundError(`No user found with email ${email}`);
     }
-    
+
     if (!user.passwordResetToken || !user.passwordResetExpires) {
       throw new ValidationError('Invalid or expired token');
     }
-    
+
     if (user.passwordResetToken !== token) {
       throw new ValidationError('Invalid token');
     }
-    
+
     if (user.passwordResetExpires < new Date()) {
       throw new ValidationError('Token has expired');
     }
-    
+
     user.password = newPassword;
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
-    
+
     await user.save();
   }
 }
@@ -107,18 +107,18 @@ describe('PasswordResetService', () => {
     createPasswordResetToken: jest.fn().mockReturnValue('reset-token-123'),
     save: jest.fn().mockResolvedValue(true),
     passwordResetToken: undefined,
-    passwordResetExpires: undefined
+    passwordResetExpires: undefined,
   } as unknown as UserDocument;
 
   beforeEach(() => {
     // Create mock repository and email service
     mockUserRepository = {
       findByEmail: jest.fn(),
-      update: jest.fn()
+      update: jest.fn(),
     } as unknown as jest.Mocked<UserRepository>;
 
     mockEmailService = {
-      sendPasswordResetEmail: jest.fn().mockResolvedValue(true)
+      sendPasswordResetEmail: jest.fn().mockResolvedValue(true),
     } as unknown as jest.Mocked<EmailService>;
 
     // Create the service with the mocks
@@ -147,8 +147,9 @@ describe('PasswordResetService', () => {
     it('should throw NotFoundError if user does not exist', async () => {
       mockUserRepository.findByEmail.mockResolvedValue(null);
 
-      await expect(passwordResetService.forgotPassword('nonexistent@example.com'))
-        .rejects.toThrow(NotFoundError);
+      await expect(passwordResetService.forgotPassword('nonexistent@example.com')).rejects.toThrow(
+        NotFoundError
+      );
     });
   });
 
@@ -156,18 +157,22 @@ describe('PasswordResetService', () => {
     it('should reset the password with a valid token', async () => {
       const now = new Date();
       const futureDate = new Date(now.getTime() + 3600000); // 1 hour in the future
-      
+
       const mockUserWithToken = {
         ...mockUser,
         passwordResetToken: 'reset-token-123',
         passwordResetExpires: futureDate,
         password: 'oldHashedPassword',
-        save: jest.fn().mockResolvedValue(true)
+        save: jest.fn().mockResolvedValue(true),
       };
 
       mockUserRepository.findByEmail.mockResolvedValue(mockUserWithToken);
 
-      await passwordResetService.resetPassword('reset-token-123', 'newPassword123', 'test@example.com');
+      await passwordResetService.resetPassword(
+        'reset-token-123',
+        'newPassword123',
+        'test@example.com'
+      );
 
       expect(mockUserWithToken.password).toBe('newPassword123');
       expect(mockUserWithToken.passwordResetToken).toBeUndefined();
@@ -178,46 +183,44 @@ describe('PasswordResetService', () => {
     it('should throw NotFoundError if user does not exist', async () => {
       mockUserRepository.findByEmail.mockResolvedValue(null);
 
-      await expect(passwordResetService.resetPassword(
-        'reset-token-123',
-        'newPassword123',
-        'nonexistent@example.com'
-      )).rejects.toThrow(NotFoundError);
+      await expect(
+        passwordResetService.resetPassword(
+          'reset-token-123',
+          'newPassword123',
+          'nonexistent@example.com'
+        )
+      ).rejects.toThrow(NotFoundError);
     });
 
     it('should throw ValidationError if token is invalid', async () => {
       const mockUserWithToken = {
         ...mockUser,
         passwordResetToken: 'different-token',
-        passwordResetExpires: new Date(Date.now() + 3600000)
+        passwordResetExpires: new Date(Date.now() + 3600000),
       };
 
       mockUserRepository.findByEmail.mockResolvedValue(mockUserWithToken);
 
-      await expect(passwordResetService.resetPassword(
-        'reset-token-123',
-        'newPassword123',
-        'test@example.com'
-      )).rejects.toThrow(ValidationError);
+      await expect(
+        passwordResetService.resetPassword('reset-token-123', 'newPassword123', 'test@example.com')
+      ).rejects.toThrow(ValidationError);
     });
 
     it('should throw ValidationError if token has expired', async () => {
       const now = new Date();
       const pastDate = new Date(now.getTime() - 3600000); // 1 hour in the past
-      
+
       const mockUserWithToken = {
         ...mockUser,
         passwordResetToken: 'reset-token-123',
-        passwordResetExpires: pastDate
+        passwordResetExpires: pastDate,
       };
 
       mockUserRepository.findByEmail.mockResolvedValue(mockUserWithToken);
 
-      await expect(passwordResetService.resetPassword(
-        'reset-token-123',
-        'newPassword123',
-        'test@example.com'
-      )).rejects.toThrow(ValidationError);
+      await expect(
+        passwordResetService.resetPassword('reset-token-123', 'newPassword123', 'test@example.com')
+      ).rejects.toThrow(ValidationError);
     });
   });
-}); 
+});

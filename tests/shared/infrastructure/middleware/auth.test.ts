@@ -106,7 +106,9 @@ describe('Auth Middleware', () => {
       );
 
       expect(nextFunction).toHaveBeenCalledWith(expect.any(AuthenticationError));
-      expect(nextFunction.mock.calls[0][0].message).toBe('Invalid token format. Please use Bearer token.');
+      expect(nextFunction.mock.calls[0][0].message).toBe(
+        'Invalid token format. Please use Bearer token.'
+      );
     });
 
     it('should throw error if token is invalid', async () => {
@@ -150,10 +152,10 @@ describe('Auth Middleware', () => {
   describe('generateToken', () => {
     it('should generate a JWT token', () => {
       const user = { id: '123', email: 'test@example.com', role: 'user' };
-      
+
       const token = generateToken(user);
-      
+
       expect(token).toBe('generated-token');
     });
   });
-}); 
+});

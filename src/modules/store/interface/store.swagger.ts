@@ -220,14 +220,14 @@ export const storeSwagger = {
                     status: { type: 'string', example: 'success' },
                     data: {
                       type: 'array',
-                      items: { $ref: '#/components/schemas/Store' }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+                      items: { $ref: '#/components/schemas/Store' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       post: {
         tags: ['Stores'],
@@ -245,11 +245,11 @@ export const storeSwagger = {
                   ownerId: { type: 'string', example: '507f1f77bcf86cd799439011' },
                   email: { type: 'string', example: 'store@example.com' },
                   phone: { type: 'string', example: '+1234567890' },
-                  address: { type: 'string', example: '123 Store St, City, Country' }
-                }
-              }
-            }
-          }
+                  address: { type: 'string', example: '123 Store St, City, Country' },
+                },
+              },
+            },
+          },
         },
         responses: {
           201: {
@@ -260,14 +260,14 @@ export const storeSwagger = {
                   type: 'object',
                   properties: {
                     status: { type: 'string', example: 'success' },
-                    data: { $ref: '#/components/schemas/Store' }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                    data: { $ref: '#/components/schemas/Store' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     '/stores/{id}': {
       get: {
@@ -280,8 +280,8 @@ export const storeSwagger = {
             in: 'path',
             required: true,
             schema: { type: 'string' },
-            description: 'Store ID'
-          }
+            description: 'Store ID',
+          },
         ],
         responses: {
           200: {
@@ -292,13 +292,13 @@ export const storeSwagger = {
                   type: 'object',
                   properties: {
                     status: { type: 'string', example: 'success' },
-                    data: { $ref: '#/components/schemas/Store' }
-                  }
-                }
-              }
-            }
-          }
-        }
+                    data: { $ref: '#/components/schemas/Store' },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       put: {
         tags: ['Stores'],
@@ -310,8 +310,8 @@ export const storeSwagger = {
             in: 'path',
             required: true,
             schema: { type: 'string' },
-            description: 'Store ID'
-          }
+            description: 'Store ID',
+          },
         ],
         requestBody: {
           required: true,
@@ -323,11 +323,11 @@ export const storeSwagger = {
                   name: { type: 'string', example: 'Updated Store Name' },
                   email: { type: 'string', example: 'updated@example.com' },
                   phone: { type: 'string', example: '+0987654321' },
-                  address: { type: 'string', example: '456 Updated St, City, Country' }
-                }
-              }
-            }
-          }
+                  address: { type: 'string', example: '456 Updated St, City, Country' },
+                },
+              },
+            },
+          },
         },
         responses: {
           200: {
@@ -338,13 +338,13 @@ export const storeSwagger = {
                   type: 'object',
                   properties: {
                     status: { type: 'string', example: 'success' },
-                    data: { $ref: '#/components/schemas/Store' }
-                  }
-                }
-              }
-            }
-          }
-        }
+                    data: { $ref: '#/components/schemas/Store' },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       delete: {
         tags: ['Stores'],
@@ -356,8 +356,8 @@ export const storeSwagger = {
             in: 'path',
             required: true,
             schema: { type: 'string' },
-            description: 'Store ID'
-          }
+            description: 'Store ID',
+          },
         ],
         responses: {
           200: {
@@ -368,14 +368,14 @@ export const storeSwagger = {
                   type: 'object',
                   properties: {
                     status: { type: 'string', example: 'success' },
-                    data: { $ref: '#/components/schemas/Store' }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                    data: { $ref: '#/components/schemas/Store' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     '/stores/owner/{ownerId}': {
       get: {
@@ -388,8 +388,8 @@ export const storeSwagger = {
             in: 'path',
             required: true,
             schema: { type: 'string' },
-            description: 'Owner ID'
-          }
+            description: 'Owner ID',
+          },
         ],
         responses: {
           200: {
@@ -402,16 +402,16 @@ export const storeSwagger = {
                     status: { type: 'string', example: 'success' },
                     data: {
                       type: 'array',
-                      items: { $ref: '#/components/schemas/Store' }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      items: { $ref: '#/components/schemas/Store' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   components: {
     schemas: {
@@ -425,9 +425,9 @@ export const storeSwagger = {
           phone: { type: 'string', example: '+1234567890' },
           address: { type: 'string', example: '123 Store St, City, Country' },
           createdAt: { type: 'string', format: 'date-time' },
-          updatedAt: { type: 'string', format: 'date-time' }
-        }
-      }
-    }
-  }
-} as const; 
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+    },
+  },
+} as const;

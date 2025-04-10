@@ -8,7 +8,7 @@ export const customerValidationSchema = Joi.object({
   address: Joi.string().min(5).max(255).required(),
   city: Joi.string().min(2).max(100).required(),
   zipCode: Joi.string().min(3).max(20).required(),
-  country: Joi.string().min(2).max(100).required()
+  country: Joi.string().min(2).max(100).required(),
 });
 
 export const updateCustomerValidationSchema = Joi.object({
@@ -19,5 +19,5 @@ export const updateCustomerValidationSchema = Joi.object({
   address: Joi.string().min(5).max(255).optional(),
   city: Joi.string().min(2).max(100).optional(),
   zipCode: Joi.string().min(3).max(20).optional(),
-  country: Joi.string().min(2).max(100).optional()
-}).min(1); // Ensure at least one field is being updated 
+  country: Joi.string().min(2).max(100).optional(),
+}).min(1); // Ensure at least one field is being updated

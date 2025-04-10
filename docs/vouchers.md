@@ -13,11 +13,13 @@ Retrieves a list of all vouchers. Admin can access all vouchers, store managers 
 **Authentication Required**: Yes
 
 **Query Parameters**:
+
 - `page` (optional): Page number for pagination (default: 1)
 - `limit` (optional): Number of items per page (default: 10)
 - `sort` (optional): Sort criteria (e.g., "createdAt:desc")
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -29,7 +31,7 @@ Retrieves a list of all vouchers. Admin can access all vouchers, store managers 
       "productId": "507f1f77bcf86cd799439031",
       "status": "active",
       "expirationDate": "2023-12-31T23:59:59.000Z",
-      "amount": 25.00,
+      "amount": 25.0,
       "senderName": "John Doe",
       "senderEmail": "john@example.com",
       "receiverName": "Jane Smith",
@@ -47,7 +49,7 @@ Retrieves a list of all vouchers. Admin can access all vouchers, store managers 
       "productId": "507f1f77bcf86cd799439032",
       "status": "active",
       "expirationDate": "2023-12-31T23:59:59.000Z",
-      "amount": 50.00,
+      "amount": 50.0,
       "senderName": "Alice Brown",
       "senderEmail": "alice@example.com",
       "receiverName": "Bob Green",
@@ -79,9 +81,11 @@ Retrieves a voucher by its ID.
 **Authentication Required**: Yes
 
 **URL Parameters**:
+
 - `id`: ID of the voucher to retrieve
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -92,7 +96,7 @@ Retrieves a voucher by its ID.
     "productId": "507f1f77bcf86cd799439031",
     "status": "active",
     "expirationDate": "2023-12-31T23:59:59.000Z",
-    "amount": 25.00,
+    "amount": 25.0,
     "senderName": "John Doe",
     "senderEmail": "john@example.com",
     "receiverName": "Jane Smith",
@@ -107,6 +111,7 @@ Retrieves a voucher by its ID.
 ```
 
 **Error Response**:
+
 ```json
 {
   "status": "error",
@@ -125,9 +130,11 @@ Retrieves a voucher by its unique code.
 **Authentication Required**: Yes
 
 **URL Parameters**:
+
 - `code`: Code of the voucher to retrieve
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -138,7 +145,7 @@ Retrieves a voucher by its unique code.
     "productId": "507f1f77bcf86cd799439031",
     "status": "active",
     "expirationDate": "2023-12-31T23:59:59.000Z",
-    "amount": 25.00,
+    "amount": 25.0,
     "senderName": "John Doe",
     "senderEmail": "john@example.com",
     "receiverName": "Jane Smith",
@@ -153,6 +160,7 @@ Retrieves a voucher by its unique code.
 ```
 
 **Error Response**:
+
 ```json
 {
   "status": "error",
@@ -171,9 +179,11 @@ Retrieves all vouchers belonging to a specific store.
 **Authentication Required**: Yes
 
 **URL Parameters**:
+
 - `storeId`: ID of the store
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -185,7 +195,7 @@ Retrieves all vouchers belonging to a specific store.
       "productId": "507f1f77bcf86cd799439031",
       "status": "active",
       "expirationDate": "2023-12-31T23:59:59.000Z",
-      "amount": 25.00,
+      "amount": 25.0,
       "senderName": "John Doe",
       "senderEmail": "john@example.com",
       "receiverName": "Jane Smith",
@@ -211,12 +221,13 @@ Creates a new voucher.
 **Authentication Required**: Yes
 
 **Request Body**:
+
 ```json
 {
   "storeId": "507f1f77bcf86cd799439021",
   "productId": "507f1f77bcf86cd799439031",
   "expirationDate": "2023-12-31T23:59:59.000Z",
-  "amount": 25.00,
+  "amount": 25.0,
   "senderName": "John Doe",
   "senderEmail": "john@example.com",
   "receiverName": "Jane Smith",
@@ -227,6 +238,7 @@ Creates a new voucher.
 ```
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -237,7 +249,7 @@ Creates a new voucher.
     "productId": "507f1f77bcf86cd799439031",
     "status": "active",
     "expirationDate": "2023-12-31T23:59:59.000Z",
-    "amount": 25.00,
+    "amount": 25.0,
     "senderName": "John Doe",
     "senderEmail": "john@example.com",
     "receiverName": "Jane Smith",
@@ -252,6 +264,7 @@ Creates a new voucher.
 ```
 
 **Error Response**:
+
 ```json
 {
   "status": "error",
@@ -270,9 +283,11 @@ Updates a voucher's information.
 **Authentication Required**: Yes (Admin or Store Owner)
 
 **URL Parameters**:
+
 - `id`: ID of the voucher to update
 
 **Request Body**:
+
 ```json
 {
   "status": "redeemed",
@@ -284,6 +299,7 @@ Updates a voucher's information.
 ```
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -294,7 +310,7 @@ Updates a voucher's information.
     "productId": "507f1f77bcf86cd799439031",
     "status": "redeemed",
     "expirationDate": "2023-12-31T23:59:59.000Z",
-    "amount": 25.00,
+    "amount": 25.0,
     "senderName": "John Doe",
     "senderEmail": "john@example.com",
     "receiverName": "Updated Receiver",
@@ -309,6 +325,7 @@ Updates a voucher's information.
 ```
 
 **Error Response**:
+
 ```json
 {
   "status": "error",
@@ -327,9 +344,11 @@ Deletes a voucher.
 **Authentication Required**: Yes (Admin or Store Owner)
 
 **URL Parameters**:
+
 - `id`: ID of the voucher to delete
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -338,6 +357,7 @@ Deletes a voucher.
 ```
 
 **Error Response**:
+
 ```json
 {
   "status": "error",
@@ -356,9 +376,11 @@ Validates a voucher by its code (checks if it's active and not expired).
 **Authentication Required**: Yes
 
 **URL Parameters**:
+
 - `code`: Code of the voucher to validate
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -371,13 +393,14 @@ Validates a voucher by its code (checks if it's active and not expired).
       "productId": "507f1f77bcf86cd799439031",
       "status": "active",
       "expirationDate": "2023-12-31T23:59:59.000Z",
-      "amount": 25.00
+      "amount": 25.0
     }
   }
 }
 ```
 
 **Error Response**:
+
 ```json
 {
   "status": "error",
@@ -392,4 +415,4 @@ The voucher status can have the following values:
 - `active`: Voucher is valid and can be redeemed
 - `redeemed`: Voucher has been used
 - `expired`: Voucher has expired (past expiration date)
-- `cancelled`: Voucher has been cancelled 
+- `cancelled`: Voucher has been cancelled

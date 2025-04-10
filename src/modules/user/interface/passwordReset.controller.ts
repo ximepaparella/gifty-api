@@ -7,7 +7,7 @@ export const requestPasswordReset = catchAsync(async (req: Request, res: Respons
 
   res.status(200).json({
     status: 'success',
-    message: result.message
+    message: result.message,
   });
 });
 
@@ -19,6 +19,6 @@ export const resetPassword = catchAsync(async (req: Request, res: Response) => {
 
   res.status(200).json({
     status: 'success',
-    message: result.message
+    message: result.message,
   });
-}); 
+});

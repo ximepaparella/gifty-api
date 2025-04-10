@@ -353,18 +353,18 @@ export const userSwagger = {
                     status: { type: 'string', example: 'success' },
                     data: {
                       type: 'array',
-                      items: { $ref: '#/components/schemas/User' }
-                    }
-                  }
-                }
-              }
-            }
+                      items: { $ref: '#/components/schemas/User' },
+                    },
+                  },
+                },
+              },
+            },
           },
           401: {
-            $ref: '#/components/responses/UnauthorizedError'
-          }
-        }
-      }
+            $ref: '#/components/responses/UnauthorizedError',
+          },
+        },
+      },
     },
     '/users/{id}': {
       get: {
@@ -377,8 +377,8 @@ export const userSwagger = {
             in: 'path',
             required: true,
             schema: { type: 'string' },
-            description: 'User ID'
-          }
+            description: 'User ID',
+          },
         ],
         responses: {
           200: {
@@ -390,20 +390,20 @@ export const userSwagger = {
                   properties: {
                     status: { type: 'string', example: 'success' },
                     data: {
-                      $ref: '#/components/schemas/User'
-                    }
-                  }
-                }
-              }
-            }
+                      $ref: '#/components/schemas/User',
+                    },
+                  },
+                },
+              },
+            },
           },
           401: {
-            $ref: '#/components/responses/UnauthorizedError'
+            $ref: '#/components/responses/UnauthorizedError',
           },
           404: {
-            $ref: '#/components/responses/NotFoundError'
-          }
-        }
+            $ref: '#/components/responses/NotFoundError',
+          },
+        },
       },
       put: {
         tags: ['Users'],
@@ -415,8 +415,8 @@ export const userSwagger = {
             in: 'path',
             required: true,
             schema: { type: 'string' },
-            description: 'User ID'
-          }
+            description: 'User ID',
+          },
         ],
         requestBody: {
           required: true,
@@ -427,11 +427,11 @@ export const userSwagger = {
                 properties: {
                   name: { type: 'string', example: 'John Doe' },
                   email: { type: 'string', format: 'email', example: 'john@example.com' },
-                  password: { type: 'string', format: 'password', example: 'newpassword123' }
-                }
-              }
-            }
-          }
+                  password: { type: 'string', format: 'password', example: 'newpassword123' },
+                },
+              },
+            },
+          },
         },
         responses: {
           200: {
@@ -443,20 +443,20 @@ export const userSwagger = {
                   properties: {
                     status: { type: 'string', example: 'success' },
                     data: {
-                      $ref: '#/components/schemas/User'
-                    }
-                  }
-                }
-              }
-            }
+                      $ref: '#/components/schemas/User',
+                    },
+                  },
+                },
+              },
+            },
           },
           401: {
-            $ref: '#/components/responses/UnauthorizedError'
+            $ref: '#/components/responses/UnauthorizedError',
           },
           404: {
-            $ref: '#/components/responses/NotFoundError'
-          }
-        }
+            $ref: '#/components/responses/NotFoundError',
+          },
+        },
       },
       delete: {
         tags: ['Users'],
@@ -468,8 +468,8 @@ export const userSwagger = {
             in: 'path',
             required: true,
             schema: { type: 'string' },
-            description: 'User ID'
-          }
+            description: 'User ID',
+          },
         ],
         responses: {
           200: {
@@ -481,25 +481,25 @@ export const userSwagger = {
                   properties: {
                     status: { type: 'string', example: 'success' },
                     data: {
-                      $ref: '#/components/schemas/User'
-                    }
-                  }
-                }
-              }
-            }
+                      $ref: '#/components/schemas/User',
+                    },
+                  },
+                },
+              },
+            },
           },
           401: {
-            $ref: '#/components/responses/UnauthorizedError'
+            $ref: '#/components/responses/UnauthorizedError',
           },
           403: {
-            $ref: '#/components/responses/ForbiddenError'
+            $ref: '#/components/responses/ForbiddenError',
           },
           404: {
-            $ref: '#/components/responses/NotFoundError'
-          }
-        }
-      }
-    }
+            $ref: '#/components/responses/NotFoundError',
+          },
+        },
+      },
+    },
   },
   components: {
     schemas: {
@@ -513,9 +513,9 @@ export const userSwagger = {
           role: { type: 'string', enum: ['user', 'admin'], example: 'user' },
           isActive: { type: 'boolean', example: true },
           createdAt: { type: 'string', format: 'date-time' },
-          updatedAt: { type: 'string', format: 'date-time' }
-        }
-      }
-    }
-  }
-} as const; 
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+    },
+  },
+} as const;

@@ -25,38 +25,40 @@ const logger = winston.createLogger({
   defaultMeta: { service: 'gifty-api' },
   transports: [
     // Write all logs with level 'error' and below to error.log
-    new winston.transports.File({ 
-      filename: path.join(logDir, 'error.log'), 
-      level: 'error' 
+    new winston.transports.File({
+      filename: path.join(logDir, 'error.log'),
+      level: 'error',
     }),
     // Write all logs with level 'info' and below to combined.log
-    new winston.transports.File({ 
-      filename: path.join(logDir, 'combined.log') 
+    new winston.transports.File({
+      filename: path.join(logDir, 'combined.log'),
     }),
   ],
   exceptionHandlers: [
-    new winston.transports.File({ 
-      filename: path.join(logDir, 'exceptions.log') 
-    })
+    new winston.transports.File({
+      filename: path.join(logDir, 'exceptions.log'),
+    }),
   ],
   rejectionHandlers: [
-    new winston.transports.File({ 
-      filename: path.join(logDir, 'rejections.log') 
-    })
-  ]
+    new winston.transports.File({
+      filename: path.join(logDir, 'rejections.log'),
+    }),
+  ],
 });
 
 // If we're not in production, also log to the console with a simpler format
 if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-      logFormat
-    ),
-    handleExceptions: true,
-    handleRejections: true
-  }));
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        logFormat
+      ),
+      handleExceptions: true,
+      handleRejections: true,
+    })
+  );
 }
 
-export default logger; 
+export default logger;

@@ -67,4 +67,4 @@ export interface ApiResponse<T> {
   };
 }
 
-export * from './appError'; 
+export * from './appError';

@@ -12,7 +12,7 @@ describe('Store Service', () => {
     findByOwnerId: jest.fn(),
     findAll: jest.fn(),
     update: jest.fn(),
-    delete: jest.fn()
+    delete: jest.fn(),
   };
 
   beforeEach(() => {
@@ -30,13 +30,13 @@ describe('Store Service', () => {
     social: {
       instagram: 'https://instagram.com/teststore',
       facebook: 'https://facebook.com/teststore',
-      twitter: 'https://twitter.com/teststore'
-    }
+      twitter: 'https://twitter.com/teststore',
+    },
   };
 
   const mockStore: IStore = {
     ...mockStoreData,
-    _id: new mongoose.Types.ObjectId()
+    _id: new mongoose.Types.ObjectId(),
   };
 
   describe('createStore', () => {
@@ -46,17 +46,19 @@ describe('Store Service', () => {
 
       const result = await storeService.createStore(mockStoreData);
       expect(result).toEqual(mockStore);
-      expect(mockRepository.create).toHaveBeenCalledWith(expect.objectContaining({
-        ...mockStoreData
-      }));
+      expect(mockRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ...mockStoreData,
+        })
+      );
     });
 
     it('should throw error if email already exists', async () => {
       mockRepository.findByEmail.mockResolvedValue(mockStore);
 
-      await expect(storeService.createStore(mockStoreData))
-        .rejects
-        .toThrow('Store with this email already exists');
+      await expect(storeService.createStore(mockStoreData)).rejects.toThrow(
+        'Store with this email already exists'
+      );
     });
   });
 
@@ -81,9 +83,7 @@ describe('Store Service', () => {
     it('should throw error if store not found', async () => {
       mockRepository.findById.mockResolvedValue(null);
 
-      await expect(storeService.getStoreById('someId'))
-        .rejects
-        .toThrow('Store not found');
+      await expect(storeService.getStoreById('someId')).rejects.toThrow('Store not found');
     });
   });
 
@@ -97,8 +97,8 @@ describe('Store Service', () => {
       social: {
         instagram: 'https://instagram.com/updatedstore',
         facebook: 'https://facebook.com/updatedstore',
-        twitter: 'https://twitter.com/updatedstore'
-      }
+        twitter: 'https://twitter.com/updatedstore',
+      },
     };
 
     it('should update store successfully', async () => {
@@ -117,17 +117,17 @@ describe('Store Service', () => {
       mockRepository.findByEmail.mockResolvedValue(null);
       mockRepository.update.mockResolvedValue(null);
 
-      await expect(storeService.updateStore('someId', updateData))
-        .rejects
-        .toThrow('Store not found');
+      await expect(storeService.updateStore('someId', updateData)).rejects.toThrow(
+        'Store not found'
+      );
     });
 
     it('should update only social media links', async () => {
       const socialUpdateData = {
         social: {
           instagram: 'https://instagram.com/newstore',
-          facebook: 'https://facebook.com/newstore'
-        }
+          facebook: 'https://facebook.com/newstore',
+        },
       };
 
       mockRepository.findById.mockResolvedValue(mockStore);
@@ -139,7 +139,7 @@ describe('Store Service', () => {
 
     it('should update logo', async () => {
       const logoUpdateData = {
-        logo: 'https://example.com/new-logo.png'
+        logo: 'https://example.com/new-logo.png',
       };
 
       mockRepository.findById.mockResolvedValue(mockStore);
@@ -161,9 +161,7 @@ describe('Store Service', () => {
     it('should throw error if store not found', async () => {
       mockRepository.delete.mockResolvedValue(null);
 
-      await expect(storeService.deleteStore('someId'))
-        .rejects
-        .toThrow('Store not found');
+      await expect(storeService.deleteStore('someId')).rejects.toThrow('Store not found');
     });
   });
-}); 
+});
