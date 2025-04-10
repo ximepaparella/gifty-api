@@ -39,4 +39,4 @@ router.delete('/:id', voucherController.deleteVoucher);
 // Redeem a voucher
 router.put('/code/:code/redeem', voucherController.redeemVoucher);
 
-export default router; 
+export default router;

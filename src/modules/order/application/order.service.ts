@@ -7,7 +7,12 @@ import puppeteer from 'puppeteer';
 import fs from 'fs';
 import { OrderRepository } from '../infrastructure/order.repository';
 import { generateRandomCode } from '@shared/utils/codeGenerator';
-import { sendAllVoucherEmails, resendCustomerEmail, resendReceiverEmail, resendStoreEmail } from '../utils/voucherEmails';
+import {
+  sendAllVoucherEmails,
+  resendCustomerEmail,
+  resendReceiverEmail,
+  resendStoreEmail,
+} from '../utils/voucherEmails';
 import { generateVoucherRedemptionQRCode } from '@shared/utils/qrCodeGenerator';
 import { Store } from '../../store/domain/store.schema';
 
@@ -52,23 +57,23 @@ export class OrderService {
    */
   async createOrder(orderData: IOrderInput): Promise<IOrder> {
     logger.info('Creating new order');
-    
+
     // Validate order data
     const validationErrors = validateOrder(orderData);
     if (validationErrors.length > 0) {
       throw validationError(validationErrors.join(', '));
     }
-    
+
     // Generate voucher code if not provided
     if (!orderData.voucher.code) {
       orderData.voucher.code = generateRandomCode(10);
     }
-    
+
     try {
       // Generate QR code for voucher redemption
       logger.info(`Generating QR code for voucher with code: ${orderData.voucher.code}`);
       const qrCodeDataUrl = await generateVoucherRedemptionQRCode(orderData.voucher.code);
-      
+
       // Set voucher status to active and isRedeemed to false
       const orderToCreate: any = {
         ...orderData,
@@ -78,28 +83,28 @@ export class OrderService {
           isRedeemed: false,
           redeemedAt: null,
           amount: orderData.paymentDetails.amount,
-          qrCode: qrCodeDataUrl
+          qrCode: qrCodeDataUrl,
         },
         emailsSent: false,
         pdfGenerated: false,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
-      
+
       // Create the order
       const newOrder = await this.orderRepository.create(orderToCreate);
-      
+
       // Send voucher emails in the background
       if (newOrder._id) {
-        this.sendVoucherEmails(newOrder._id.toString()).catch(err => {
+        this.sendVoucherEmails(newOrder._id.toString()).catch((err) => {
           logger.error(`Error sending voucher emails for order ${newOrder._id}: ${err.message}`);
         });
-        
-        this.generateVoucherPDF(newOrder._id.toString()).catch(err => {
+
+        this.generateVoucherPDF(newOrder._id.toString()).catch((err) => {
           logger.error(`Error generating voucher PDF for order ${newOrder._id}: ${err.message}`);
         });
       }
-      
+
       return newOrder;
     } catch (error: any) {
       logger.error(`Error during order creation: ${error.message}`, error);
@@ -112,19 +117,19 @@ export class OrderService {
    */
   async updateOrder(id: string, orderData: Partial<IOrderInput>): Promise<IOrder | null> {
     logger.info(`Updating order with ID ${id}`);
-    
+
     // Check if order exists
     const existingOrder = await this.orderRepository.findById(id);
     if (!existingOrder) {
       throw notFoundError('Order not found');
     }
-    
+
     // Update the order
     const updateData = {
       ...orderData,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     } as Partial<IOrderInput>;
-    
+
     await this.orderRepository.update(id, updateData);
     return this.orderRepository.findById(id);
   }
@@ -134,13 +139,13 @@ export class OrderService {
    */
   async deleteOrder(id: string): Promise<boolean> {
     logger.info(`Deleting order with ID ${id}`);
-    
+
     // Check if order exists
     const existingOrder = await this.orderRepository.findById(id);
     if (!existingOrder) {
       throw notFoundError('Order not found');
     }
-    
+
     // Delete the order
     return this.orderRepository.delete(id);
   }
@@ -150,7 +155,7 @@ export class OrderService {
    */
   async redeemVoucher(code: string): Promise<IOrder | null> {
     logger.info(`Redeeming voucher with code ${code}`);
-    
+
     try {
       // Use atomic findOneAndUpdate to prevent race conditions
       const now = new Date();
@@ -159,7 +164,7 @@ export class OrderService {
           'voucher.code': code,
           'voucher.status': 'active',
           'voucher.isRedeemed': false,
-          'voucher.expirationDate': { $gte: now }
+          'voucher.expirationDate': { $gte: now },
         },
         {
           $set: {
@@ -167,8 +172,8 @@ export class OrderService {
             'voucher.isRedeemed': true,
             'voucher.redeemedAt': now,
             status: 'redeemed',
-            updatedAt: now
-          }
+            updatedAt: now,
+          },
         },
         { new: true }
       );
@@ -176,19 +181,19 @@ export class OrderService {
       if (!updatedOrder) {
         // Check if voucher exists and why it can't be redeemed
         const existingOrder = await this.orderRepository.findByVoucherCode(code);
-        
+
         if (!existingOrder) {
           throw notFoundError('Voucher not found');
         }
-        
+
         if (existingOrder.voucher.isRedeemed) {
           throw new AppError('Voucher has already been redeemed', 400);
         }
-        
+
         if (existingOrder.voucher.expirationDate < now) {
           throw new AppError('Voucher has expired', 400);
         }
-        
+
         throw new AppError('Voucher cannot be redeemed', 400);
       }
 
@@ -203,13 +208,15 @@ export class OrderService {
   /**
    * Helper method for email resend operations that handles common operations
    */
-  private async prepareOrderForEmailResend(id: string): Promise<{order: IOrder, pdfUrl: string} | null> {
+  private async prepareOrderForEmailResend(
+    id: string
+  ): Promise<{ order: IOrder; pdfUrl: string } | null> {
     // Check if order exists
     const order = await this.orderRepository.findById(id);
     if (!order) {
       throw notFoundError('Order not found');
     }
-    
+
     try {
       // Generate PDF if not already generated
       if (!order.pdfUrl) {
@@ -222,7 +229,7 @@ export class OrderService {
 
       return {
         order,
-        pdfUrl: order.pdfUrl
+        pdfUrl: order.pdfUrl,
       };
     } catch (error) {
       logger.error(`Error preparing order for email resend: ${error}`);
@@ -235,24 +242,24 @@ export class OrderService {
    */
   async resendVoucherEmails(id: string): Promise<boolean> {
     logger.info(`Resending voucher emails for order with ID ${id}`);
-    
+
     try {
       const result = await this.prepareOrderForEmailResend(id);
       if (!result) return false;
-      
+
       // Send all emails
       const emailResult = await sendAllVoucherEmails(id, result.pdfUrl);
-      
+
       if (!emailResult) {
         throw new Error(`Failed to send emails for order ${id}`);
       }
-      
+
       // Update order to mark emails as sent
       await this.orderRepository.update(id, {
         emailsSent: true,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       } as any);
-      
+
       return true;
     } catch (error: any) {
       logger.error(`Error sending voucher emails for order ${id}: ${error.message}`, error);
@@ -265,18 +272,18 @@ export class OrderService {
    */
   async resendCustomerEmail(id: string): Promise<boolean> {
     logger.info(`Resending customer voucher email for order with ID ${id}`);
-    
+
     try {
       const result = await this.prepareOrderForEmailResend(id);
       if (!result) return false;
-      
+
       // Send email only to the customer
       const emailResult = await resendCustomerEmail(id, result.pdfUrl);
-      
+
       if (!emailResult) {
         throw new Error(`Failed to send customer email for order ${id}`);
       }
-      
+
       return true;
     } catch (error: any) {
       logger.error(`Error sending customer email for order ${id}: ${error.message}`, error);
@@ -289,18 +296,18 @@ export class OrderService {
    */
   async resendReceiverEmail(id: string): Promise<boolean> {
     logger.info(`Resending receiver voucher email for order with ID ${id}`);
-    
+
     try {
       const result = await this.prepareOrderForEmailResend(id);
       if (!result) return false;
-      
+
       // Send email only to the receiver
       const emailResult = await resendReceiverEmail(id, result.pdfUrl);
-      
+
       if (!emailResult) {
         throw new Error(`Failed to send receiver email for order ${id}`);
       }
-      
+
       return true;
     } catch (error: any) {
       logger.error(`Error sending receiver email for order ${id}: ${error.message}`, error);
@@ -313,18 +320,18 @@ export class OrderService {
    */
   async resendStoreEmail(id: string): Promise<boolean> {
     logger.info(`Resending store voucher email for order with ID ${id}`);
-    
+
     try {
       const result = await this.prepareOrderForEmailResend(id);
       if (!result) return false;
-      
+
       // Send email only to the store
       const emailResult = await resendStoreEmail(id, result.pdfUrl);
-      
+
       if (!emailResult) {
         throw new Error(`Failed to send store email for order ${id}`);
       }
-      
+
       return true;
     } catch (error: any) {
       logger.error(`Error sending store email for order ${id}: ${error.message}`, error);
@@ -339,20 +346,20 @@ export class OrderService {
     try {
       const result = await this.prepareOrderForEmailResend(orderId);
       if (!result) return false;
-      
+
       // Send all emails
       const emailResult = await sendAllVoucherEmails(orderId, result.pdfUrl);
-      
+
       if (!emailResult) {
         throw new Error(`Failed to send emails for order ${orderId}`);
       }
-      
+
       // Update order to mark emails as sent
       await this.orderRepository.update(orderId, {
         emailsSent: true,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       } as any);
-      
+
       return true;
     } catch (error: any) {
       logger.error(`Error sending voucher emails for order ${orderId}: ${error.message}`, error);
@@ -366,7 +373,7 @@ export class OrderService {
   async generateVoucherPDF(orderId: string): Promise<string | null> {
     logger.info(`Generating voucher PDF for order ${orderId}`);
     let browser = null;
-    
+
     try {
       // Get order details
       const order = await this.orderRepository.findById(orderId);
@@ -393,10 +400,15 @@ export class OrderService {
 
       // Get template content
       const templateNumber = order.voucher.template || 'template1';
-      const templatePath = path.join(process.cwd(), 'src', 'templates', `voucher-${templateNumber}.html`);
-      
+      const templatePath = path.join(
+        process.cwd(),
+        'src',
+        'templates',
+        `voucher-${templateNumber}.html`
+      );
+
       logger.info(`Using template: ${templatePath}`);
-      
+
       if (!fs.existsSync(templatePath)) {
         throw new AppError(`Template ${templateNumber} not found`, 404);
       }
@@ -410,14 +422,18 @@ export class OrderService {
         '{{storeAddress}}': store.address || '',
         '{{storeEmail}}': store.email || '',
         '{{storePhone}}': store.phone || '',
-        '{{storeSocial}}': store.social ? Object.values(store.social).filter(Boolean).join(', ') : '',
+        '{{storeSocial}}': store.social
+          ? Object.values(store.social).filter(Boolean).join(', ')
+          : '',
         '{{sender_name}}': order.voucher.senderName || '',
         '{{receiver_name}}': order.voucher.receiverName || '',
         '{{productName}}': `${order.voucher.amount} Gift Card`,
         '{{message}}': order.voucher.message || '',
         '{{code}}': order.voucher.code || '',
         '{{qrCode}}': order.voucher.qrCode || '',
-        '{{expirationDate}}': order.voucher.expirationDate ? new Date(order.voucher.expirationDate).toLocaleDateString() : ''
+        '{{expirationDate}}': order.voucher.expirationDate
+          ? new Date(order.voucher.expirationDate).toLocaleDateString()
+          : '',
       };
 
       // Replace all placeholders in the template
@@ -428,32 +444,35 @@ export class OrderService {
       // Launch browser
       browser = await puppeteer.launch({
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
       });
 
       // Create new page
       const page = await browser.newPage();
-      
+
       // Set viewport
       await page.setViewport({
         width: 1024,
-        height: 1447  // A4 size at 96 DPI
+        height: 1447, // A4 size at 96 DPI
       });
-      
+
       // Set content with timeout and wait for network idle
       await page.setContent(templateContent, {
         waitUntil: ['networkidle0', 'load', 'domcontentloaded'],
-        timeout: 30000
+        timeout: 30000,
       });
 
       // Wait for images to load
       await page.evaluate(() => {
         return Promise.all(
           Array.from(document.images)
-            .filter(img => !img.complete)
-            .map(img => new Promise(resolve => {
-              img.onload = img.onerror = resolve;
-            }))
+            .filter((img) => !img.complete)
+            .map(
+              (img) =>
+                new Promise((resolve) => {
+                  img.onload = img.onerror = resolve;
+                })
+            )
         );
       });
 
@@ -465,12 +484,12 @@ export class OrderService {
           top: '20px',
           right: '20px',
           bottom: '20px',
-          left: '20px'
+          left: '20px',
         },
         preferCSSPageSize: true,
         displayHeaderFooter: false,
         scale: 1,
-        landscape: false
+        landscape: false,
       });
 
       // Verify PDF buffer
@@ -491,12 +510,11 @@ export class OrderService {
       // Update order with PDF path
       const updateData: Partial<IOrderInput> = {
         pdfUrl: pdfPath,
-        pdfGenerated: true
+        pdfGenerated: true,
       };
       await this.orderRepository.update(orderId, updateData);
 
       return pdfPath;
-
     } catch (error: any) {
       logger.error(`Error generating voucher PDF: ${error.message}`, error);
       throw new AppError(error.message || 'Failed to generate voucher PDF', error.status || 500);
@@ -510,4 +528,4 @@ export class OrderService {
       }
     }
   }
-} 
+}

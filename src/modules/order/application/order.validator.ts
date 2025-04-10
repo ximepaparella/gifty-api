@@ -26,7 +26,9 @@ export const validateOrder = (orderData: IOrderInput): string[] => {
     // Check paymentStatus
     if (!orderData.paymentDetails.paymentStatus) {
       errors.push('Payment status is required');
-    } else if (!['pending', 'completed', 'failed'].includes(orderData.paymentDetails.paymentStatus)) {
+    } else if (
+      !['pending', 'completed', 'failed'].includes(orderData.paymentDetails.paymentStatus)
+    ) {
       errors.push('Payment status must be pending, completed, or failed');
     }
 
@@ -111,10 +113,22 @@ export const validateOrder = (orderData: IOrderInput): string[] => {
     // Check template
     if (!orderData.voucher.template) {
       errors.push('Template is required');
-    } else if (!['template1', 'template2', 'template3', 'template4', 'template5', 'birthday', 'christmas', 'valentine', 'general'].includes(orderData.voucher.template)) {
+    } else if (
+      ![
+        'template1',
+        'template2',
+        'template3',
+        'template4',
+        'template5',
+        'birthday',
+        'christmas',
+        'valentine',
+        'general',
+      ].includes(orderData.voucher.template)
+    ) {
       errors.push('Template must be a valid template type');
     }
   }
 
   return errors;
-}; 
+};

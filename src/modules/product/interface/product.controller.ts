@@ -1,11 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { ProductService } from '../application/product.service';
 import { handleAsync } from '@shared/infrastructure/middleware/asyncHandler';
-import { IProduct } from '../domain/product.entity';
 import logger from '@shared/infrastructure/logging/logger';
 import { deleteFile } from '@shared/infrastructure/services/fileUpload';
-import path from 'path';
-import { v2 as cloudinary } from 'cloudinary';
 
 // Extended Request type to include file from multer
 interface RequestWithFile extends Request {
@@ -21,7 +18,7 @@ export class ProductController {
 
   createProduct = handleAsync(async (req: RequestWithFile, res: Response, next: NextFunction) => {
     let productData: any = {};
-    
+
     try {
       // Parse product data from request body
       if (req.body.data) {
@@ -33,7 +30,7 @@ export class ProductController {
           description: req.body.description,
           price: parseFloat(req.body.price),
           storeId: req.body.storeId,
-          isActive: req.body.isActive
+          isActive: req.body.isActive,
         };
       }
 
@@ -48,10 +45,10 @@ export class ProductController {
 
       // Create the product
       const product = await this.service.createProduct(productData);
-      
+
       res.status(201).json({
         status: 'success',
-        data: product
+        data: product,
       });
     } catch (error) {
       logger.error('Error creating product:', error);
@@ -67,7 +64,7 @@ export class ProductController {
     const products = await this.service.getProducts();
     res.status(200).json({
       status: 'success',
-      data: products
+      data: products,
     });
   });
 
@@ -76,7 +73,7 @@ export class ProductController {
     const product = await this.service.getProductById(id);
     res.status(200).json({
       status: 'success',
-      data: product
+      data: product,
     });
   });
 
@@ -85,14 +82,14 @@ export class ProductController {
     const products = await this.service.getProductsByStoreId(storeId);
     res.status(200).json({
       status: 'success',
-      data: products
+      data: products,
     });
   });
 
   updateProduct = handleAsync(async (req: RequestWithFile, res: Response, next: NextFunction) => {
     const { id } = req.params;
     let productData: any = {};
-    
+
     try {
       // Parse product data from request body
       if (req.body.data) {
@@ -103,7 +100,7 @@ export class ProductController {
           name: req.body.name,
           description: req.body.description,
           price: req.body.price ? parseFloat(req.body.price) : undefined,
-          isActive: req.body.isActive
+          isActive: req.body.isActive,
         };
       }
 
@@ -114,15 +111,15 @@ export class ProductController {
         if (existingProduct?.image) {
           await deleteFile(existingProduct.image);
         }
-        
+
         productData.image = req.file.path; // Cloudinary returns the full URL in the path
       }
 
       const product = await this.service.updateProduct(id, productData);
-      
+
       res.status(200).json({
         status: 'success',
-        data: product
+        data: product,
       });
     } catch (error) {
       logger.error('Error updating product:', error);
@@ -139,26 +136,26 @@ export class ProductController {
     const product = await this.service.deleteProduct(id);
     res.status(200).json({
       status: 'success',
-      data: product
+      data: product,
     });
   });
 
   getImage = handleAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
     const product = await this.service.getProductById(id);
-    
+
     if (!product?.image) {
       return res.status(404).json({
         status: 'error',
-        message: 'No image found for this product'
+        message: 'No image found for this product',
       });
     }
 
     res.status(200).json({
       status: 'success',
       data: {
-        imageUrl: product.image
-      }
+        imageUrl: product.image,
+      },
     });
   });
-} 
+}

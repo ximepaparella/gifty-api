@@ -40,6 +40,7 @@ export class Store implements IStore {
       url: string;
     }>;
   };
+
   public createdAt?: Date;
   public updatedAt?: Date;
 
@@ -67,7 +68,7 @@ export class Store implements IStore {
       logo: this.logo,
       social: this.social,
       createdAt: this.createdAt,
-      updatedAt: this.updatedAt
+      updatedAt: this.updatedAt,
     };
   }
-} 
+}

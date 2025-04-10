@@ -6,7 +6,7 @@ import { Document } from 'mongoose';
 export enum UserRole {
   ADMIN = 'admin',
   STORE_MANAGER = 'store_manager',
-  CUSTOMER = 'customer'
+  CUSTOMER = 'customer',
 }
 
 /**
@@ -78,4 +78,4 @@ export interface LoginCredentialsDTO {
 export interface LoginResponseDTO {
   token: string;
   user: UserDTO;
-} 
+}

@@ -11,14 +11,12 @@ const validateRequest = (schema: Schema) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     const { error } = schema.validate(req.body, {
       abortEarly: false,
-      stripUnknown: true
+      stripUnknown: true,
     });
 
     if (error) {
-      const errorMessage = error.details
-        .map(detail => detail.message)
-        .join(', ');
-      
+      const errorMessage = error.details.map((detail) => detail.message).join(', ');
+
       return next(validationError(errorMessage));
     }
 
@@ -26,4 +24,4 @@ const validateRequest = (schema: Schema) => {
   };
 };
 
-export default validateRequest; 
+export default validateRequest;

@@ -20,7 +20,7 @@ export const cache = (duration: number = 3600) => {
 
     try {
       const cachedData = await redisClient.get(key);
-      
+
       if (cachedData) {
         logger.info(`Cache hit for ${key}`);
         res.json(JSON.parse(cachedData));
@@ -33,7 +33,8 @@ export const cache = (duration: number = 3600) => {
       // Override res.json method
       res.json = function (body: any) {
         // Store the response in cache
-        redisClient.setEx(key, duration, JSON.stringify(body))
+        redisClient
+          .setEx(key, duration, JSON.stringify(body))
           .catch((err: Error) => logger.error('Redis cache error:', err));
 
         // Call original send function
@@ -46,4 +47,4 @@ export const cache = (duration: number = 3600) => {
       next();
     }
   };
-}; 
+};

@@ -57,9 +57,9 @@ export class OrderRepository implements IOrderRepository {
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return null;
       }
-      
+
       logger.info(`Updating email sent status for order ${id} to ${status}`);
-      
+
       const updatedOrder = await OrderModel.findByIdAndUpdate(
         id,
         { $set: { emailsSent: status } },
@@ -84,9 +84,9 @@ export class OrderRepository implements IOrderRepository {
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return null;
       }
-      
+
       logger.info(`Updating PDF generated status for order ${id} to ${status}`);
-      
+
       const updatedOrder = await OrderModel.findByIdAndUpdate(
         id,
         { $set: { pdfGenerated: status } },
@@ -109,46 +109,46 @@ export class OrderRepository implements IOrderRepository {
   async redeemVoucher(voucherCode: string): Promise<IOrder | null> {
     try {
       logger.info(`Attempting to redeem voucher with code: ${voucherCode}`);
-      
+
       // Use atomic findOneAndUpdate to prevent race conditions
       const now = new Date();
       const redeemedOrder = await OrderModel.findOneAndUpdate(
-        { 
-          'voucher.code': voucherCode, 
+        {
+          'voucher.code': voucherCode,
           'voucher.status': 'active',
-          'voucher.expirationDate': { $gte: now }
+          'voucher.expirationDate': { $gte: now },
         },
-        { 
-          $set: { 
+        {
+          $set: {
             'voucher.status': 'redeemed',
-            'voucher.redeemedAt': now
-          } 
+            'voucher.redeemedAt': now,
+          },
         },
-        { 
+        {
           new: true, // Return the updated document
-          runValidators: true // Run model validators
+          runValidators: true, // Run model validators
         }
       ).exec();
 
       if (!redeemedOrder) {
         // Check if the voucher exists but is already redeemed or expired
         const existingOrder = await OrderModel.findOne({ 'voucher.code': voucherCode }).exec();
-        
+
         if (!existingOrder) {
           logger.warn(`Voucher with code ${voucherCode} not found`);
           throw notFoundError(`Voucher with code ${voucherCode} not found`);
         }
-        
+
         if (existingOrder.voucher.status === 'redeemed') {
           logger.warn(`Voucher with code ${voucherCode} has already been redeemed`);
           throw new Error(`Voucher with code ${voucherCode} has already been redeemed`);
         }
-        
+
         if (existingOrder.voucher.expirationDate < now) {
           logger.warn(`Voucher with code ${voucherCode} has expired`);
           throw new Error(`Voucher with code ${voucherCode} has expired`);
         }
-        
+
         logger.warn(`Unable to redeem voucher with code ${voucherCode}`);
         throw new Error(`Unable to redeem voucher with code ${voucherCode}`);
       }
@@ -170,8 +170,8 @@ export class OrderRepository implements IOrderRepository {
           $set: {
             pdfUrl: pdfUrl,
             pdfGenerated: true,
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         },
         { new: true }
       ).exec();
@@ -189,11 +189,7 @@ export class OrderRepository implements IOrderRepository {
     }
   }
 
-  async findOneAndUpdate(
-    filter: any,
-    update: any,
-    options: any = {}
-  ): Promise<IOrder | null> {
+  async findOneAndUpdate(filter: any, update: any, options: any = {}): Promise<IOrder | null> {
     try {
       return await OrderModel.findOneAndUpdate(filter, update, options).exec();
     } catch (error: any) {
@@ -201,4 +197,4 @@ export class OrderRepository implements IOrderRepository {
       throw error;
     }
   }
-} 
+}

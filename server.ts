@@ -7,9 +7,7 @@ import mongoose from 'mongoose';
 import path from 'path';
 import fs from 'fs';
 
-import { connectDatabase } from '@shared/infrastructure/database/connection';
 import logger from '@shared/infrastructure/logging/logger';
-import { initCloudinary } from '@shared/infrastructure/services/cloudinary.config';
 import { AppError } from '@shared/types/appError';
 import { errorHandler as globalErrorHandler } from '@shared/infrastructure/errors/errorHandler';
 import { setupSwagger } from '@shared/infrastructure/swagger/swagger';
@@ -111,31 +109,48 @@ app.post('/api/v1/customers/get-or-create', (req: Request, res: Response, next: 
 });
 
 // Get customer by ID (protected)
-app.get('/api/v1/customers/:id', authenticate, (req: Request, res: Response, next: NextFunction) => {
-  customerController.getCustomerById(req, res, next);
-});
+app.get(
+  '/api/v1/customers/:id',
+  authenticate,
+  (req: Request, res: Response, next: NextFunction) => {
+    customerController.getCustomerById(req, res, next);
+  }
+);
 
 // Update customer (protected)
-app.put('/api/v1/customers/:id', authenticate, (req: Request, res: Response, next: NextFunction) => {
-  customerController.updateCustomer(req, res, next);
-});
+app.put(
+  '/api/v1/customers/:id',
+  authenticate,
+  (req: Request, res: Response, next: NextFunction) => {
+    customerController.updateCustomer(req, res, next);
+  }
+);
 
 // Delete customer (protected)
-app.delete('/api/v1/customers/:id', authenticate, (req: Request, res: Response, next: NextFunction) => {
-  customerController.deleteCustomer(req, res, next);
-});
+app.delete(
+  '/api/v1/customers/:id',
+  authenticate,
+  (req: Request, res: Response, next: NextFunction) => {
+    customerController.deleteCustomer(req, res, next);
+  }
+);
 
 // Setup Swagger documentation
 setupSwagger(app);
 
 // Error handling middleware
-const errorHandler: ErrorRequestHandler = (err: AppError, req: Request, res: Response, next: NextFunction): void => {
+const errorHandler: ErrorRequestHandler = (
+  err: AppError,
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
   logger.error('Error:', err);
-  
+
   if (err.isOperational) {
     res.status(err.statusCode || 500).json({
       status: err.status || 'error',
-      message: err.message
+      message: err.message,
     });
     return;
   }
@@ -143,7 +158,7 @@ const errorHandler: ErrorRequestHandler = (err: AppError, req: Request, res: Res
   // Programming or other unknown error
   res.status(500).json({
     status: 'error',
-    message: 'Something went wrong!'
+    message: 'Something went wrong!',
   });
 };
 
@@ -169,4 +184,4 @@ mongoose
     process.exit(1);
   });
 
-export default app; 
+export default app;

@@ -7,21 +7,21 @@ import winston from 'winston';
 const logger = winston.createLogger({
   transports: [
     new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      )
-    })
-  ]
+      format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
+    }),
+  ],
 });
 
 /**
  * Downloads a PDF from a URL and verifies it
  */
-export const downloadAndVerifyPDF = async (pdfUrl: string, voucherCode: string): Promise<string> => {
+export const downloadAndVerifyPDF = async (
+  pdfUrl: string,
+  voucherCode: string
+): Promise<string> => {
   try {
     logger.info(`Downloading PDF from ${pdfUrl}`);
-    
+
     // Create temp directory if it doesn't exist
     const tempDir = path.join(process.cwd(), 'temp');
     if (!fs.existsSync(tempDir)) {
@@ -37,8 +37,8 @@ export const downloadAndVerifyPDF = async (pdfUrl: string, voucherCode: string):
       url: pdfUrl,
       responseType: 'arraybuffer',
       headers: {
-        'Accept': 'application/pdf'
-      }
+        Accept: 'application/pdf',
+      },
     });
 
     // Verify the response is a PDF
@@ -77,4 +77,4 @@ export const cleanupTempPDF = async (filePath: string): Promise<void> => {
     logger.error(`Error cleaning up PDF file: ${error.message}`, error);
     // Don't throw error here as this is cleanup
   }
-}; 
+};

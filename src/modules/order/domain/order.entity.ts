@@ -8,7 +8,7 @@ export enum OrderStatus {
   PROCESSING = 'processing',
   COMPLETED = 'completed',
   FAILED = 'failed',
-  CANCELLED = 'cancelled'
+  CANCELLED = 'cancelled',
 }
 
 export interface IOrder {
@@ -42,4 +42,4 @@ export class Order implements IOrder {
     this.createdAt = order.createdAt;
     this.updatedAt = order.updatedAt;
   }
-} 
+}

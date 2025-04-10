@@ -2,12 +2,17 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from '@shared/types/appError';
 import logger from '@shared/infrastructure/logging/logger';
 
-export const errorHandler = (err: Error, req: Request, res: Response, _next: NextFunction): void => {
+export const errorHandler = (
+  err: Error,
+  req: Request,
+  res: Response,
+  _next: NextFunction
+): void => {
   if (err instanceof AppError) {
     res.status(err.statusCode).json({
       status: 'error',
       message: err.message,
-      ...(err.isOperational ? {} : { stack: err.stack })
+      ...(err.isOperational ? {} : { stack: err.stack }),
     });
     return;
   }
@@ -17,6 +22,6 @@ export const errorHandler = (err: Error, req: Request, res: Response, _next: Nex
 
   res.status(500).json({
     status: 'error',
-    message: 'Internal server error'
+    message: 'Internal server error',
   });
-}; 
+};

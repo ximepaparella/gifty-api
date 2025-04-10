@@ -1,6 +1,5 @@
-> Detalla en esta sección los prompts principales utilizados durante la creación del proyecto, que justifiquen el uso de asistentes de código en todas las fases del ciclo de vida del desarrollo. Esperamos un máximo de 3 por sección, principalmente los de creación inicial o  los de corrección o adición de funcionalidades que consideres más relevantes.
-Puedes añadir adicionalmente la conversación completa como link o archivo adjunto si así lo consideras
-
+> Detalla en esta sección los prompts principales utilizados durante la creación del proyecto, que justifiquen el uso de asistentes de código en todas las fases del ciclo de vida del desarrollo. Esperamos un máximo de 3 por sección, principalmente los de creación inicial o los de corrección o adición de funcionalidades que consideres más relevantes.
+> Puedes añadir adicionalmente la conversación completa como link o archivo adjunto si así lo consideras
 
 ## Índice
 
@@ -16,7 +15,7 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 
 ## 1. Descripción general del producto
 
-**Prompt 1:** 
+**Prompt 1:**
 
 As a CEO of a new startup, working as a expert CPO and Bussiness Analyst, we need to start builing a new startup technical project.
 
@@ -35,6 +34,7 @@ We dont know if there is any platform like this on the Argentinian Market that c
 So before we start, workin with this basic idea, do you have any doubts on the work we need to start doing or in the product idea?
 
 ## GTP o4 answer
+
 This is an exciting project with a clear vision. Here are some initial questions and thoughts to refine the idea and ensure all aspects are covered:
 
 Key Questions
@@ -115,7 +115,7 @@ The voucher cannot be transfered, can be used by the one who buy or by the one w
 Yes we need to offer api access, and documentation, so it can be used for any client that wants to.
 
 4. We will use QR and Custom alphanumeric unic key codes.
-Yes the bussiness has to have dashboards to track all, orders, sells, uses, services, products.
+   Yes the bussiness has to have dashboards to track all, orders, sells, uses, services, products.
 
 5. Will be good in the next MVP, but yes.
 
@@ -159,6 +159,7 @@ We need to create the Mermaid Diagram for the entire system architecture, defini
 Do you have questions? Lets start defining together.
 
 ## CHAT GPT 4o answer:
+
 Step 1: Identifying the Main Entities
 Based on the PRD and MVP features, we will have the following entities:
 
@@ -215,7 +216,7 @@ lets add to the order an object for payment that will have payment id, payment s
 
 lets update the redeption word, is not good, propose others please.
 
-remember that the user can see their own orders or buys on the profile page, lets add some fields for that. 
+remember that the user can see their own orders or buys on the profile page, lets add some fields for that.
 
 and make the diagram correct because is not right, is failing, have code issues
 
@@ -244,10 +245,7 @@ Ensure the User can see their Orders and add relevant fields.
 
 Fix syntax issues in the diagram to ensure it renders correctly.
 
-
 **Prompt 3:**
-
-
 
 ### **2.2. Descripción de componentes principales:**
 
@@ -259,34 +257,37 @@ Fix syntax issues in the diagram to ensure it renders correctly.
 
 ### **2.3. Descripción de alto nivel del proyecto y estructura de ficheros**
 
-**Prompt 1:** 
+**Prompt 1:**
 
 As an expert Software Architect i need you to create our API For the Gifty Project a Node.js REST API project following Hexagonal Architecture with Screaming Architecture file organization.
 
 ## Project Details:
+
 - **Backend Framework:** Node.js with Express
 - **Database:** MongoDB using Mongoose ORM
 - **Validation:** Joi for schema validation
 - **Authentication:** JWT-based authentication
-- **Folder Structure:** Hexagonal Architecture 
+- **Folder Structure:** Hexagonal Architecture
 - **Code Style:** ESLint + Prettier
 
-
 ## Folder Structure (Screaming Architecture):
+
 /src
-   ├── modules 
-      │ ├── entinty
-         │ ├── application 
-         │ ├── domain 
-         │ ├── infrastructure
-         │ ├── interface
-   ├── shared
-      │ ├── infrastructure
-      │ ├── types
-      │ ├── utils
+├── modules
+│ ├── entinty
+│ ├── application
+│ ├── domain
+│ ├── infrastructure
+│ ├── interface
+├── shared
+│ ├── infrastructure
+│ ├── types
+│ ├── utils
 
 ## Backend Setup:
+
 1. **Install Dependencies**
+
    - `express`, `mongoose`, `dotenv`, `cors`, `helmet`, `jsonwebtoken`
    - `winston` (for logging)
    - `joi` (for request validation)
@@ -294,10 +295,12 @@ As an expert Software Architect i need you to create our API For the Gifty Proje
    - `eslint`, `prettier` (for code quality)
 
 2. **Database Configuration**
+
    - Use `.env` file to store database connection details (`MONGO_URI`).
    - Implement **Mongoose Models** based on our PRD.
 
 3. **Implement Core Modules:**
+
    - **Users:** Signup/Login, JWT authentication
    - **Vouchers:** CRUD operations
    - **Orders:** Create & retrieve orders
@@ -305,17 +308,20 @@ As an expert Software Architect i need you to create our API For the Gifty Proje
    - **Voucher Redemption:** Track voucher usage
 
 4. **Hexagonal Architecture Principles**
+
    - Use **adapters** for API calls and database interactions.
    - Separate **business logic** inside `application` layer.
    - Implement **dependency injection** for flexibility.
 
 5. **API Documentation**
+
    - Generate OpenAPI spec using `swagger-jsdoc`.
 
 6. **Run the Server**
    - Provide startup scripts in `package.json`.
 
 ## Expected Output:
+
 - A **fully structured repository** with the necessary configuration.
 - Preconfigured with `Express`, `Mongoose`, `Joi`, `JWT`, `dotenv`, and TypeScript.
 - A `README.md` file with setup instructions.
@@ -325,8 +331,6 @@ As an expert Software Architect i need you to create our API For the Gifty Proje
 Do you have any doubts?
 
 **Prompt 2:**
-
-
 
 **Prompt 3:**
 

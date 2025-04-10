@@ -23,14 +23,14 @@ export interface JwtPayload {
  */
 export const hashPassword = async (password: string): Promise<string> => {
   const saltRounds = 10;
-  return await bcrypt.hash(password, saltRounds);
+  return bcrypt.hash(password, saltRounds);
 };
 
 /**
  * Compare a password with a hash
  */
 export const comparePassword = async (password: string, hash: string): Promise<boolean> => {
-  return await bcrypt.compare(password, hash);
+  return bcrypt.compare(password, hash);
 };
 
 /**
@@ -39,8 +39,8 @@ export const comparePassword = async (password: string, hash: string): Promise<b
 export const generateToken = (payload: JwtPayload): string => {
   // Using a simpler approach to avoid type issues
   return jwt.sign(
-    payload, 
-    JWT_SECRET as Secret, 
+    payload,
+    JWT_SECRET as Secret,
     { expiresIn: '24h' } // Hardcoded value to avoid type issues
   );
 };
@@ -63,35 +63,33 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
   try {
     // Get token from header
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw unauthorizedError('No token provided');
     }
-    
+
     // Extract token
     const token = authHeader.split(' ')[1];
-    
+
     // Verify token
     const decoded = verifyToken(token);
-    
+
     // Add user to request
     (req as RequestWithUser).user = {
       id: decoded.id,
       email: decoded.email,
-      role: decoded.role
+      role: decoded.role,
     };
-    
+
     next();
   } catch (error) {
     logger.error('Authentication error:', error);
-    
-    const appError = error instanceof AppError 
-      ? error 
-      : unauthorizedError('Authentication failed');
-    
+
+    const appError = error instanceof AppError ? error : unauthorizedError('Authentication failed');
+
     res.status(appError.statusCode).json({
       success: false,
-      error: appError.message
+      error: appError.message,
     });
   }
 };
@@ -103,27 +101,28 @@ export const authorize = (roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
       const userReq = req as RequestWithUser;
-      
+
       if (!userReq.user) {
         throw unauthorizedError('User not authenticated');
       }
-      
+
       if (!roles.includes(userReq.user.role)) {
         throw forbiddenError('Not authorized to access this resource');
       }
-      
+
       next();
     } catch (error) {
       logger.error('Authorization error:', error);
-      
-      const appError = error instanceof AppError 
-        ? error 
-        : forbiddenError('Not authorized to access this resource');
-      
+
+      const appError =
+        error instanceof AppError
+          ? error
+          : forbiddenError('Not authorized to access this resource');
+
       res.status(appError.statusCode).json({
         success: false,
-        error: appError.message
+        error: appError.message,
       });
     }
   };
-}; 
+};

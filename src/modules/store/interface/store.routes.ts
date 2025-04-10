@@ -26,16 +26,14 @@ router.get('/:id/logo', (req, res, next) => storeController.getLogo(req, res, ne
 router.use(authenticate);
 
 // Create new store with logo
-router.post('/', uploadStoreLogo, (req, res, next) => 
-  storeController.createStore(req, res, next)
-);
+router.post('/', uploadStoreLogo, (req, res, next) => storeController.createStore(req, res, next));
 
 // Update store with logo
-router.put('/:id', uploadStoreLogo, (req, res, next) => 
+router.put('/:id', uploadStoreLogo, (req, res, next) =>
   storeController.updateStore(req, res, next)
 );
 
 // Delete store
 router.delete('/:id', (req, res, next) => storeController.deleteStore(req, res, next));
 
-export { router as storeRoutes }; 
+export { router as storeRoutes };

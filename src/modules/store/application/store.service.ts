@@ -14,7 +14,7 @@ export class StoreService {
 
   async createStore(storeData: Omit<IStore, '_id'>): Promise<IStore> {
     logger.info('Creating new store');
-    
+
     const { error } = validateStore(storeData);
     if (error) {
       logger.error(`Validation error creating store: ${error.details[0].message}`);
@@ -58,7 +58,7 @@ export class StoreService {
 
   async updateStore(id: string, storeData: Partial<IStore>): Promise<IStore> {
     logger.info(`Updating store ${id}`);
-    
+
     // If email is being updated, check for uniqueness
     if (storeData.email) {
       const existingStore = await this.repository.findByEmail(storeData.email);
@@ -95,4 +95,4 @@ export class StoreService {
     }
     return store;
   }
-} 
+}

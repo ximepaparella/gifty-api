@@ -1,12 +1,16 @@
 import { VoucherService } from '@modules/voucher/application/voucher.service';
-import { IVoucher, IVoucherInput, IVoucherRepository } from '@modules/voucher/domain/voucher.interface';
+import {
+  IVoucher,
+  IVoucherInput,
+  IVoucherRepository,
+} from '@modules/voucher/domain/voucher.interface';
 import mongoose from 'mongoose';
 import { NotFoundError, ValidationError as BadRequestError } from '@shared/infrastructure/errors';
 
 describe('Voucher Service', () => {
   let voucherService: VoucherService;
   let mockVoucherRepository: jest.Mocked<IVoucherRepository>;
-  
+
   const mockVoucher: IVoucher = {
     _id: new mongoose.Types.ObjectId().toString(),
     code: 'TEST123',
@@ -23,7 +27,7 @@ describe('Voucher Service', () => {
     message: 'Test message',
     template: 'birthday',
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   };
 
   beforeEach(() => {
@@ -36,7 +40,7 @@ describe('Voucher Service', () => {
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
-      redeem: jest.fn()
+      redeem: jest.fn(),
     } as unknown as jest.Mocked<IVoucherRepository>;
 
     voucherService = new VoucherService(mockVoucherRepository);
@@ -48,7 +52,7 @@ describe('Voucher Service', () => {
       mockVoucherRepository.findAll.mockResolvedValue(vouchers);
 
       const result = await voucherService.getAllVouchers();
-      
+
       expect(mockVoucherRepository.findAll).toHaveBeenCalled();
       expect(result).toEqual(vouchers);
     });
@@ -59,7 +63,7 @@ describe('Voucher Service', () => {
       mockVoucherRepository.findById.mockResolvedValue(mockVoucher);
 
       const result = await voucherService.getVoucherById(mockVoucher._id!);
-      
+
       expect(mockVoucherRepository.findById).toHaveBeenCalledWith(mockVoucher._id);
       expect(result).toEqual(mockVoucher);
     });
@@ -67,10 +71,8 @@ describe('Voucher Service', () => {
     it('should throw NotFoundError if voucher not found', async () => {
       mockVoucherRepository.findById.mockResolvedValue(null);
 
-      await expect(voucherService.getVoucherById('non-existent-id'))
-        .rejects
-        .toThrow(NotFoundError);
-      
+      await expect(voucherService.getVoucherById('non-existent-id')).rejects.toThrow(NotFoundError);
+
       expect(mockVoucherRepository.findById).toHaveBeenCalledWith('non-existent-id');
     });
   });
@@ -80,7 +82,7 @@ describe('Voucher Service', () => {
       mockVoucherRepository.findByCode.mockResolvedValue(mockVoucher);
 
       const result = await voucherService.getVoucherByCode(mockVoucher.code);
-      
+
       expect(mockVoucherRepository.findByCode).toHaveBeenCalledWith(mockVoucher.code);
       expect(result).toEqual(mockVoucher);
     });
@@ -88,10 +90,8 @@ describe('Voucher Service', () => {
     it('should throw NotFoundError if voucher not found', async () => {
       mockVoucherRepository.findByCode.mockResolvedValue(null);
 
-      await expect(voucherService.getVoucherByCode('NON-EXISTENT'))
-        .rejects
-        .toThrow(NotFoundError);
-      
+      await expect(voucherService.getVoucherByCode('NON-EXISTENT')).rejects.toThrow(NotFoundError);
+
       expect(mockVoucherRepository.findByCode).toHaveBeenCalledWith('NON-EXISTENT');
     });
   });
@@ -102,8 +102,10 @@ describe('Voucher Service', () => {
       mockVoucherRepository.findByStoreId.mockResolvedValue(vouchers);
 
       const result = await voucherService.getVouchersByStoreId(mockVoucher.storeId.toString());
-      
-      expect(mockVoucherRepository.findByStoreId).toHaveBeenCalledWith(mockVoucher.storeId.toString());
+
+      expect(mockVoucherRepository.findByStoreId).toHaveBeenCalledWith(
+        mockVoucher.storeId.toString()
+      );
       expect(result).toEqual(vouchers);
     });
   });
@@ -115,7 +117,9 @@ describe('Voucher Service', () => {
 
       const result = await voucherService.getVouchersByCustomerEmail(mockVoucher.receiverEmail);
 
-      expect(mockVoucherRepository.findByCustomerEmail).toHaveBeenCalledWith(mockVoucher.receiverEmail);
+      expect(mockVoucherRepository.findByCustomerEmail).toHaveBeenCalledWith(
+        mockVoucher.receiverEmail
+      );
       expect(result).toEqual(vouchers);
     });
   });
@@ -132,20 +136,20 @@ describe('Voucher Service', () => {
         receiverName: mockVoucher.receiverName,
         receiverEmail: mockVoucher.receiverEmail,
         message: mockVoucher.message,
-        template: mockVoucher.template
+        template: mockVoucher.template,
       };
-      
+
       mockVoucherRepository.create.mockResolvedValue(mockVoucher);
 
       const result = await voucherService.createVoucher(voucherInput);
-      
+
       expect(mockVoucherRepository.create).toHaveBeenCalledWith(voucherInput);
       expect(result).toEqual(mockVoucher);
     });
 
     it('should handle expirationDate validation', async () => {
       const pastDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // 1 day in the past
-      
+
       const voucherInput: IVoucherInput = {
         storeId: mockVoucher.storeId.toString(),
         productId: mockVoucher.productId.toString(),
@@ -156,12 +160,10 @@ describe('Voucher Service', () => {
         receiverName: mockVoucher.receiverName,
         receiverEmail: mockVoucher.receiverEmail,
         message: mockVoucher.message,
-        template: mockVoucher.template
+        template: mockVoucher.template,
       };
 
-      await expect(voucherService.createVoucher(voucherInput))
-        .rejects
-        .toThrow(BadRequestError);
+      await expect(voucherService.createVoucher(voucherInput)).rejects.toThrow(BadRequestError);
     });
   });
 
@@ -172,16 +174,16 @@ describe('Voucher Service', () => {
         senderEmail: mockVoucher.senderEmail,
         receiverName: mockVoucher.receiverName,
         receiverEmail: mockVoucher.receiverEmail,
-        message: 'Updated message'
+        message: 'Updated message',
       };
-      
+
       const updatedVoucher = { ...mockVoucher, ...updateData };
-      
+
       mockVoucherRepository.findById.mockResolvedValue(mockVoucher);
       mockVoucherRepository.update.mockResolvedValue(updatedVoucher);
 
       const result = await voucherService.updateVoucher(mockVoucher._id!, updateData);
-      
+
       expect(mockVoucherRepository.findById).toHaveBeenCalledWith(mockVoucher._id);
       expect(mockVoucherRepository.update).toHaveBeenCalledWith(mockVoucher._id, updateData);
       expect(result).toEqual(updatedVoucher);
@@ -190,10 +192,10 @@ describe('Voucher Service', () => {
     it('should throw NotFoundError if voucher not found', async () => {
       mockVoucherRepository.findById.mockResolvedValue(null);
 
-      await expect(voucherService.updateVoucher('non-existent-id', { message: 'Updated' }))
-        .rejects
-        .toThrow(NotFoundError);
-      
+      await expect(
+        voucherService.updateVoucher('non-existent-id', { message: 'Updated' })
+      ).rejects.toThrow(NotFoundError);
+
       expect(mockVoucherRepository.findById).toHaveBeenCalledWith('non-existent-id');
       expect(mockVoucherRepository.update).not.toHaveBeenCalled();
     });
@@ -202,10 +204,10 @@ describe('Voucher Service', () => {
       const redeemedVoucher = { ...mockVoucher, isRedeemed: true };
       mockVoucherRepository.findById.mockResolvedValue(redeemedVoucher);
 
-      await expect(voucherService.updateVoucher(redeemedVoucher._id!, { message: 'Updated' }))
-        .rejects
-        .toThrow(BadRequestError);
-      
+      await expect(
+        voucherService.updateVoucher(redeemedVoucher._id!, { message: 'Updated' })
+      ).rejects.toThrow(BadRequestError);
+
       expect(mockVoucherRepository.findById).toHaveBeenCalledWith(redeemedVoucher._id);
       expect(mockVoucherRepository.update).not.toHaveBeenCalled();
     });
@@ -231,7 +233,7 @@ describe('Voucher Service', () => {
       mockVoucherRepository.update.mockResolvedValue({
         ...mockVoucher,
         isRedeemed: true,
-        redeemedAt: expect.any(Date)
+        redeemedAt: expect.any(Date),
       });
 
       const result = await voucherService.redeemVoucher(code);
@@ -239,13 +241,13 @@ describe('Voucher Service', () => {
       expect(result).toEqual({
         ...mockVoucher,
         isRedeemed: true,
-        redeemedAt: expect.any(Date)
+        redeemedAt: expect.any(Date),
       });
       expect(mockVoucherRepository.findByCode).toHaveBeenCalledWith(code);
       expect(mockVoucherRepository.update).toHaveBeenCalledWith(mockVoucher._id, {
         isRedeemed: true,
-        redeemedAt: expect.any(Date)
+        redeemedAt: expect.any(Date),
       });
     });
   });
-}); 
+});

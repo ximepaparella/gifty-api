@@ -22,29 +22,16 @@ router.post('/setup-admin', (req, res) => userController.createFirstAdmin(req, r
 router.use(authenticate);
 
 // User management routes - require admin role
-router.get('/', 
-  authorize(['admin']), 
-  (req, res) => userController.getAllUsers(req, res)
+router.get('/', authorize(['admin']), (req, res) => userController.getAllUsers(req, res));
+
+router.get('/:id', authorize(['admin', 'store_manager']), (req, res) =>
+  userController.getUserById(req, res)
 );
 
-router.get('/:id', 
-  authorize(['admin', 'store_manager']), 
-  (req, res) => userController.getUserById(req, res)
-);
+router.post('/', authorize(['admin']), (req, res) => userController.createUser(req, res));
 
-router.post('/', 
-  authorize(['admin']), 
-  (req, res) => userController.createUser(req, res)
-);
+router.put('/:id', authorize(['admin']), (req, res) => userController.updateUser(req, res));
 
-router.put('/:id', 
-  authorize(['admin']), 
-  (req, res) => userController.updateUser(req, res)
-);
+router.delete('/:id', authorize(['admin']), (req, res) => userController.deleteUser(req, res));
 
-router.delete('/:id', 
-  authorize(['admin']), 
-  (req, res) => userController.deleteUser(req, res)
-);
-
-export default router; 
+export default router;

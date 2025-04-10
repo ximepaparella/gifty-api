@@ -14,7 +14,7 @@ export const connectDatabase = async (): Promise<typeof mongoose> => {
     };
 
     const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
-    
+
     if (!mongoUri) {
       throw new Error('MONGO_URI or MONGODB_URI environment variable is not defined');
     }
@@ -54,4 +54,4 @@ export const connectDatabase = async (): Promise<typeof mongoose> => {
   }
 };
 
-export const getConnection = (): mongoose.Connection => mongoose.connection; 
+export const getConnection = (): mongoose.Connection => mongoose.connection;

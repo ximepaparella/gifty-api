@@ -36,4 +36,4 @@ export class ServiceError extends AppError {
   }
 }
 
-export { AppError }; 
+export { AppError };

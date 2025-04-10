@@ -13,7 +13,7 @@ let mongoServer: MongoMemoryServer;
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
   const mongoUri = mongoServer.getUri();
-  
+
   // Connect to the in-memory database
   await mongoose.connect(mongoUri);
 });
@@ -44,4 +44,4 @@ global.console = {
   // log: jest.fn(),
   // error: jest.fn(),
   // warn: jest.fn(),
-}; 
+};

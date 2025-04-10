@@ -7,7 +7,7 @@ export const CustomerSchema = new mongoose.Schema<ICustomer>(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: false, // User association is optional
-      default: null
+      default: null,
     },
     fullName: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true },
@@ -15,10 +15,10 @@ export const CustomerSchema = new mongoose.Schema<ICustomer>(
     address: { type: String, required: true },
     city: { type: String, required: true },
     zipCode: { type: String, required: true },
-    country: { type: String, required: true }
+    country: { type: String, required: true },
   },
   {
-    timestamps: true // Automatically adds createdAt and updatedAt
+    timestamps: true, // Automatically adds createdAt and updatedAt
   }
 );
 
@@ -26,4 +26,4 @@ export const CustomerSchema = new mongoose.Schema<ICustomer>(
 CustomerSchema.index({ email: 1 });
 
 // Export the model
-export const CustomerModel = mongoose.model<ICustomer>('Customer', CustomerSchema); 
+export const CustomerModel = mongoose.model<ICustomer>('Customer', CustomerSchema);

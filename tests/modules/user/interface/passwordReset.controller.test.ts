@@ -61,28 +61,28 @@ class PasswordResetController {
     if (!email) {
       res.status(422).json({
         status: 'fail',
-        message: 'Email is required'
+        message: 'Email is required',
       });
       return;
     }
 
     try {
       await this.passwordResetService.forgotPassword(email);
-      
+
       res.status(200).json({
         status: 'success',
-        message: 'Password reset email sent successfully'
+        message: 'Password reset email sent successfully',
       });
     } catch (error) {
       if (error instanceof NotFoundError) {
         res.status(404).json({
           status: 'fail',
-          message: error.message
+          message: error.message,
         });
       } else {
         res.status(500).json({
           status: 'error',
-          message: 'An error occurred while sending the password reset email'
+          message: 'An error occurred while sending the password reset email',
         });
       }
     }
@@ -94,7 +94,7 @@ class PasswordResetController {
     if (!token || !password || !passwordConfirm || !email) {
       res.status(422).json({
         status: 'fail',
-        message: 'Token, password, password confirmation, and email are required'
+        message: 'Token, password, password confirmation, and email are required',
       });
       return;
     }
@@ -102,33 +102,33 @@ class PasswordResetController {
     if (password !== passwordConfirm) {
       res.status(422).json({
         status: 'fail',
-        message: 'Passwords do not match'
+        message: 'Passwords do not match',
       });
       return;
     }
 
     try {
       await this.passwordResetService.resetPassword(token, password, email);
-      
+
       res.status(200).json({
         status: 'success',
-        message: 'Password reset successful'
+        message: 'Password reset successful',
       });
     } catch (error) {
       if (error instanceof ValidationError) {
         res.status(422).json({
           status: 'fail',
-          message: error.message
+          message: error.message,
         });
       } else if (error instanceof NotFoundError) {
         res.status(404).json({
           status: 'fail',
-          message: error.message
+          message: error.message,
         });
       } else {
         res.status(500).json({
           status: 'error',
-          message: 'An error occurred while resetting the password'
+          message: 'An error occurred while resetting the password',
         });
       }
     }
@@ -145,7 +145,7 @@ describe('PasswordResetController', () => {
     // Create a mock password reset service
     mockPasswordResetService = {
       forgotPassword: jest.fn(),
-      resetPassword: jest.fn()
+      resetPassword: jest.fn(),
     } as unknown as jest.Mocked<PasswordResetService>;
 
     // Create the controller with the mock service
@@ -153,12 +153,12 @@ describe('PasswordResetController', () => {
 
     // Create mock request and response objects
     mockRequest = {
-      body: {}
+      body: {},
     };
 
     mockResponse = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn()
+      json: jest.fn(),
     };
   });
 
@@ -171,38 +171,49 @@ describe('PasswordResetController', () => {
       mockRequest.body = { email: 'test@example.com' };
       mockPasswordResetService.forgotPassword.mockResolvedValue(undefined);
 
-      await passwordResetController.forgotPassword(mockRequest as Request, mockResponse as Response);
+      await passwordResetController.forgotPassword(
+        mockRequest as Request,
+        mockResponse as Response
+      );
 
       expect(mockPasswordResetService.forgotPassword).toHaveBeenCalledWith('test@example.com');
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
-        message: 'Password reset email sent successfully'
+        message: 'Password reset email sent successfully',
       });
     });
 
     it('should handle NotFoundError', async () => {
       mockRequest.body = { email: 'nonexistent@example.com' };
-      mockPasswordResetService.forgotPassword.mockRejectedValue(new NotFoundError('User not found'));
+      mockPasswordResetService.forgotPassword.mockRejectedValue(
+        new NotFoundError('User not found')
+      );
 
-      await passwordResetController.forgotPassword(mockRequest as Request, mockResponse as Response);
+      await passwordResetController.forgotPassword(
+        mockRequest as Request,
+        mockResponse as Response
+      );
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'fail',
-        message: 'User not found'
+        message: 'User not found',
       });
     });
 
     it('should handle missing email', async () => {
       mockRequest.body = {};
 
-      await passwordResetController.forgotPassword(mockRequest as Request, mockResponse as Response);
+      await passwordResetController.forgotPassword(
+        mockRequest as Request,
+        mockResponse as Response
+      );
 
       expect(mockResponse.status).toHaveBeenCalledWith(422);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'fail',
-        message: 'Email is required'
+        message: 'Email is required',
       });
     });
   });
@@ -213,7 +224,7 @@ describe('PasswordResetController', () => {
         token: 'reset-token-123',
         password: 'newPassword123',
         passwordConfirm: 'newPassword123',
-        email: 'test@example.com'
+        email: 'test@example.com',
       };
       mockPasswordResetService.resetPassword.mockResolvedValue(undefined);
 
@@ -227,7 +238,7 @@ describe('PasswordResetController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
-        message: 'Password reset successful'
+        message: 'Password reset successful',
       });
     });
 
@@ -236,7 +247,7 @@ describe('PasswordResetController', () => {
         token: 'invalid-token',
         password: 'newPassword123',
         passwordConfirm: 'newPassword123',
-        email: 'test@example.com'
+        email: 'test@example.com',
       };
       mockPasswordResetService.resetPassword.mockRejectedValue(
         new ValidationError('Invalid or expired token')
@@ -247,7 +258,7 @@ describe('PasswordResetController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(422);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'fail',
-        message: 'Invalid or expired token'
+        message: 'Invalid or expired token',
       });
     });
 
@@ -256,7 +267,7 @@ describe('PasswordResetController', () => {
         token: 'reset-token-123',
         password: 'newPassword123',
         passwordConfirm: 'newPassword123',
-        email: 'nonexistent@example.com'
+        email: 'nonexistent@example.com',
       };
       mockPasswordResetService.resetPassword.mockRejectedValue(new NotFoundError('User not found'));
 
@@ -265,14 +276,14 @@ describe('PasswordResetController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'fail',
-        message: 'User not found'
+        message: 'User not found',
       });
     });
 
     it('should handle missing required fields', async () => {
       mockRequest.body = {
         token: 'reset-token-123',
-        password: 'newPassword123'
+        password: 'newPassword123',
         // Missing passwordConfirm and email
       };
 
@@ -281,7 +292,7 @@ describe('PasswordResetController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(422);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'fail',
-        message: 'Token, password, password confirmation, and email are required'
+        message: 'Token, password, password confirmation, and email are required',
       });
     });
 
@@ -290,7 +301,7 @@ describe('PasswordResetController', () => {
         token: 'reset-token-123',
         password: 'newPassword123',
         passwordConfirm: 'differentPassword',
-        email: 'test@example.com'
+        email: 'test@example.com',
       };
 
       await passwordResetController.resetPassword(mockRequest as Request, mockResponse as Response);
@@ -298,8 +309,8 @@ describe('PasswordResetController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(422);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'fail',
-        message: 'Passwords do not match'
+        message: 'Passwords do not match',
       });
     });
   });
-}); 
+});

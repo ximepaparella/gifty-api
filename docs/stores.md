@@ -13,41 +13,43 @@ Retrieves a list of all stores.
 **Authentication Required**: Yes
 
 **Query Parameters**:
+
 - `page` (optional): Page number for pagination (default: 1)
 - `limit` (optional): Number of items per page (default: 10)
 - `sort` (optional): Sort criteria (e.g., "createdAt:desc")
 
 **Success Response**:
+
 ```json
 {
-    "status": "success",
-    "data": [
-        {
-            "social": {
-                "instagram": "@wspa",
-                "facebook": "https://facebook.com/wspa",
-                "tiktok": "@wspa",
-                "youtube": "https://youtube.com/@wspa",
-                "others": [
-                    {
-                        "name": "LinkedIn",
-                        "url": "https://linkedin.com/company/wspa",
-                        "_id": "67eed05824675522cea87ee6"
-                    }
-                ]
-            },
-            "_id": "67eed05824675522cea87ee5",
-            "name": "WSpa",
-            "ownerId": "67eed02624675522cea87ede",
-            "email": "info@wspa.com.ar",
-            "phone": "+5491134209650",
-            "address": "Avenida del puerto 240, Bahía Grande, Nordelta",
-            "logo": "https://res.cloudinary.com/estudio-equis/image/upload/v1743716936/stores/67eed05824675522cea87ee5/logo.png",
-            "createdAt": "2025-04-03T18:15:52.107Z",
-            "updatedAt": "2025-04-03T21:46:47.044Z",
-            "__v": 0
-        }
-    ]
+  "status": "success",
+  "data": [
+    {
+      "social": {
+        "instagram": "@wspa",
+        "facebook": "https://facebook.com/wspa",
+        "tiktok": "@wspa",
+        "youtube": "https://youtube.com/@wspa",
+        "others": [
+          {
+            "name": "LinkedIn",
+            "url": "https://linkedin.com/company/wspa",
+            "_id": "67eed05824675522cea87ee6"
+          }
+        ]
+      },
+      "_id": "67eed05824675522cea87ee5",
+      "name": "WSpa",
+      "ownerId": "67eed02624675522cea87ede",
+      "email": "info@wspa.com.ar",
+      "phone": "+5491134209650",
+      "address": "Avenida del puerto 240, Bahía Grande, Nordelta",
+      "logo": "https://res.cloudinary.com/estudio-equis/image/upload/v1743716936/stores/67eed05824675522cea87ee5/logo.png",
+      "createdAt": "2025-04-03T18:15:52.107Z",
+      "updatedAt": "2025-04-03T21:46:47.044Z",
+      "__v": 0
+    }
+  ]
 }
 ```
 
@@ -62,9 +64,11 @@ Retrieves a store by its ID.
 **Authentication Required**: Yes
 
 **URL Parameters**:
+
 - `id`: ID of the store to retrieve
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -86,6 +90,7 @@ Retrieves a store by its ID.
 ```
 
 **Error Response**:
+
 ```json
 {
   "status": "error",
@@ -104,9 +109,11 @@ Retrieves all stores belonging to a specific owner.
 **Authentication Required**: Yes
 
 **URL Parameters**:
+
 - `ownerId`: ID of the store owner
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -140,30 +147,32 @@ Creates a new store.
 **Authentication Required**: Yes (Admin or Store Manager role)
 
 **Request Body**:
+
 ```json
 {
-    "name": "WSpa",
-    "ownerId": "67eed02624675522cea87ede",
-    "email": "info@wspa.com.ar",
-    "phone": "+5491134209650",
-    "address": "Avenida del puerto 240, Bahía Grande, Nordelta",
-    "logo": "https://res.cloudinary.com/estudio-equis/image/upload/v1743716936/stores/67eed05824675522cea87ee5/logo.png",
-    "social": {
-        "instagram": "@wspa",
-        "facebook": "https://facebook.com/wspa",
-        "tiktok": "@wspa",
-        "youtube": "https://youtube.com/@wspa",
-        "others": [
-            {
-                "name": "LinkedIn",
-                "url": "https://linkedin.com/company/wspa"
-            }
-        ]
-    }
+  "name": "WSpa",
+  "ownerId": "67eed02624675522cea87ede",
+  "email": "info@wspa.com.ar",
+  "phone": "+5491134209650",
+  "address": "Avenida del puerto 240, Bahía Grande, Nordelta",
+  "logo": "https://res.cloudinary.com/estudio-equis/image/upload/v1743716936/stores/67eed05824675522cea87ee5/logo.png",
+  "social": {
+    "instagram": "@wspa",
+    "facebook": "https://facebook.com/wspa",
+    "tiktok": "@wspa",
+    "youtube": "https://youtube.com/@wspa",
+    "others": [
+      {
+        "name": "LinkedIn",
+        "url": "https://linkedin.com/company/wspa"
+      }
+    ]
+  }
 }
 ```
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -185,6 +194,7 @@ Creates a new store.
 ```
 
 **Error Response**:
+
 ```json
 {
   "status": "error",
@@ -203,9 +213,11 @@ Updates a store's information.
 **Authentication Required**: Yes (Admin or Store Owner)
 
 **URL Parameters**:
+
 - `id`: ID of the store to update
 
 **Request Body**:
+
 ```json
 {
   "name": "Updated Store Name",
@@ -220,6 +232,7 @@ Updates a store's information.
 ```
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -241,6 +254,7 @@ Updates a store's information.
 ```
 
 **Error Response**:
+
 ```json
 {
   "status": "error",
@@ -259,9 +273,11 @@ Deletes a store.
 **Authentication Required**: Yes (Admin or Store Owner)
 
 **URL Parameters**:
+
 - `id`: ID of the store to delete
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -270,9 +286,10 @@ Deletes a store.
 ```
 
 **Error Response**:
+
 ```json
 {
   "status": "error",
   "message": "Store not found"
 }
-``` 
+```

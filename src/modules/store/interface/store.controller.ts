@@ -26,7 +26,7 @@ export class StoreController {
   createStore = handleAsync(async (req: RequestWithFile, res: Response, next: NextFunction) => {
     let storeData: any = {};
     let tempLogoPath: string | undefined;
-    
+
     try {
       // First try to parse JSON data if it exists
       if (req.body.data) {
@@ -38,7 +38,7 @@ export class StoreController {
           email: req.body.email,
           phone: req.body.phone,
           address: req.body.address,
-          social: req.body.social ? JSON.parse(req.body.social) : undefined
+          social: req.body.social ? JSON.parse(req.body.social) : undefined,
         };
       }
 
@@ -51,7 +51,7 @@ export class StoreController {
         return res.status(400).json({
           status: 'error',
           message: 'Invalid store data',
-          errors: validationResult?.error?.message || 'Validation failed'
+          errors: validationResult?.error?.message || 'Validation failed',
         });
       }
 
@@ -63,14 +63,14 @@ export class StoreController {
 
       // Create store first without logo
       const store = await this.service.createStore(storeData);
-      
+
       // If we have a logo, move it to the correct folder
       if (tempLogoPath && store._id) {
         try {
           // Extract the public ID from the temporary path
           const urlParts = tempLogoPath.split('/');
           const fileName = urlParts[urlParts.length - 1].split('.')[0]; // Get filename without extension
-          
+
           logger.info('Moving file from:', `stores/temp/${fileName}`);
           logger.info('Moving file to:', `stores/${store._id.toString()}/logo`);
 
@@ -80,12 +80,12 @@ export class StoreController {
             `stores/${store._id.toString()}/logo`,
             { overwrite: true }
           );
-          
+
           // Update the store with the new logo path
           await this.service.updateStore(store._id.toString(), {
-            logo: result.secure_url
+            logo: result.secure_url,
           });
-          
+
           store.logo = result.secure_url;
         } catch (error) {
           logger.error('Error moving logo file:', error);
@@ -95,7 +95,7 @@ export class StoreController {
 
       res.status(201).json({
         status: 'success',
-        data: store
+        data: store,
       });
     } catch (error) {
       logger.error('Error creating store:', error);
@@ -111,7 +111,7 @@ export class StoreController {
     const stores = await this.service.getStores();
     res.status(200).json({
       status: 'success',
-      data: stores
+      data: stores,
     });
   });
 
@@ -120,12 +120,12 @@ export class StoreController {
     if (!store) {
       return res.status(404).json({
         status: 'error',
-        message: 'Store not found'
+        message: 'Store not found',
       });
     }
     res.status(200).json({
       status: 'success',
-      data: store
+      data: store,
     });
   });
 
@@ -133,13 +133,13 @@ export class StoreController {
     const stores = await this.service.getStoresByOwnerId(req.params.ownerId);
     res.status(200).json({
       status: 'success',
-      data: stores
+      data: stores,
     });
   });
 
   updateStore = handleAsync(async (req: RequestWithFile, res: Response, next: NextFunction) => {
     const { id } = req.params;
-    
+
     // Parse store data from request body
     const storeData = JSON.parse(req.body.data || '{}');
 
@@ -150,15 +150,15 @@ export class StoreController {
       if (existingStore?.logo) {
         await deleteFile(existingStore.logo);
       }
-      
+
       storeData.logo = req.file.path; // Cloudinary returns the full URL in the path
     }
 
     const store = await this.service.updateStore(id, storeData);
-    
+
     res.status(200).json({
       status: 'success',
-      data: store
+      data: store,
     });
   });
 
@@ -169,17 +169,17 @@ export class StoreController {
     }
     res.status(200).json({
       status: 'success',
-      data: store
+      data: store,
     });
   });
 
   uploadLogo = handleAsync(async (req: RequestWithFile, res: Response, next: NextFunction) => {
     const { id } = req.params;
-    
+
     if (!req.file || !req.file.path) {
       return res.status(400).json({
         status: 'error',
-        message: 'No file uploaded'
+        message: 'No file uploaded',
       });
     }
 
@@ -193,12 +193,12 @@ export class StoreController {
 
       // Update store with new Cloudinary URL
       const updatedStore = await this.service.updateStore(id, {
-        logo: req.file.path
+        logo: req.file.path,
       });
 
       res.status(200).json({
         status: 'success',
-        data: updatedStore
+        data: updatedStore,
       });
     } catch (error: any) {
       // If there's an error, try to delete the uploaded file from Cloudinary
@@ -208,4 +208,4 @@ export class StoreController {
       throw error;
     }
   });
-} 
+}

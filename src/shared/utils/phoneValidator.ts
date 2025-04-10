@@ -19,4 +19,4 @@ export const formatPhoneNumber = (phone: string): string => {
   // Remove all non-digit characters except +
   const cleaned = phone.replace(/[^\d+]/g, '');
   return cleaned; // Return the number without spaces
-}; 
+};

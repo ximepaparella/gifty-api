@@ -27,11 +27,7 @@ export class StoreRepository {
 
   async update(id: string, storeData: Partial<IStore>): Promise<IStore | null> {
     logger.debug(`Updating store ${id}`, storeData);
-    return Store.findByIdAndUpdate(
-      id,
-      { ...storeData, updatedAt: new Date() },
-      { new: true }
-    );
+    return Store.findByIdAndUpdate(id, { ...storeData, updatedAt: new Date() }, { new: true });
   }
 
   async delete(id: string): Promise<IStore | null> {
@@ -48,11 +44,11 @@ export class StoreRepository {
     logger.debug(`Updating logo for store ${id}`);
     return Store.findByIdAndUpdate(
       id,
-      { 
+      {
         logo: logoPath,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       { new: true }
     );
   }
-} 
+}
