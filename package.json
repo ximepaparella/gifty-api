@@ -1,7 +1,17 @@
 {
   "name": "gifty-api",
   "version": "1.0.0",
-  "description": "Real Estate API with Hexagonal Architecture",
+  "description": "A modern gift card management API built with TypeScript, Express, and MongoDB",
+  "author": {
+    "name": "Estudio Equis",
+    "email": "contact@estudioequis.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/estudioequis/gifty-api"
+  },
+  "private": true,
+  "license": "MIT",
   "main": "dist/server.js",
   "_moduleAliases": {
     "@modules": "dist/modules",

@@ -1,7 +1,7 @@
 import { Express } from 'express';
 import userRoutes from './user/interface/user.routes';
-import { storeRoutes } from './store/interface/store.routes';
-import { productRoutes } from './product/interface/product.routes';
+import storeRoutes from './store/interface/store.routes';
+import productRoutes from './product/interface/product.routes';
 import orderRoutes from './order/interface/order.routes';
 import voucherRoutes from './voucher/interface/voucher.routes';
 import customerRoutes from './customer/interface/customer.routes';
