@@ -139,27 +139,63 @@ export class StoreController {
 
   updateStore = handleAsync(async (req: RequestWithFile, res: Response, next: NextFunction) => {
     const { id } = req.params;
+    logger.info(`Starting store update for ID: ${id}`);
 
-    // Parse store data from request body
-    const storeData = JSON.parse(req.body.data || '{}');
+    try {
+      // Parse store data from request body
+      const storeData = JSON.parse(req.body.data || '{}');
+      logger.info('Parsed store data:', storeData);
 
-    // If there's a logo file, add the Cloudinary URL to store data
-    if (req.file && req.file.path) {
-      // Get existing store to delete old logo
-      const existingStore = await this.service.getStoreById(id);
-      if (existingStore?.logo) {
-        await deleteFile(existingStore.logo);
+      // If there's a logo file, add the Cloudinary URL to store data
+      if (req.file && req.file.path) {
+        logger.info('New logo file detected:', req.file);
+
+        // Get existing store to delete old logo
+        const existingStore = await this.service.getStoreById(id);
+        logger.info('Existing store:', existingStore);
+
+        if (existingStore?.logo) {
+          logger.info('Attempting to delete old logo:', existingStore.logo);
+          try {
+            await deleteFile(existingStore.logo);
+            logger.info('Successfully deleted old logo');
+          } catch (deleteError) {
+            logger.error('Error deleting old logo:', deleteError);
+          }
+        }
+
+        storeData.logo = req.file.path; // Cloudinary returns the full URL in the path
+        logger.info('Updated store data with new logo path:', storeData);
+      } else {
+        logger.info('No new logo file in request');
+
+        // Check if logo should be removed
+        if (Object.hasOwn(storeData, 'logo') && !storeData.logo) {
+          logger.info('Logo removal requested');
+          const existingStore = await this.service.getStoreById(id);
+          if (existingStore?.logo) {
+            logger.info('Attempting to delete logo:', existingStore.logo);
+            try {
+              await deleteFile(existingStore.logo);
+              logger.info('Successfully deleted logo for removal');
+            } catch (deleteError) {
+              logger.error('Error deleting logo for removal:', deleteError);
+            }
+          }
+        }
       }
 
-      storeData.logo = req.file.path; // Cloudinary returns the full URL in the path
+      const store = await this.service.updateStore(id, storeData);
+      logger.info('Store update completed:', store);
+
+      res.status(200).json({
+        status: 'success',
+        data: store,
+      });
+    } catch (error) {
+      logger.error('Error in updateStore:', error);
+      throw error;
     }
-
-    const store = await this.service.updateStore(id, storeData);
-
-    res.status(200).json({
-      status: 'success',
-      data: store,
-    });
   });
 
   deleteStore = catchAsync(async (req: Request, res: Response) => {

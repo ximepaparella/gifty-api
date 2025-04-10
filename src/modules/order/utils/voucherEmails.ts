@@ -179,10 +179,10 @@ export const sendAllVoucherEmails = async (orderId: string, pdfPath: string): Pr
     // Send emails in sequence to better track failures
     logger.info(`Sending store email for order ${orderId}`);
     await sendStoreEmail(order, store, pdfPath);
-    
+
     logger.info(`Sending receiver email for order ${orderId}`);
     await sendReceiverEmail(order, pdfPath);
-    
+
     logger.info(`Sending customer email for order ${orderId}`);
     await sendCustomerEmail(order, pdfPath);
 
@@ -191,7 +191,10 @@ export const sendAllVoucherEmails = async (orderId: string, pdfPath: string): Pr
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`Error sending voucher emails for order ${orderId}: ${errorMessage}`, error);
-    throw new AppError(`Failed to send voucher emails: ${errorMessage}`, error instanceof AppError ? error.statusCode : 500);
+    throw new AppError(
+      `Failed to send voucher emails: ${errorMessage}`,
+      error instanceof AppError ? error.statusCode : 500
+    );
   }
 };
 
@@ -224,7 +227,10 @@ export const resendCustomerEmail = async (orderId: string, pdfPath: string): Pro
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`Error resending customer email for order ${orderId}: ${errorMessage}`, error);
-    throw new AppError(`Failed to resend customer email: ${errorMessage}`, error instanceof AppError ? error.statusCode : 500);
+    throw new AppError(
+      `Failed to resend customer email: ${errorMessage}`,
+      error instanceof AppError ? error.statusCode : 500
+    );
   }
 };
 
@@ -257,7 +263,10 @@ export const resendReceiverEmail = async (orderId: string, pdfPath: string): Pro
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`Error resending receiver email for order ${orderId}: ${errorMessage}`, error);
-    throw new AppError(`Failed to resend receiver email: ${errorMessage}`, error instanceof AppError ? error.statusCode : 500);
+    throw new AppError(
+      `Failed to resend receiver email: ${errorMessage}`,
+      error instanceof AppError ? error.statusCode : 500
+    );
   }
 };
 
@@ -296,7 +305,10 @@ export const resendStoreEmail = async (orderId: string, pdfPath: string): Promis
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`Error resending store email for order ${orderId}: ${errorMessage}`, error);
-    throw new AppError(`Failed to resend store email: ${errorMessage}`, error instanceof AppError ? error.statusCode : 500);
+    throw new AppError(
+      `Failed to resend store email: ${errorMessage}`,
+      error instanceof AppError ? error.statusCode : 500
+    );
   }
 };
 
@@ -405,14 +417,14 @@ export const generateVoucherPDF = async (orderId: string): Promise<string | null
         const checkImages = () => {
           const allImages = document.getElementsByTagName('img');
           const allLoaded = Array.from(allImages).every((img) => img.complete);
-          
+
           if (allLoaded) {
             resolve();
           } else {
             setTimeout(checkImages, 100);
           }
         };
-        
+
         checkImages();
       });
     });

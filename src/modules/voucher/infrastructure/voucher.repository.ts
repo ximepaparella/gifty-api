@@ -20,8 +20,7 @@ export class VoucherRepository implements IVoucherRepository {
   }
 
   async findByCode(code: string): Promise<IVoucher | null> {
-    const voucher = await this.voucherModel.findOne({ code }).lean();
-    return voucher;
+    return await this.voucherModel.findOne({ code }).lean();
   }
 
   async findByStoreId(storeId: string): Promise<IVoucher[]> {
@@ -130,7 +129,7 @@ export class VoucherRepository implements IVoucherRepository {
     const voucher = await this.findByCode(code);
     if (!voucher) return null;
 
-    return await this.update(voucher._id as string, {
+    return this.update(voucher._id as string, {
       status: 'redeemed',
       isRedeemed: true,
       redeemedAt: new Date(),
@@ -138,7 +137,6 @@ export class VoucherRepository implements IVoucherRepository {
   }
 
   async generateVoucher(input: IVoucherInput): Promise<IVoucher> {
-    const voucher = await this.create(input);
-    return voucher;
+    return this.create(input);
   }
 }

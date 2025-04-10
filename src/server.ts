@@ -2,8 +2,6 @@
 import './bootstrap';
 
 import express, { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
 import passport from 'passport';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
@@ -16,6 +14,7 @@ import { initCloudinary } from '@shared/infrastructure/services/cloudinary.confi
 import { AppError } from '@shared/types/appError';
 import { errorHandler as globalErrorHandler } from '@shared/infrastructure/errors/errorHandler';
 import { setupSwagger } from '@shared/infrastructure/swagger/swagger';
+import { applySecurityMiddleware } from '@shared/infrastructure/middleware/security';
 
 // Import routes
 import userRoutes from '@modules/user/interface/user.routes';
@@ -38,9 +37,10 @@ const userRepository = new MongoUserRepository();
 const userService = new UserService(userRepository);
 const userController = new UserController(userService);
 
-// Middleware
-app.use(cors());
-app.use(helmet());
+// Apply security middleware (includes CORS, Helmet, and Rate Limiting)
+applySecurityMiddleware(app);
+
+// Basic middleware
 app.use(express.json());
 app.use(passport.initialize());
 

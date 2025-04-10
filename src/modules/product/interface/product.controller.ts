@@ -9,6 +9,15 @@ interface RequestWithFile extends Request {
   file?: Express.Multer.File & { path?: string };
 }
 
+interface ProductData {
+  name: string;
+  description: string;
+  price: number;
+  storeId: string;
+  isActive: boolean;
+  image?: string | null;
+}
+
 export class ProductController {
   private service: ProductService;
 
@@ -16,13 +25,21 @@ export class ProductController {
     this.service = service;
   }
 
-  createProduct = handleAsync(async (req: RequestWithFile, res: Response, next: NextFunction) => {
-    let productData: any = {};
+  createProduct = handleAsync(async (req: RequestWithFile, res: Response) => {
+    let productData: ProductData = {
+      name: '',
+      description: '',
+      price: 0,
+      storeId: '',
+      isActive: true,
+    };
 
     try {
+      logger.info('Starting product creation');
       // Parse product data from request body
       if (req.body.data) {
         productData = JSON.parse(req.body.data);
+        logger.info('Parsed product data from JSON:', productData);
       } else {
         // If no JSON data, use form fields
         productData = {
@@ -32,19 +49,26 @@ export class ProductController {
           storeId: req.body.storeId,
           isActive: req.body.isActive,
         };
+        logger.info('Created product data from form fields:', productData);
       }
 
-      // Log the product data for debugging
-      logger.info('Product data before upload:', productData);
-
-      // If there's an image file, add the Cloudinary URL to product data
-      if (req.file && req.file.path) {
+      // If there's an image file, store the path
+      if (req.file?.path) {
+        logger.info('Image file detected:', {
+          originalname: req.file.originalname,
+          path: req.file.path,
+          mimetype: req.file.mimetype,
+          size: req.file.size,
+        });
         productData.image = req.file.path;
-        logger.info('Image path from upload:', req.file.path);
+      } else {
+        logger.info('No image file in request');
       }
 
       // Create the product
+      logger.info('Creating product with data:', productData);
       const product = await this.service.createProduct(productData);
+      logger.info('Product created successfully:', product);
 
       res.status(201).json({
         status: 'success',
@@ -54,13 +78,18 @@ export class ProductController {
       logger.error('Error creating product:', error);
       // If there's an error and we uploaded a file, clean it up
       if (req.file?.path) {
-        await deleteFile(req.file.path);
+        try {
+          await deleteFile(req.file.path);
+          logger.info('Cleaned up image file:', req.file.path);
+        } catch (cleanupError) {
+          logger.error('Error cleaning up image:', cleanupError);
+        }
       }
       throw error;
     }
   });
 
-  getProducts = handleAsync(async (req: Request, res: Response, next: NextFunction) => {
+  getProducts = handleAsync(async (req: Request, res: Response) => {
     const products = await this.service.getProducts();
     res.status(200).json({
       status: 'success',
@@ -68,7 +97,7 @@ export class ProductController {
     });
   });
 
-  getProductById = handleAsync(async (req: Request, res: Response, next: NextFunction) => {
+  getProductById = handleAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
     const product = await this.service.getProductById(id);
     res.status(200).json({
@@ -77,7 +106,7 @@ export class ProductController {
     });
   });
 
-  getProductsByStoreId = handleAsync(async (req: Request, res: Response, next: NextFunction) => {
+  getProductsByStoreId = handleAsync(async (req: Request, res: Response) => {
     const { storeId } = req.params;
     const products = await this.service.getProductsByStoreId(storeId);
     res.status(200).json({
@@ -86,14 +115,27 @@ export class ProductController {
     });
   });
 
-  updateProduct = handleAsync(async (req: RequestWithFile, res: Response, next: NextFunction) => {
+  updateProduct = handleAsync(async (req: RequestWithFile, res: Response) => {
     const { id } = req.params;
-    let productData: any = {};
+    let productData: Partial<ProductData> = {};
 
     try {
+      logger.info(`Starting product update for ID: ${id}`);
+
+      // Get existing product first
+      const existingProduct = await this.service.getProductById(id);
+      if (!existingProduct) {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Product not found',
+        });
+      }
+      logger.info('Found existing product:', existingProduct);
+
       // Parse product data from request body
       if (req.body.data) {
         productData = JSON.parse(req.body.data);
+        logger.info('Parsed product data:', productData);
       } else {
         // If no JSON data, use form fields
         productData = {
@@ -102,20 +144,50 @@ export class ProductController {
           price: req.body.price ? parseFloat(req.body.price) : undefined,
           isActive: req.body.isActive,
         };
+        logger.info('Created product data from form fields:', productData);
       }
 
-      // If there's an image file, add the Cloudinary URL to product data
-      if (req.file && req.file.path) {
-        // Get existing product to delete old image
-        const existingProduct = await this.service.getProductById(id);
-        if (existingProduct?.image) {
-          await deleteFile(existingProduct.image);
+      // Handle image update
+      if (req.file?.path) {
+        logger.info('New image file detected:', {
+          originalname: req.file.originalname,
+          path: req.file.path,
+          mimetype: req.file.mimetype,
+          size: req.file.size,
+        });
+
+        // Delete old image if it exists
+        if (existingProduct.image) {
+          logger.info('Attempting to delete old image:', existingProduct.image);
+          try {
+            await deleteFile(existingProduct.image);
+            logger.info('Successfully deleted old image');
+          } catch (deleteError) {
+            logger.error('Error deleting old image:', deleteError);
+          }
         }
 
-        productData.image = req.file.path; // Cloudinary returns the full URL in the path
+        // Set the new image path
+        productData.image = req.file.path;
+        logger.info('Added new image path:', req.file.path);
+      } else if ('image' in productData && !productData.image) {
+        // Handle image removal
+        logger.info('Image removal requested');
+        if (existingProduct.image) {
+          logger.info('Attempting to delete image:', existingProduct.image);
+          try {
+            await deleteFile(existingProduct.image);
+            logger.info('Successfully deleted image for removal');
+          } catch (deleteError) {
+            logger.error('Error deleting image for removal:', deleteError);
+          }
+        }
+        productData.image = null;
       }
 
+      logger.info('Updating product with data:', productData);
       const product = await this.service.updateProduct(id, productData);
+      logger.info('Product update completed:', product);
 
       res.status(200).json({
         status: 'success',
@@ -123,15 +195,11 @@ export class ProductController {
       });
     } catch (error) {
       logger.error('Error updating product:', error);
-      // If there's an error and we uploaded a file, clean it up
-      if (req.file?.path) {
-        await deleteFile(req.file.path);
-      }
       throw error;
     }
   });
 
-  deleteProduct = handleAsync(async (req: Request, res: Response, next: NextFunction) => {
+  deleteProduct = handleAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
     const product = await this.service.deleteProduct(id);
     res.status(200).json({
@@ -140,7 +208,7 @@ export class ProductController {
     });
   });
 
-  getImage = handleAsync(async (req: Request, res: Response, next: NextFunction) => {
+  getImage = handleAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
     const product = await this.service.getProductById(id);
 
