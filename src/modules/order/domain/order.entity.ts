@@ -1,7 +1,7 @@
-import mongoose from 'mongoose';
-import { ICustomer } from '@modules/customer/domain/customer.entity'; // Import Customer
+import { Types } from 'mongoose';
+import { ICustomer } from '@modules/customer/domain/customer.entity';
 import { IVoucher } from '@modules/voucher/domain/voucher.entity';
-import { PaymentDetails } from './order.interface'; // Corrected import for PaymentDetails
+import { IPaymentDetails } from './order.interface';
 
 export enum OrderStatus {
   PENDING = 'pending',
@@ -12,34 +12,40 @@ export enum OrderStatus {
 }
 
 export interface IOrder {
-  _id?: mongoose.Types.ObjectId;
-  // userId?: mongoose.Types.ObjectId | null; // Removed userId
-  customerId: mongoose.Types.ObjectId | ICustomer; // Added customerId (required)
-  paymentDetails: PaymentDetails; // Use PaymentDetails type
-  voucher: mongoose.Types.ObjectId | IVoucher; // Link to the generated voucher
+  _id?: Types.ObjectId;
+  customerId: Types.ObjectId | ICustomer;
+  paymentDetails: IPaymentDetails;
+  voucher: Types.ObjectId | IVoucher;
   status: OrderStatus;
+  emailsSent: boolean;
+  pdfGenerated: boolean;
+  pdfUrl?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 export class Order implements IOrder {
-  _id?: mongoose.Types.ObjectId;
-  // userId?: mongoose.Types.ObjectId | null;
-  customerId: mongoose.Types.ObjectId | ICustomer;
-  paymentDetails: PaymentDetails;
-  voucher: mongoose.Types.ObjectId | IVoucher;
+  _id?: Types.ObjectId;
+  customerId: Types.ObjectId | ICustomer;
+  voucher: Types.ObjectId | IVoucher;
+  paymentDetails: IPaymentDetails;
   status: OrderStatus;
+  emailsSent: boolean;
+  pdfGenerated: boolean;
+  pdfUrl?: string;
   createdAt?: Date;
   updatedAt?: Date;
 
-  constructor(order: IOrder) {
-    this._id = order._id;
-    // this.userId = order.userId;
-    this.customerId = order.customerId;
-    this.paymentDetails = order.paymentDetails;
-    this.voucher = order.voucher;
-    this.status = order.status;
-    this.createdAt = order.createdAt;
-    this.updatedAt = order.updatedAt;
+  constructor(data: IOrder) {
+    this._id = data._id;
+    this.customerId = data.customerId;
+    this.voucher = data.voucher;
+    this.paymentDetails = data.paymentDetails;
+    this.status = data.status;
+    this.emailsSent = data.emailsSent;
+    this.pdfGenerated = data.pdfGenerated;
+    this.pdfUrl = data.pdfUrl;
+    this.createdAt = data.createdAt;
+    this.updatedAt = data.updatedAt;
   }
 }

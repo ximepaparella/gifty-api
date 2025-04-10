@@ -6,17 +6,22 @@ import {
   CreateUserDTO,
   UpdateUserDTO,
 } from '../../../../src/modules/user/domain/user.entity';
-import {
-  ValidationError,
-  NotFoundError,
-  AuthenticationError,
-} from '../../../../src/shared/infrastructure/errors';
+import { AppError, ErrorTypes } from '../../../../src/shared/types/appError';
 import * as authMiddleware from '../../../../src/shared/infrastructure/middleware/auth';
 
 // Mock the auth middleware
 jest.mock('../../../../src/shared/infrastructure/middleware/auth', () => ({
   generateToken: jest.fn().mockReturnValue('mock-token'),
 }));
+
+// Mock the user repository
+const userRepositoryMock = {
+  findById: jest.fn(),
+  findByEmail: jest.fn(),
+  create: jest.fn(),
+  update: jest.fn(),
+  delete: jest.fn(),
+};
 
 describe('UserService', () => {
   let userService: UserService;
@@ -220,7 +225,7 @@ describe('UserService', () => {
       ).rejects.toThrow(NotFoundError);
     });
 
-    it('should throw AuthenticationError if password is invalid', async () => {
+    it('should throw UNAUTHORIZED error when password is incorrect', async () => {
       mockUserRepository.findByEmail.mockResolvedValue(mockUser);
 
       // Mock the comparePassword method to return false
@@ -231,7 +236,7 @@ describe('UserService', () => {
           email: 'test@example.com',
           password: 'wrongpassword',
         })
-      ).rejects.toThrow(AuthenticationError);
+      ).rejects.toEqual(ErrorTypes.UNAUTHORIZED('Invalid credentials'));
     });
   });
 });

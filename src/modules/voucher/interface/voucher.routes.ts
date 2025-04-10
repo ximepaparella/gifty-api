@@ -1,22 +1,25 @@
-import express from 'express';
+import { Router } from 'express';
 import { VoucherController } from './voucher.controller';
 import { VoucherService } from '../application/voucher.service';
 import { VoucherRepository } from '../infrastructure/voucher.repository';
 import { authenticate } from '@shared/infrastructure/middleware/auth';
+import { authorize } from '@shared/infrastructure/middleware/authorize';
 
-const router = express.Router();
+const router = Router();
 const voucherRepository = new VoucherRepository();
 const voucherService = new VoucherService(voucherRepository);
 const voucherController = new VoucherController(voucherService);
 
-// Temporarily comment out authentication for testing
-// router.use(authenticate);
+router.use(authenticate);
 
 // Get all vouchers
-router.get('/', voucherController.getAllVouchers);
+router.get('/', authorize(['admin']), voucherController.getAllVouchers);
+
+// Get voucher by ID
+router.get('/:id', authorize(['admin', 'store_manager']), voucherController.getVoucherById);
 
 // Get voucher by code
-router.get('/code/:code', voucherController.getVoucherByCode);
+router.get('/code/:code', authorize(['admin', 'store_manager']), voucherController.getVoucherByCode);
 
 // Get vouchers by store ID
 router.get('/store/:storeId', voucherController.getVouchersByStoreId);
@@ -24,19 +27,16 @@ router.get('/store/:storeId', voucherController.getVouchersByStoreId);
 // Get vouchers by customer email
 router.get('/customer/:email', voucherController.getVouchersByCustomerEmail);
 
-// Get voucher by ID
-router.get('/:id', voucherController.getVoucherById);
+// Create new voucher
+router.post('/', authorize(['admin', 'store_manager']), voucherController.createVoucher);
 
-// Create a new voucher
-router.post('/', voucherController.createVoucher);
+// Update voucher
+router.put('/:id', authorize(['admin', 'store_manager']), voucherController.updateVoucher);
 
-// Update an existing voucher
-router.put('/:id', voucherController.updateVoucher);
+// Delete voucher
+router.delete('/:id', authorize(['admin']), voucherController.deleteVoucher);
 
-// Delete a voucher
-router.delete('/:id', voucherController.deleteVoucher);
-
-// Redeem a voucher
-router.put('/code/:code/redeem', voucherController.redeemVoucher);
+// Redeem voucher
+router.post('/:id/redeem', authorize(['admin', 'store_manager']), voucherController.redeemVoucher);
 
 export default router;

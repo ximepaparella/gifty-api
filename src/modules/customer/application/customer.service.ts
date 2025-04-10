@@ -4,7 +4,7 @@ import {
   customerValidationSchema,
   updateCustomerValidationSchema,
 } from '../domain/customer.validation';
-import { validationError, notFoundError, conflictError } from '@shared/types/appError';
+import { ErrorTypes } from '@shared/types/appError';
 import logger from '@shared/infrastructure/logging/logger';
 import mongoose from 'mongoose';
 
@@ -20,14 +20,13 @@ export class CustomerService {
   ): Promise<ICustomer> {
     const { error } = customerValidationSchema.validate(customerData);
     if (error) {
-      logger.error(`Validation error creating customer: ${error.details[0].message}`);
-      throw validationError(error.details[0].message);
+      throw ErrorTypes.VALIDATION(error.details[0].message);
     }
 
     const existingCustomer = await this.repository.findByEmail(customerData.email);
     if (existingCustomer) {
       logger.error(`Customer creation failed: Email ${customerData.email} already exists.`);
-      throw conflictError('Customer with this email already exists');
+      throw ErrorTypes.CONFLICT('Customer with this email already exists');
     }
 
     // Convert userId string to ObjectId if provided
@@ -55,7 +54,7 @@ export class CustomerService {
     const customer = await this.repository.findById(id);
     if (!customer) {
       logger.error(`Customer with ID ${id} not found.`);
-      throw notFoundError('Customer not found');
+      throw ErrorTypes.NOT_FOUND('Customer');
     }
     return customer;
   }
@@ -66,8 +65,7 @@ export class CustomerService {
   ): Promise<ICustomer> {
     const { error } = updateCustomerValidationSchema.validate(customerData);
     if (error) {
-      logger.error(`Validation error updating customer ${id}: ${error.details[0].message}`);
-      throw validationError(error.details[0].message);
+      throw ErrorTypes.VALIDATION(error.details[0].message);
     }
 
     // Check for email conflict if email is being updated
@@ -77,7 +75,7 @@ export class CustomerService {
         logger.error(
           `Customer update failed for ID ${id}: Email ${customerData.email} already exists.`
         );
-        throw conflictError('Another customer with this email already exists');
+        throw ErrorTypes.CONFLICT('Another customer with this email already exists');
       }
     }
 
@@ -94,7 +92,7 @@ export class CustomerService {
     const customer = await this.repository.update(id, dataToUpdate);
     if (!customer) {
       logger.error(`Customer with ID ${id} not found for update.`);
-      throw notFoundError('Customer not found');
+      throw ErrorTypes.NOT_FOUND('Customer');
     }
     logger.info(`Customer updated successfully with ID: ${id}`);
     return customer;
@@ -105,7 +103,7 @@ export class CustomerService {
     const customer = await this.repository.delete(id);
     if (!customer) {
       logger.error(`Customer with ID ${id} not found for deletion.`);
-      throw notFoundError('Customer not found');
+      throw ErrorTypes.NOT_FOUND('Customer');
     }
     // We might need to handle related orders here in the future (e.g., anonymize or prevent deletion)
     logger.info(`Customer deleted successfully with ID: ${id}`);
@@ -117,8 +115,7 @@ export class CustomerService {
   ): Promise<ICustomer> {
     const { error } = customerValidationSchema.validate(customerData);
     if (error) {
-      logger.error(`Validation error in get-or-create customer: ${error.details[0].message}`);
-      throw validationError(error.details[0].message);
+      throw ErrorTypes.VALIDATION(error.details[0].message);
     }
 
     // Try to find existing customer by email

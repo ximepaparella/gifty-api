@@ -1,80 +1,81 @@
 import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
-import winston from 'winston';
-
-// Create logger instance
-const logger = winston.createLogger({
-  transports: [
-    new winston.transports.Console({
-      format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
-    }),
-  ],
-});
+import { AppError, ErrorTypes } from '@shared/types/appError';
+import logger from '@shared/infrastructure/logging/logger';
 
 /**
- * Downloads a PDF from a URL and verifies it
+ * Download a PDF file from a URL and save it to a temporary file
+ * @param url The URL of the PDF to download
+ * @param outputPath The path where to save the PDF
  */
-export const downloadAndVerifyPDF = async (
-  pdfUrl: string,
-  voucherCode: string
-): Promise<string> => {
+export async function downloadPDF(url: string, outputPath: string): Promise<void> {
+  let tempFile: string | null = null;
+
   try {
-    logger.info(`Downloading PDF from ${pdfUrl}`);
+    logger.info(`Downloading PDF from ${url}`);
 
-    // Create temp directory if it doesn't exist
-    const tempDir = path.join(process.cwd(), 'temp');
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-    }
+    // Create temporary file path
+    const tempDir = path.dirname(outputPath);
+    tempFile = path.join(tempDir, `temp_${Date.now()}.pdf`);
 
-    // Generate temp file path
-    const tempFilePath = path.join(tempDir, `voucher-${voucherCode}-${Date.now()}.pdf`);
-
-    // Download the file
-    const response = await axios({
-      method: 'GET',
-      url: pdfUrl,
+    // Download file
+    const response = await axios.get<ArrayBuffer>(url, {
       responseType: 'arraybuffer',
-      headers: {
-        Accept: 'application/pdf',
-      },
     });
 
-    // Verify the response is a PDF
-    const contentType = response.headers['content-type'];
-    if (!contentType || !contentType.includes('application/pdf')) {
-      throw new Error('Downloaded file is not a PDF');
+    const buffer = Buffer.from(response.data);
+
+    // Check if it's a PDF
+    const fileHeader = buffer.slice(0, 5).toString();
+    if (!fileHeader.startsWith('%PDF-')) {
+      throw ErrorTypes.BAD_REQUEST('Downloaded file is not a PDF');
     }
 
-    // Write to temp file
-    fs.writeFileSync(tempFilePath, response.data as Buffer);
-
-    // Verify file exists and is not empty
-    const stats = fs.statSync(tempFilePath);
-    if (stats.size === 0) {
-      throw new Error('Downloaded PDF is empty');
+    // Check if file is not empty
+    if (!buffer || buffer.length === 0) {
+      throw ErrorTypes.BAD_REQUEST('Downloaded PDF is empty');
     }
 
-    logger.info(`PDF downloaded successfully to ${tempFilePath}`);
-    return tempFilePath;
+    // Save to temporary file
+    await fs.promises.writeFile(tempFile, buffer);
+
+    // Move to final location
+    await fs.promises.rename(tempFile, outputPath);
+
+    logger.info('PDF downloaded and saved successfully');
   } catch (error: any) {
-    logger.error(`Error downloading PDF: ${error.message}`, error);
-    throw new Error(`Failed to download PDF: ${error.message}`);
+    logger.error('Error downloading PDF:', error);
+
+    // Clean up temp file if it exists
+    if (tempFile && fs.existsSync(tempFile)) {
+      try {
+        await fs.promises.unlink(tempFile);
+      } catch (cleanupError) {
+        logger.warn('Failed to clean up temporary file:', cleanupError);
+      }
+    }
+
+    if (error instanceof AppError) {
+      throw error;
+    }
+
+    throw ErrorTypes.INTERNAL(`Failed to download PDF: ${error.message}`);
   }
-};
+}
 
 /**
- * Cleans up a temporary PDF file
+ * Clean up temporary PDF files
+ * @param filePath The path of the file to clean up
  */
-export const cleanupTempPDF = async (filePath: string): Promise<void> => {
+export async function cleanupPDF(filePath: string): Promise<void> {
   try {
     if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      logger.info(`Cleaned up temporary PDF file: ${filePath}`);
+      await fs.promises.unlink(filePath);
+      logger.info(`Cleaned up PDF file: ${filePath}`);
     }
-  } catch (error: any) {
-    logger.error(`Error cleaning up PDF file: ${error.message}`, error);
-    // Don't throw error here as this is cleanup
+  } catch (error) {
+    // Log but don't throw error as this is cleanup
+    logger.warn(`Failed to clean up PDF file ${filePath}:`, error);
   }
-};
+}

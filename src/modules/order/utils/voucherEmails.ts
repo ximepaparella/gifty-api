@@ -10,7 +10,7 @@ import { IStore } from '../../store/domain/store.entity';
 import path from 'path';
 import fs from 'fs';
 import puppeteer from 'puppeteer';
-import { AppError } from '@shared/types/appError';
+import { AppError, ErrorTypes } from '@shared/types/appError';
 import { OrderModel } from '../domain/order.schema';
 
 export const sendStoreEmail = async (
@@ -18,11 +18,15 @@ export const sendStoreEmail = async (
   store: IStore,
   pdfPath: string
 ): Promise<void> => {
-  try {
-    if (!store?.email) {
-      throw new Error('Store email is required');
-    }
+  if (!store.email) {
+    throw ErrorTypes.VALIDATION('Store email is required');
+  }
 
+  if (!pdfPath) {
+    throw ErrorTypes.VALIDATION('PDF path is required');
+  }
+
+  try {
     logger.info(`Sending store notification email for order ${order._id} to ${store.email}`);
 
     await sendEmail({
@@ -56,7 +60,7 @@ export const sendStoreEmail = async (
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`Error sending email to store: ${errorMessage}`, error);
-    throw new Error(`Failed to send email to store: ${errorMessage}`);
+    throw ErrorTypes.INTERNAL(`Failed to send email to store: ${errorMessage}`);
   }
 };
 
@@ -64,11 +68,15 @@ export const sendStoreEmail = async (
  * Send email to receiver with voucher attached
  */
 export const sendReceiverEmail = async (order: IOrder, pdfPath: string): Promise<void> => {
-  try {
-    if (!order.voucher.receiverEmail) {
-      throw new Error('Receiver email is required');
-    }
+  if (!order.voucher.receiverEmail) {
+    throw ErrorTypes.VALIDATION('Receiver email is required');
+  }
 
+  if (!pdfPath) {
+    throw ErrorTypes.VALIDATION('PDF path is required');
+  }
+
+  try {
     logger.info(`Sending receiver email for order ${order._id} to ${order.voucher.receiverEmail}`);
 
     await sendEmail({
@@ -100,7 +108,7 @@ export const sendReceiverEmail = async (order: IOrder, pdfPath: string): Promise
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`Error sending email to receiver: ${errorMessage}`, error);
-    throw new Error(`Failed to send email to receiver: ${errorMessage}`);
+    throw ErrorTypes.INTERNAL(`Failed to send email to receiver: ${errorMessage}`);
   }
 };
 
@@ -108,11 +116,15 @@ export const sendReceiverEmail = async (order: IOrder, pdfPath: string): Promise
  * Send email to customer (sender) with voucher attached
  */
 export const sendCustomerEmail = async (order: IOrder, pdfPath: string): Promise<void> => {
-  try {
-    if (!order.voucher.senderEmail) {
-      throw new Error('Sender email is required');
-    }
+  if (!order.voucher.senderEmail) {
+    throw ErrorTypes.VALIDATION('Sender email is required');
+  }
 
+  if (!pdfPath) {
+    throw ErrorTypes.VALIDATION('PDF path is required');
+  }
+
+  try {
     logger.info(`Sending customer email for order ${order._id} to ${order.voucher.senderEmail}`);
 
     await sendEmail({
@@ -148,7 +160,7 @@ export const sendCustomerEmail = async (order: IOrder, pdfPath: string): Promise
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`Error sending email to customer: ${errorMessage}`, error);
-    throw new Error(`Failed to send email to customer: ${errorMessage}`);
+    throw ErrorTypes.INTERNAL(`Failed to send email to customer: ${errorMessage}`);
   }
 };
 
@@ -162,27 +174,27 @@ export const sendAllVoucherEmails = async (orderId: string, pdfPath: string): Pr
     // Get order details
     const order = await OrderModel.findById(orderId);
     if (!order) {
-      throw new AppError('Order not found', 404);
+      throw ErrorTypes.NOT_FOUND('Order');
     }
 
     // Get store details
     const store = await Store.findById(order.voucher.storeId);
     if (!store) {
-      throw new AppError('Store not found', 404);
+      throw ErrorTypes.NOT_FOUND('Store');
     }
 
     // Verify PDF path is accessible
-    if (!fs.existsSync(pdfPath)) {
-      throw new AppError(`PDF path is not accessible: ${pdfPath}`, 400);
+    if (!pdfPath || !fs.existsSync(pdfPath)) {
+      throw ErrorTypes.BAD_REQUEST(`PDF path is not accessible: ${pdfPath}`);
     }
 
     // Send emails in sequence to better track failures
     logger.info(`Sending store email for order ${orderId}`);
     await sendStoreEmail(order, store, pdfPath);
-    
+
     logger.info(`Sending receiver email for order ${orderId}`);
     await sendReceiverEmail(order, pdfPath);
-    
+
     logger.info(`Sending customer email for order ${orderId}`);
     await sendCustomerEmail(order, pdfPath);
 
@@ -191,7 +203,7 @@ export const sendAllVoucherEmails = async (orderId: string, pdfPath: string): Pr
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`Error sending voucher emails for order ${orderId}: ${errorMessage}`, error);
-    throw new AppError(`Failed to send voucher emails: ${errorMessage}`, error instanceof AppError ? error.statusCode : 500);
+    throw ErrorTypes.INTERNAL(`Failed to send voucher emails: ${errorMessage}`);
   }
 };
 
@@ -208,12 +220,12 @@ export const resendCustomerEmail = async (orderId: string, pdfPath: string): Pro
     // Get order data
     const order = await OrderModel.findById(orderId);
     if (!order) {
-      throw new AppError(`Order not found with ID: ${orderId}`, 404);
+      throw ErrorTypes.NOT_FOUND('Order');
     }
 
     // Verify PDF path is accessible
-    if (!fs.existsSync(pdfPath)) {
-      throw new AppError(`PDF path is not accessible: ${pdfPath}`, 400);
+    if (!pdfPath || !fs.existsSync(pdfPath)) {
+      throw ErrorTypes.BAD_REQUEST(`PDF path is not accessible: ${pdfPath}`);
     }
 
     // Send email to customer
@@ -224,7 +236,7 @@ export const resendCustomerEmail = async (orderId: string, pdfPath: string): Pro
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`Error resending customer email for order ${orderId}: ${errorMessage}`, error);
-    throw new AppError(`Failed to resend customer email: ${errorMessage}`, error instanceof AppError ? error.statusCode : 500);
+    throw ErrorTypes.INTERNAL(`Failed to resend customer email: ${errorMessage}`);
   }
 };
 
@@ -241,12 +253,12 @@ export const resendReceiverEmail = async (orderId: string, pdfPath: string): Pro
     // Get order data
     const order = await OrderModel.findById(orderId);
     if (!order) {
-      throw new AppError(`Order not found with ID: ${orderId}`, 404);
+      throw ErrorTypes.NOT_FOUND('Order');
     }
 
     // Verify PDF path is accessible
-    if (!fs.existsSync(pdfPath)) {
-      throw new AppError(`PDF path is not accessible: ${pdfPath}`, 400);
+    if (!pdfPath || !fs.existsSync(pdfPath)) {
+      throw ErrorTypes.BAD_REQUEST(`PDF path is not accessible: ${pdfPath}`);
     }
 
     // Send email to receiver
@@ -257,7 +269,7 @@ export const resendReceiverEmail = async (orderId: string, pdfPath: string): Pro
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`Error resending receiver email for order ${orderId}: ${errorMessage}`, error);
-    throw new AppError(`Failed to resend receiver email: ${errorMessage}`, error instanceof AppError ? error.statusCode : 500);
+    throw ErrorTypes.INTERNAL(`Failed to resend receiver email: ${errorMessage}`);
   }
 };
 
@@ -274,18 +286,18 @@ export const resendStoreEmail = async (orderId: string, pdfPath: string): Promis
     // Get order data
     const order = await OrderModel.findById(orderId);
     if (!order) {
-      throw new AppError(`Order not found with ID: ${orderId}`, 404);
+      throw ErrorTypes.NOT_FOUND('Order');
     }
 
     // Get store information
     const store = await Store.findById(order.voucher.storeId);
     if (!store) {
-      throw new AppError(`Store not found with ID: ${order.voucher.storeId}`, 404);
+      throw ErrorTypes.NOT_FOUND('Store');
     }
 
     // Verify PDF path is accessible
-    if (!fs.existsSync(pdfPath)) {
-      throw new AppError(`PDF path is not accessible: ${pdfPath}`, 400);
+    if (!pdfPath || !fs.existsSync(pdfPath)) {
+      throw ErrorTypes.BAD_REQUEST(`PDF path is not accessible: ${pdfPath}`);
     }
 
     // Send email to store
@@ -296,7 +308,7 @@ export const resendStoreEmail = async (orderId: string, pdfPath: string): Promis
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`Error resending store email for order ${orderId}: ${errorMessage}`, error);
-    throw new AppError(`Failed to resend store email: ${errorMessage}`, error instanceof AppError ? error.statusCode : 500);
+    throw ErrorTypes.INTERNAL(`Failed to resend store email: ${errorMessage}`);
   }
 };
 
@@ -311,13 +323,13 @@ export const generateVoucherPDF = async (orderId: string): Promise<string | null
     // Get order details
     const order = await OrderModel.findById(orderId);
     if (!order) {
-      throw new AppError('Order not found', 404);
+      throw ErrorTypes.NOT_FOUND('Order');
     }
 
     // Get store details
     const store = await Store.findById(order.voucher.storeId);
     if (!store) {
-      throw new AppError('Store not found', 404);
+      throw ErrorTypes.NOT_FOUND('Store');
     }
 
     // Create vouchers directory if it doesn't exist
@@ -344,7 +356,7 @@ export const generateVoucherPDF = async (orderId: string): Promise<string | null
     logger.info(`Using template: ${templatePath}`);
 
     if (!fs.existsSync(templatePath)) {
-      throw new AppError(`Template ${templateNumber} not found`, 404);
+      throw ErrorTypes.NOT_FOUND(`Template ${templateNumber}`);
     }
 
     let templateContent = fs.readFileSync(templatePath, 'utf-8');
@@ -405,14 +417,14 @@ export const generateVoucherPDF = async (orderId: string): Promise<string | null
         const checkImages = () => {
           const allImages = document.getElementsByTagName('img');
           const allLoaded = Array.from(allImages).every((img) => img.complete);
-          
+
           if (allLoaded) {
             resolve();
           } else {
             setTimeout(checkImages, 100);
           }
         };
-        
+
         checkImages();
       });
     });
@@ -435,13 +447,13 @@ export const generateVoucherPDF = async (orderId: string): Promise<string | null
 
     // Verify PDF buffer
     if (!pdfBuffer || pdfBuffer.length === 0) {
-      throw new AppError('Generated PDF is empty', 500);
+      throw ErrorTypes.INTERNAL('Generated PDF is empty');
     }
 
     // Verify PDF header
     const pdfHeader = Buffer.from(pdfBuffer).subarray(0, 5).toString('ascii');
     if (!pdfHeader.startsWith('%PDF-')) {
-      throw new AppError('Generated file is not a valid PDF', 500);
+      throw ErrorTypes.INTERNAL('Generated file is not a valid PDF');
     }
 
     // Save PDF locally
@@ -459,9 +471,9 @@ export const generateVoucherPDF = async (orderId: string): Promise<string | null
     return pdfUrl;
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const errorStatus = error instanceof AppError ? error.statusCode : 500;
+    const errorStatus = error instanceof AppError ? error.status : 500;
     logger.error(`Error generating voucher PDF: ${errorMessage}`, error);
-    throw new AppError(errorMessage || 'Failed to generate voucher PDF', errorStatus);
+    throw ErrorTypes.INTERNAL(`Failed to generate voucher PDF: ${errorMessage}`);
   } finally {
     if (browser) {
       try {

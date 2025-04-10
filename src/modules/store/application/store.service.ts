@@ -1,7 +1,7 @@
 import { IStore } from '../domain/store.entity';
 import { StoreRepository } from '../infrastructure/store.repository';
 import { validateStore } from '../domain/store.schema';
-import { validationError, notFoundError } from '@shared/types/appError';
+import { AppError, ErrorTypes } from '@shared/types/appError';
 import logger from '@shared/infrastructure/logging/logger';
 import mongoose from 'mongoose';
 
@@ -18,14 +18,14 @@ export class StoreService {
     const { error } = validateStore(storeData);
     if (error) {
       logger.error(`Validation error creating store: ${error.details[0].message}`);
-      throw validationError(error.details[0].message);
+      throw ErrorTypes.VALIDATION(error.details[0].message);
     }
 
     // Check if store with email already exists
     const existingStore = await this.repository.findByEmail(storeData.email);
     if (existingStore) {
       logger.error(`Store with email ${storeData.email} already exists`);
-      throw validationError('Store with this email already exists');
+      throw ErrorTypes.CONFLICT('Store with this email already exists');
     }
 
     // Convert ownerId to ObjectId if it's a string
@@ -46,7 +46,7 @@ export class StoreService {
     const store = await this.repository.findById(id);
     if (!store) {
       logger.error(`Store with ID ${id} not found`);
-      throw notFoundError('Store not found');
+      throw ErrorTypes.NOT_FOUND('Store');
     }
     return store;
   }
@@ -64,14 +64,14 @@ export class StoreService {
       const existingStore = await this.repository.findByEmail(storeData.email);
       if (existingStore && existingStore._id?.toString() !== id) {
         logger.error(`Store with email ${storeData.email} already exists`);
-        throw validationError('Store with this email already exists');
+        throw ErrorTypes.CONFLICT('Store with this email already exists');
       }
     }
 
     const store = await this.repository.update(id, storeData);
     if (!store) {
       logger.error(`Store with ID ${id} not found for update`);
-      throw notFoundError('Store not found');
+      throw ErrorTypes.NOT_FOUND('Store');
     }
     return store;
   }
@@ -81,7 +81,7 @@ export class StoreService {
     const store = await this.repository.delete(id);
     if (!store) {
       logger.error(`Store with ID ${id} not found for deletion`);
-      throw notFoundError('Store not found');
+      throw ErrorTypes.NOT_FOUND('Store');
     }
     return store;
   }
@@ -91,7 +91,7 @@ export class StoreService {
     const store = await this.repository.updateLogo(id, logoPath);
     if (!store) {
       logger.error(`Store with ID ${id} not found for logo update`);
-      throw notFoundError('Store not found');
+      throw ErrorTypes.NOT_FOUND('Store');
     }
     return store;
   }

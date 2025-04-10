@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { UserService } from '../application/user.service';
 import { CreateUserDTO, UpdateUserDTO, LoginCredentialsDTO } from '../domain/user.entity';
-import { ValidationError, NotFoundError, AuthenticationError } from '@shared/infrastructure/errors';
+import { ErrorTypes } from '@shared/types/appError';
 import logger from '@shared/infrastructure/logging/logger';
 
 export class UserController {
@@ -10,7 +10,7 @@ export class UserController {
   /**
    * Get all users with pagination
    */
-  async getAllUsers(req: Request, res: Response): Promise<void> {
+  async getAllUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { page, limit, sort } = req.query;
 
@@ -23,105 +23,124 @@ export class UserController {
       const result = await this.userService.getAllUsers(options);
 
       res.status(200).json({
-        status: 'success',
+        success: true,
         data: result.data,
-        pagination: result.pagination,
+        pagination: {
+          page: options.page || 1,
+          limit: options.limit || 10,
+          total: result.pagination.total,
+        },
       });
     } catch (error) {
       logger.error('Error in getAllUsers controller:', error);
-      this.handleError(error, res);
+      next(error);
     }
   }
 
   /**
    * Get user by ID
    */
-  async getUserById(req: Request, res: Response): Promise<void> {
+  async getUserById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
       const user = await this.userService.getUserById(id);
 
+      if (!user) {
+        return next(ErrorTypes.NOT_FOUND('User'));
+      }
+
       res.status(200).json({
-        status: 'success',
+        success: true,
         data: user,
       });
     } catch (error) {
       logger.error(`Error in getUserById controller for id ${req.params.id}:`, error);
-      this.handleError(error, res);
+      next(error);
     }
   }
 
   /**
    * Create a new user
    */
-  async createUser(req: Request, res: Response): Promise<void> {
+  async createUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userData: CreateUserDTO = req.body;
       const user = await this.userService.createUser(userData);
 
       res.status(201).json({
-        status: 'success',
+        success: true,
         data: user,
       });
     } catch (error) {
       logger.error('Error in createUser controller:', error);
-      this.handleError(error, res);
+      next(error);
     }
   }
 
   /**
    * Update an existing user
    */
-  async updateUser(req: Request, res: Response): Promise<void> {
+  async updateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
       const userData: UpdateUserDTO = req.body;
-
       const user = await this.userService.updateUser(id, userData);
 
+      if (!user) {
+        return next(ErrorTypes.NOT_FOUND('User'));
+      }
+
       res.status(200).json({
-        status: 'success',
+        success: true,
         data: user,
       });
     } catch (error) {
       logger.error(`Error in updateUser controller for id ${req.params.id}:`, error);
-      this.handleError(error, res);
+      next(error);
     }
   }
 
   /**
    * Delete a user
    */
-  async deleteUser(req: Request, res: Response): Promise<void> {
+  async deleteUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
-      await this.userService.deleteUser(id);
+      const result = await this.userService.deleteUser(id);
+
+      if (!result) {
+        return next(ErrorTypes.NOT_FOUND('User'));
+      }
 
       res.status(200).json({
-        status: 'success',
+        success: true,
         message: 'User deleted successfully',
       });
     } catch (error) {
       logger.error(`Error in deleteUser controller for id ${req.params.id}:`, error);
-      this.handleError(error, res);
+      next(error);
     }
   }
 
   /**
    * Login a user
    */
-  async login(req: Request, res: Response): Promise<void> {
+  async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const credentials: LoginCredentialsDTO = req.body;
       const result = await this.userService.login(credentials);
 
+      if (!result) {
+        return next(ErrorTypes.UNAUTHORIZED('Invalid credentials'));
+      }
+
       res.status(200).json({
-        status: 'success',
+        success: true,
         data: result,
       });
     } catch (error) {
       logger.error('Error in login controller:', error);
-      this.handleError(error, res);
+      next(error);
     }
   }
 
@@ -129,21 +148,8 @@ export class UserController {
    * Create the first admin user (no authentication required)
    * This endpoint should only be used for initial setup
    */
-  async createFirstAdmin(req: Request, res: Response): Promise<void> {
+  async createFirstAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // TEMPORARY: Bypassing the check for existing users
-      // const { page, limit } = { page: 1, limit: 1 };
-      // const result = await this.userService.getAllUsers({ page, limit });
-
-      // // If users already exist, prevent creating another admin through this endpoint
-      // if (result.pagination.total > 0) {
-      //   res.status(403).json({
-      //     status: 'fail',
-      //     message: 'Setup already completed. Cannot create another admin through this endpoint.'
-      //   });
-      //   return;
-      // }
-
       // Force the role to be admin
       const userData: CreateUserDTO = {
         ...req.body,
@@ -153,40 +159,13 @@ export class UserController {
       const user = await this.userService.createUser(userData);
 
       res.status(201).json({
-        status: 'success',
-        message: 'Admin user created successfully. You can now log in.',
+        success: true,
         data: user,
+        message: 'Admin user created successfully. You can now log in.',
       });
     } catch (error) {
       logger.error('Error in createFirstAdmin controller:', error);
-      this.handleError(error, res);
-    }
-  }
-
-  /**
-   * Handle errors and send appropriate responses
-   */
-  private handleError(error: unknown, res: Response): void {
-    if (error instanceof ValidationError) {
-      res.status(422).json({
-        status: 'fail',
-        message: error.message,
-      });
-    } else if (error instanceof NotFoundError) {
-      res.status(404).json({
-        status: 'fail',
-        message: error.message,
-      });
-    } else if (error instanceof AuthenticationError) {
-      res.status(401).json({
-        status: 'fail',
-        message: error.message,
-      });
-    } else {
-      res.status(500).json({
-        status: 'error',
-        message: 'Internal server error',
-      });
+      next(error);
     }
   }
 }

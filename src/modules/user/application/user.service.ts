@@ -8,7 +8,7 @@ import {
 } from '../domain/user.entity';
 import { UserRepository } from '../domain/user.repository';
 import { PaginationOptions, PaginatedResult } from '@shared/types';
-import { ValidationError, NotFoundError, AuthenticationError } from '@shared/infrastructure/errors';
+import { ErrorTypes } from '@shared/types/appError';
 import { generateToken } from '@shared/infrastructure/middleware/auth';
 import logger from '@shared/infrastructure/logging/logger';
 
@@ -37,7 +37,7 @@ export class UserService {
       const user = await this.userRepository.findById(id);
 
       if (!user) {
-        throw new NotFoundError(`User with id ${id} not found`);
+        throw ErrorTypes.NOT_FOUND('User');
       }
 
       return this.mapToDTO(user);
@@ -53,7 +53,7 @@ export class UserService {
       const existingUser = await this.userRepository.findByEmail(userData.email);
 
       if (existingUser) {
-        throw new ValidationError('Email already registered');
+        throw ErrorTypes.CONFLICT('Email already registered');
       }
 
       // Create user
@@ -72,7 +72,7 @@ export class UserService {
       const existingUser = await this.userRepository.findById(id);
 
       if (!existingUser) {
-        throw new NotFoundError(`User with id ${id} not found`);
+        throw ErrorTypes.NOT_FOUND('User');
       }
 
       // If email is being updated, check if it's already in use
@@ -80,7 +80,7 @@ export class UserService {
         const userWithEmail = await this.userRepository.findByEmail(userData.email);
 
         if (userWithEmail) {
-          throw new ValidationError('Email already in use');
+          throw ErrorTypes.CONFLICT('Email already in use');
         }
       }
 
@@ -88,7 +88,7 @@ export class UserService {
       const updatedUser = await this.userRepository.update(id, userData);
 
       if (!updatedUser) {
-        throw new Error('Failed to update user');
+        throw ErrorTypes.INTERNAL('Failed to update user');
       }
 
       return this.mapToDTO(updatedUser);
@@ -104,7 +104,7 @@ export class UserService {
       const existingUser = await this.userRepository.findById(id);
 
       if (!existingUser) {
-        throw new NotFoundError(`User with id ${id} not found`);
+        throw ErrorTypes.NOT_FOUND('User');
       }
 
       // Delete user
@@ -121,14 +121,14 @@ export class UserService {
       const user = await this.userRepository.findByEmail(credentials.email);
 
       if (!user) {
-        throw new NotFoundError('User not found');
+        throw ErrorTypes.NOT_FOUND('User');
       }
 
-      // Compare passwords - this will use the model's comparePassword method
+      // Compare passwords
       const isPasswordValid = await this.comparePassword(credentials.password, user.password);
 
       if (!isPasswordValid) {
-        throw new AuthenticationError('Invalid credentials');
+        throw ErrorTypes.UNAUTHORIZED('Invalid credentials');
       }
 
       // Generate JWT token

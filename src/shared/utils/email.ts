@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { AppError } from '@shared/types/appError';
+import { AppError, ErrorTypes } from '@shared/types/appError';
 import logger from '@shared/infrastructure/logging/logger';
 
 /**
@@ -24,12 +24,12 @@ export interface EmailOptions {
  */
 export const createTransporter = (): nodemailer.Transporter => {
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'sandbox.smtp.mailtrap.io',
-    port: parseInt(process.env.SMTP_PORT || '2525'),
-    secure: process.env.SMTP_SECURE === 'true',
+    host: process.env.EMAIL_HOST,
+    port: parseInt(process.env.EMAIL_PORT || '587'),
+    secure: process.env.EMAIL_SECURE === 'true',
     auth: {
-      user: process.env.SMTP_USER || process.env.EMAIL_USERNAME,
-      pass: process.env.SMTP_PASSWORD || process.env.EMAIL_PASSWORD,
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
     },
   });
 };
@@ -41,6 +41,20 @@ export const createTransporter = (): nodemailer.Transporter => {
  */
 export const sendEmail = async (options: EmailOptions): Promise<void> => {
   try {
+    logger.info(`Sending email to ${options.to}`);
+
+    if (!options.to) {
+      throw ErrorTypes.VALIDATION('Recipient email is required');
+    }
+
+    if (!options.subject) {
+      throw ErrorTypes.VALIDATION('Email subject is required');
+    }
+
+    if (!options.html && !options.text) {
+      throw ErrorTypes.VALIDATION('Email content (html or text) is required');
+    }
+
     const transporter = createTransporter();
 
     // Define email options
@@ -58,7 +72,12 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
     await transporter.sendMail(mailOptions);
     logger.info(`Email sent successfully to ${options.to}`);
   } catch (error: any) {
-    logger.error(`Error sending email: ${error.message}`, error);
-    throw new AppError(`Error sending email: ${error.message}`, 500);
+    logger.error('Error sending email:', error);
+
+    if (error instanceof AppError) {
+      throw error;
+    }
+
+    throw ErrorTypes.INTERNAL(`Error sending email: ${error.message}`);
   }
 };

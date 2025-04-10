@@ -1,7 +1,7 @@
 import { IProduct, Product } from '../domain/product.entity';
 import { ProductRepository, IProductRepository } from '../domain/product.repository';
 import { validateProduct } from '../domain/product.schema';
-import { notFoundError, validationError } from '@shared/types/appError';
+import { AppError, ErrorTypes } from '@shared/types/appError';
 import logger from '@shared/infrastructure/logging/logger';
 import mongoose from 'mongoose';
 
@@ -18,7 +18,7 @@ export class ProductService {
     const { error } = validateProduct(productData);
     if (error) {
       logger.error(`Error creating product: ${error.details[0].message}`);
-      throw validationError(error.details[0].message);
+      throw ErrorTypes.VALIDATION(error.details[0].message);
     }
 
     const product = new Product({
@@ -36,7 +36,7 @@ export class ProductService {
     const product = await this.repository.findById(id);
     if (!product) {
       logger.error(`Product with id ${id} not found`);
-      throw notFoundError('Product not found');
+      throw ErrorTypes.NOT_FOUND('Product');
     }
     return product;
   }
@@ -52,10 +52,9 @@ export class ProductService {
     const existingProduct = await this.repository.findById(id);
     if (!existingProduct) {
       logger.error(`Product with id ${id} not found`);
-      throw notFoundError('Product not found');
+      throw ErrorTypes.NOT_FOUND('Product');
     }
 
-    // Create a clean object with only the fields we want to validate
     const cleanData = {
       name: productData.name ?? existingProduct.name,
       description: productData.description ?? existingProduct.description,
@@ -67,7 +66,7 @@ export class ProductService {
     const { error } = validateProduct(cleanData);
     if (error) {
       logger.error(`Error updating product: ${error.details[0].message}`);
-      throw validationError(error.details[0].message);
+      throw ErrorTypes.VALIDATION(error.details[0].message);
     }
 
     const { storeId, ...restData } = productData;
@@ -79,7 +78,7 @@ export class ProductService {
     const product = await this.repository.update(id, updateData);
     if (!product) {
       logger.error(`Product with id ${id} not found`);
-      throw notFoundError('Product not found');
+      throw ErrorTypes.NOT_FOUND('Product');
     }
     return product;
   }
@@ -88,7 +87,7 @@ export class ProductService {
     const product = await this.repository.delete(id);
     if (!product) {
       logger.error(`Product with id ${id} not found`);
-      throw notFoundError('Product not found');
+      throw ErrorTypes.NOT_FOUND('Product');
     }
     return product;
   }

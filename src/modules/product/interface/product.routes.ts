@@ -5,6 +5,7 @@ import { ProductRepository } from '../infrastructure/product.repository';
 import { authenticate } from '@shared/infrastructure/middleware/auth';
 import { uploadProductImage } from '@shared/infrastructure/services/fileUpload';
 import { NextFunction, Request, Response } from 'express';
+import { ErrorTypes } from '@shared/types/appError';
 import logger from '@shared/infrastructure/logging/logger';
 
 const router = express.Router();
@@ -37,31 +38,74 @@ const handleProductUpload = async (
   controllerMethod: Function
 ) => {
   try {
+    logger.info('Starting product upload handler');
+    logger.info('Original request:', {
+      body: req.body,
+      files: req.files,
+      file: req.file,
+    });
+
+    // Handle file upload first
     await new Promise((resolve, reject) => {
       uploadProductImage(req, res, (err) => {
         if (err) {
           logger.error('File upload error:', err);
           reject(err);
         } else {
+          logger.info('File upload middleware completed');
           resolve(true);
         }
       });
     });
 
+    logger.info('After upload middleware:', {
+      body: req.body,
+      file: req.file,
+    });
+
+    // Keep the original request body
+    const originalBody = { ...req.body };
+    logger.info('Original request body:', originalBody);
+
     // Parse product data if it exists
-    if (req.body.data) {
+    if (originalBody.data) {
       try {
-        const parsedData = JSON.parse(req.body.data);
-        req.body = { ...parsedData };
+        const parsedData = JSON.parse(originalBody.data);
+        logger.info('Parsed product data:', parsedData);
+
+        // Merge parsed data with original body
+        req.body = {
+          ...parsedData,
+        };
+
+        // Add file information if present
         if (req.file) {
-          req.body.imageUrl = req.file.path;
+          logger.info('File upload successful:', {
+            originalname: req.file.originalname,
+            path: req.file.path,
+            mimetype: req.file.mimetype,
+            size: req.file.size,
+          });
+          // Make sure we're using the secure_url from Cloudinary
+          req.body.image = req.file.path;
+          logger.info('Added image path to request body:', req.body.image);
+        } else {
+          logger.info('No file uploaded with request');
+          // Only set image to null if it's explicitly being removed
+          if (Object.hasOwn(parsedData, 'image') && !parsedData.image) {
+            req.body.image = null;
+            logger.info('Setting image to null as per request');
+          }
         }
       } catch (error) {
         logger.error('Error parsing product data:', error);
-        throw new Error('Invalid product data format');
+        throw ErrorTypes.BAD_REQUEST('Invalid product data format');
       }
+    } else {
+      logger.warn('No product data found in request body');
     }
 
+    logger.info('Final request body before controller:', req.body);
     // Call the controller method
     return controllerMethod(req, res, next);
   } catch (error: any) {

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from '@shared/types/appError';
+import { ErrorTypes } from '../../types/appError';
 import logger from '@shared/infrastructure/logging/logger';
+import { sendErrorResponse } from '@shared/utils/response.utils';
 
 export const errorHandler = (
   err: Error,
@@ -8,20 +9,21 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction
 ): void => {
-  if (err instanceof AppError) {
-    res.status(err.statusCode).json({
-      status: 'error',
-      message: err.message,
-      ...(err.isOperational ? {} : { stack: err.stack }),
-    });
-    return;
-  }
-
-  // Log unexpected errors
-  logger.error('Unexpected error:', err);
-
-  res.status(500).json({
-    status: 'error',
-    message: 'Internal server error',
+  // Log the error for debugging
+  logger.error('Error caught by global error handler:', {
+    error: err,
+    path: req.path,
+    method: req.method,
+    query: req.query,
+    body: req.body,
   });
+
+  // Send appropriate error response
+  sendErrorResponse(res, err);
+};
+
+// 404 handler middleware
+export const notFoundHandler = (req: Request, _res: Response, next: NextFunction) => {
+  const error = ErrorTypes.NOT_FOUND(`Route ${req.originalUrl}`);
+  next(error);
 };
