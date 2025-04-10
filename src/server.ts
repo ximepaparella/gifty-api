@@ -21,14 +21,7 @@ import { applySecurityMiddleware } from '@shared/infrastructure/middleware/secur
 import { setupRoutes } from '@modules/routes';
 import { authenticate } from '@shared/infrastructure/middleware/auth';
 
-// Import routes and controllers
-import userRoutes from '@modules/user/interface/user.routes';
-import passwordResetRoutes from '@modules/user/interface/passwordReset.routes';
-import { storeRoutes } from '@modules/store/interface/store.routes';
-import { productRoutes } from '@modules/product/interface/product.routes';
-import voucherRoutes from '@modules/voucher/interface/voucher.routes';
-import orderRoutes from '@modules/order/interface/order.routes';
-
+// Import controllers
 import { UserController } from '@modules/user/interface/user.controller';
 import { UserService } from '@modules/user/application/user.service';
 import { MongoUserRepository } from '@modules/user/infrastructure/user.repository';
@@ -88,53 +81,16 @@ connectDB()
     process.exit(1);
   });
 
-// Configure routes
-setupRoutes(app);
-
 // Public routes
 app.post('/api/v1/login', (req: Request, res: Response, next: NextFunction) => userController.login(req, res, next));
-app.use('/api/v1/auth', passwordResetRoutes);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Protected routes
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/stores', storeRoutes);
-app.use('/api/v1/products', productRoutes);
-app.use('/api/v1/vouchers', voucherRoutes);
-app.use('/api/v1/orders', orderRoutes);
-
-// Customer routes
-app.get('/api/v1/customers-test', (req: Request, res: Response) => {
-  res.status(200).json({ message: 'Customer test route is working!' });
-});
-
-app.get('/api/v1/customers', authenticate, (req: Request, res: Response, next: NextFunction) => {
-  customerController.getCustomers(req, res, next);
-});
-
-app.post('/api/v1/customers', (req: Request, res: Response, next: NextFunction) => {
-  customerController.createCustomer(req, res, next);
-});
-
-app.post('/api/v1/customers/get-or-create', (req: Request, res: Response, next: NextFunction) => {
-  customerController.getOrCreateCustomer(req, res, next);
-});
-
-app.get('/api/v1/customers/:id', authenticate, (req: Request, res: Response, next: NextFunction) => {
-  customerController.getCustomerById(req, res, next);
-});
-
-app.put('/api/v1/customers/:id', authenticate, (req: Request, res: Response, next: NextFunction) => {
-  customerController.updateCustomer(req, res, next);
-});
-
-app.delete('/api/v1/customers/:id', authenticate, (req: Request, res: Response, next: NextFunction) => {
-  customerController.deleteCustomer(req, res, next);
-});
+// Configure all routes
+setupRoutes(app);
 
 // Setup Swagger documentation
 setupSwagger(app);

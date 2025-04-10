@@ -36,4 +36,4 @@ router.put('/:id', uploadStoreLogo, (req, res, next) =>
 // Delete store
 router.delete('/:id', (req, res, next) => storeController.deleteStore(req, res, next));
 
-export { router as storeRoutes };
+export default router;

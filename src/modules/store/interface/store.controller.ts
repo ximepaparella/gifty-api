@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { StoreService } from '../application/store.service';
 import { validateStore } from '../domain/store.schema';
-import catchAsync from '@utils/catchAsync';
 import { IStore } from '../domain/store.entity';
 import { handleAsync } from '@shared/infrastructure/middleware/asyncHandler';
 import { deleteFile } from '@shared/infrastructure/services/fileUpload';
 import logger from '@shared/infrastructure/logging/logger';
 import { v2 as cloudinary } from 'cloudinary';
 import { ErrorTypes } from '@shared/types/appError';
+import { StoreRepository } from '../infrastructure/store.repository';
 
 // Extended Request type to include file from multer
 interface RequestWithFile extends Request {
@@ -20,7 +20,7 @@ type UpdateStoreBody = Partial<CreateStoreBody>;
 export class StoreController {
   private service: StoreService;
 
-  constructor(service: StoreService = new StoreService()) {
+  constructor(service: StoreService = new StoreService(new StoreRepository())) {
     this.service = service;
   }
 
@@ -111,7 +111,7 @@ export class StoreController {
     }
   });
 
-  getStores = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  getStores = handleAsync(async (req: Request, res: Response, next: NextFunction) => {
     const stores = await this.service.getStores();
     res.status(200).json({
       success: true,
@@ -119,7 +119,7 @@ export class StoreController {
     });
   });
 
-  getStoreById = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  getStoreById = handleAsync(async (req: Request, res: Response, next: NextFunction) => {
     const store = await this.service.getStoreById(req.params.id);
     if (!store) {
       return next(ErrorTypes.NOT_FOUND('Store'));
@@ -130,7 +130,7 @@ export class StoreController {
     });
   });
 
-  getStoresByOwnerId = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  getStoresByOwnerId = handleAsync(async (req: Request, res: Response, next: NextFunction) => {
     const stores = await this.service.getStoresByOwnerId(req.params.ownerId);
     res.status(200).json({
       success: true,
@@ -203,13 +203,13 @@ export class StoreController {
     }
   });
 
-  deleteStore = catchAsync(async (req: Request, res: Response) => {
+  deleteStore = handleAsync(async (req: Request, res: Response, next: NextFunction) => {
     const store = await this.service.deleteStore(req.params.id);
     if (store?.logo) {
       await deleteFile(store.logo);
     }
     res.status(200).json({
-      status: 'success',
+      success: true,
       data: store,
     });
   });
@@ -248,5 +248,13 @@ export class StoreController {
       }
       throw error;
     }
+  });
+
+  getLogo = handleAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const store = await this.service.getStoreById(req.params.id);
+    if (!store || !store.logo) {
+      return next(ErrorTypes.NOT_FOUND('Store logo'));
+    }
+    res.redirect(store.logo);
   });
 }

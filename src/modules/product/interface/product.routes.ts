@@ -137,4 +137,4 @@ router.delete('/:id', (req, res, next) => productController.deleteProduct(req, r
 // Get product image
 router.get('/:id/image', (req, res, next) => productController.getImage(req, res, next));
 
-export { router as productRoutes };
+export default router;
