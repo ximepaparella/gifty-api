@@ -16,23 +16,23 @@ export interface IStoreRepository {
 
 export class StoreRepository implements IStoreRepository {
   async create(store: IStore): Promise<IStore> {
-    return await Store.create(store);
+    return Store.create(store);
   }
 
   async findById(id: string): Promise<IStore | null> {
-    return await Store.findById(id);
+    return Store.findById(id);
   }
 
   async findByEmail(email: string): Promise<IStore | null> {
-    return await Store.findOne({ email });
+    return Store.findOne({ email });
   }
 
   async findByOwnerId(ownerId: string): Promise<IStore[]> {
-    return await Store.find({ ownerId: new Types.ObjectId(ownerId) });
+    return Store.find({ ownerId: new Types.ObjectId(ownerId) });
   }
 
   async findAll(): Promise<IStore[]> {
-    return await Store.find();
+    return Store.find();
   }
 
   async update(id: string, store: Partial<IStore>): Promise<IStore | null> {
@@ -43,7 +43,7 @@ export class StoreRepository implements IStoreRepository {
         await deleteFile(existingStore.logo);
       }
     }
-    return await Store.findByIdAndUpdate(id, store, { new: true });
+    return Store.findByIdAndUpdate(id, store, { new: true });
   }
 
   async delete(id: string): Promise<IStore | null> {
@@ -51,6 +51,6 @@ export class StoreRepository implements IStoreRepository {
     if (store?.logo) {
       await deleteFile(store.logo);
     }
-    return await Store.findByIdAndDelete(id);
+    return Store.findByIdAndDelete(id);
   }
-} 
+}

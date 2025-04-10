@@ -5,7 +5,7 @@ import { IVoucherInput } from '../domain/voucher.interface';
 import logger from '@shared/infrastructure/logging/logger';
 
 export class VoucherController {
-  constructor(private voucherService: VoucherService) { }
+  constructor(private voucherService: VoucherService) {}
 
   /**
    * Get all vouchers
@@ -75,10 +75,7 @@ export class VoucherController {
    */
   createVoucher = async (req: Request, res: Response) => {
     try {
-
-
       const voucherData: IVoucherInput = req.body;
-
 
       const newVoucher = await this.voucherService.createVoucher(voucherData);
 
@@ -104,8 +101,8 @@ export class VoucherController {
           // Include other key fields for debugging
           storeId: req.body.storeId,
           productId: req.body.productId,
-          template: req.body.template
-        }
+          template: req.body.template,
+        },
       });
     }
   };
@@ -148,8 +145,8 @@ export class VoucherController {
           // Include other key fields for debugging
           storeId: req.body.storeId,
           productId: req.body.productId,
-          template: req.body.template
-        }
+          template: req.body.template,
+        },
       });
     }
   };
@@ -180,4 +177,4 @@ export class VoucherController {
       message: 'Voucher redeemed successfully',
     });
   });
-} 
+}

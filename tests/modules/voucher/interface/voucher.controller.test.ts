@@ -13,7 +13,7 @@ describe('Voucher Controller', () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let mockNext: NextFunction;
-  
+
   const mockVoucher: IVoucher = {
     _id: new mongoose.Types.ObjectId().toString(),
     code: 'TEST123',
@@ -32,7 +32,7 @@ describe('Voucher Controller', () => {
     message: 'Test message',
     template: 'birthday',
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   };
 
   beforeEach(() => {
@@ -45,13 +45,13 @@ describe('Voucher Controller', () => {
       createVoucher: jest.fn(),
       updateVoucher: jest.fn(),
       deleteVoucher: jest.fn(),
-      redeemVoucher: jest.fn()
+      redeemVoucher: jest.fn(),
     } as unknown as jest.Mocked<VoucherService>;
 
     mockRequest = {};
     mockResponse = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn()
+      json: jest.fn(),
     };
     mockNext = jest.fn() as unknown as NextFunction;
 
@@ -63,12 +63,16 @@ describe('Voucher Controller', () => {
       const vouchers: IVoucher[] = [mockVoucher];
       mockVoucherService.getAllVouchers.mockResolvedValue(vouchers);
 
-      await voucherController.getAllVouchers(mockRequest as Request, mockResponse as Response, mockNext);
+      await voucherController.getAllVouchers(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
+      );
 
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: vouchers
+        data: vouchers,
       });
     });
 
@@ -76,9 +80,9 @@ describe('Voucher Controller', () => {
       const error = new Error('Test error');
       mockVoucherService.getAllVouchers.mockRejectedValue(error);
 
-      await expect(voucherController.getAllVouchers(mockRequest as Request, mockResponse as Response, mockNext))
-        .rejects
-        .toThrow('Test error');
+      await expect(
+        voucherController.getAllVouchers(mockRequest as Request, mockResponse as Response, mockNext)
+      ).rejects.toThrow('Test error');
     });
   });
 
@@ -87,12 +91,16 @@ describe('Voucher Controller', () => {
       mockRequest.params = { id: mockVoucher._id! };
       mockVoucherService.getVoucherById.mockResolvedValue(mockVoucher);
 
-      await voucherController.getVoucherById(mockRequest as Request, mockResponse as Response, mockNext);
+      await voucherController.getVoucherById(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
+      );
 
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: mockVoucher
+        data: mockVoucher,
       });
       expect(mockVoucherService.getVoucherById).toHaveBeenCalledWith(mockVoucher._id);
     });
@@ -102,10 +110,10 @@ describe('Voucher Controller', () => {
       const error = new Error('Voucher not found');
       mockVoucherService.getVoucherById.mockRejectedValue(error);
 
-      await expect(voucherController.getVoucherById(mockRequest as Request, mockResponse as Response, mockNext))
-        .rejects
-        .toThrow('Voucher not found');
-      
+      await expect(
+        voucherController.getVoucherById(mockRequest as Request, mockResponse as Response, mockNext)
+      ).rejects.toThrow('Voucher not found');
+
       expect(mockVoucherService.getVoucherById).toHaveBeenCalledWith('non-existent-id');
     });
   });
@@ -115,12 +123,16 @@ describe('Voucher Controller', () => {
       mockRequest.params = { code: mockVoucher.code };
       mockVoucherService.getVoucherByCode.mockResolvedValue(mockVoucher);
 
-      await voucherController.getVoucherByCode(mockRequest as Request, mockResponse as Response, mockNext);
+      await voucherController.getVoucherByCode(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
+      );
 
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: mockVoucher
+        data: mockVoucher,
       });
       expect(mockVoucherService.getVoucherByCode).toHaveBeenCalledWith(mockVoucher.code);
     });
@@ -130,10 +142,14 @@ describe('Voucher Controller', () => {
       const error = new Error('Voucher not found');
       mockVoucherService.getVoucherByCode.mockRejectedValue(error);
 
-      await expect(voucherController.getVoucherByCode(mockRequest as Request, mockResponse as Response, mockNext))
-        .rejects
-        .toThrow('Voucher not found');
-      
+      await expect(
+        voucherController.getVoucherByCode(
+          mockRequest as Request,
+          mockResponse as Response,
+          mockNext
+        )
+      ).rejects.toThrow('Voucher not found');
+
       expect(mockVoucherService.getVoucherByCode).toHaveBeenCalledWith('INVALID-CODE');
     });
   });
@@ -144,14 +160,20 @@ describe('Voucher Controller', () => {
       mockRequest.params = { storeId: mockVoucher.storeId.toString() };
       mockVoucherService.getVouchersByStoreId.mockResolvedValue(vouchers);
 
-      await voucherController.getVouchersByStoreId(mockRequest as Request, mockResponse as Response, mockNext);
+      await voucherController.getVouchersByStoreId(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
+      );
 
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: vouchers
+        data: vouchers,
       });
-      expect(mockVoucherService.getVouchersByStoreId).toHaveBeenCalledWith(mockVoucher.storeId.toString());
+      expect(mockVoucherService.getVouchersByStoreId).toHaveBeenCalledWith(
+        mockVoucher.storeId.toString()
+      );
     });
 
     it('should handle errors when retrieving vouchers by store id fails', async () => {
@@ -159,10 +181,14 @@ describe('Voucher Controller', () => {
       const error = new Error('Error retrieving vouchers');
       mockVoucherService.getVouchersByStoreId.mockRejectedValue(error);
 
-      await expect(voucherController.getVouchersByStoreId(mockRequest as Request, mockResponse as Response, mockNext))
-        .rejects
-        .toThrow('Error retrieving vouchers');
-      
+      await expect(
+        voucherController.getVouchersByStoreId(
+          mockRequest as Request,
+          mockResponse as Response,
+          mockNext
+        )
+      ).rejects.toThrow('Error retrieving vouchers');
+
       expect(mockVoucherService.getVouchersByStoreId).toHaveBeenCalledWith('invalid-store-id');
     });
   });
@@ -173,14 +199,20 @@ describe('Voucher Controller', () => {
       mockRequest.params = { email: mockVoucher.receiverEmail };
       mockVoucherService.getVouchersByCustomerEmail.mockResolvedValue(vouchers);
 
-      await voucherController.getVouchersByCustomerEmail(mockRequest as Request, mockResponse as Response, mockNext);
+      await voucherController.getVouchersByCustomerEmail(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
+      );
 
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: vouchers
+        data: vouchers,
       });
-      expect(mockVoucherService.getVouchersByCustomerEmail).toHaveBeenCalledWith(mockVoucher.receiverEmail);
+      expect(mockVoucherService.getVouchersByCustomerEmail).toHaveBeenCalledWith(
+        mockVoucher.receiverEmail
+      );
     });
 
     it('should handle errors when retrieving vouchers by customer email fails', async () => {
@@ -188,11 +220,17 @@ describe('Voucher Controller', () => {
       const error = new Error('Error retrieving vouchers');
       mockVoucherService.getVouchersByCustomerEmail.mockRejectedValue(error);
 
-      await expect(voucherController.getVouchersByCustomerEmail(mockRequest as Request, mockResponse as Response, mockNext))
-        .rejects
-        .toThrow('Error retrieving vouchers');
-      
-      expect(mockVoucherService.getVouchersByCustomerEmail).toHaveBeenCalledWith('invalid@email.com');
+      await expect(
+        voucherController.getVouchersByCustomerEmail(
+          mockRequest as Request,
+          mockResponse as Response,
+          mockNext
+        )
+      ).rejects.toThrow('Error retrieving vouchers');
+
+      expect(mockVoucherService.getVouchersByCustomerEmail).toHaveBeenCalledWith(
+        'invalid@email.com'
+      );
     });
   });
 
@@ -210,9 +248,9 @@ describe('Voucher Controller', () => {
         receiverName: mockVoucher.receiverName,
         receiverEmail: mockVoucher.receiverEmail,
         message: mockVoucher.message,
-        template: mockVoucher.template
+        template: mockVoucher.template,
       };
-      
+
       mockRequest.body = voucherData;
       mockVoucherService.createVoucher.mockResolvedValue(mockVoucher);
 
@@ -221,7 +259,7 @@ describe('Voucher Controller', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: mockVoucher
+        data: mockVoucher,
       });
       expect(mockVoucherService.createVoucher).toHaveBeenCalledWith(voucherData);
     });
@@ -237,9 +275,9 @@ describe('Voucher Controller', () => {
         receiverName: mockVoucher.receiverName,
         receiverEmail: mockVoucher.receiverEmail,
         message: mockVoucher.message,
-        template: mockVoucher.template
+        template: mockVoucher.template,
       };
-      
+
       mockRequest.body = voucherData;
       const error = new Error('Validation error');
       mockVoucherService.createVoucher.mockRejectedValue(error);
@@ -249,7 +287,7 @@ describe('Voucher Controller', () => {
       } catch (err) {
         expect(err).toEqual(error);
       }
-      
+
       expect(mockVoucherService.createVoucher).toHaveBeenCalledWith(voucherData);
     });
   });
@@ -258,12 +296,12 @@ describe('Voucher Controller', () => {
     it('should update a voucher successfully', async () => {
       const updateData: Partial<IVoucherInput> = {
         message: 'Updated message',
-        status: 'active'
+        status: 'active',
       };
-      
+
       mockRequest.params = { id: mockVoucher._id! };
       mockRequest.body = updateData;
-      
+
       const updatedVoucher = { ...mockVoucher, ...updateData };
       mockVoucherService.updateVoucher.mockResolvedValue(updatedVoucher);
 
@@ -272,19 +310,19 @@ describe('Voucher Controller', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: updatedVoucher
+        data: updatedVoucher,
       });
       expect(mockVoucherService.updateVoucher).toHaveBeenCalledWith(mockVoucher._id, updateData);
     });
 
     it('should handle errors during update', async () => {
       const updateData: Partial<IVoucherInput> = {
-        message: 'Updated message'
+        message: 'Updated message',
       };
-      
+
       mockRequest.params = { id: 'non-existent-id' };
       mockRequest.body = updateData;
-      
+
       const error = new Error('Voucher not found');
       mockVoucherService.updateVoucher.mockRejectedValue(error);
 
@@ -293,7 +331,7 @@ describe('Voucher Controller', () => {
       } catch (err) {
         expect(err).toEqual(error);
       }
-      
+
       expect(mockVoucherService.updateVoucher).toHaveBeenCalledWith('non-existent-id', updateData);
     });
   });
@@ -303,12 +341,16 @@ describe('Voucher Controller', () => {
       mockRequest.params = { id: mockVoucher._id! };
       mockVoucherService.deleteVoucher.mockResolvedValue(true);
 
-      await voucherController.deleteVoucher(mockRequest as Request, mockResponse as Response, mockNext);
+      await voucherController.deleteVoucher(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
+      );
 
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        message: 'Voucher deleted successfully'
+        message: 'Voucher deleted successfully',
       });
       expect(mockVoucherService.deleteVoucher).toHaveBeenCalledWith(mockVoucher._id);
     });
@@ -318,10 +360,10 @@ describe('Voucher Controller', () => {
       const error = new Error('Voucher not found');
       mockVoucherService.deleteVoucher.mockRejectedValue(error);
 
-      await expect(voucherController.deleteVoucher(mockRequest as Request, mockResponse as Response, mockNext))
-        .rejects
-        .toThrow('Voucher not found');
-      
+      await expect(
+        voucherController.deleteVoucher(mockRequest as Request, mockResponse as Response, mockNext)
+      ).rejects.toThrow('Voucher not found');
+
       expect(mockVoucherService.deleteVoucher).toHaveBeenCalledWith('non-existent-id');
     });
   });
@@ -332,19 +374,23 @@ describe('Voucher Controller', () => {
         ...mockVoucher,
         isRedeemed: true,
         redeemedAt: new Date(),
-        status: 'redeemed'
+        status: 'redeemed',
       };
-      
+
       mockRequest.params = { code: mockVoucher.code };
       mockVoucherService.redeemVoucher.mockResolvedValue(redeemedVoucher);
 
-      await voucherController.redeemVoucher(mockRequest as Request, mockResponse as Response, mockNext);
+      await voucherController.redeemVoucher(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
+      );
 
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
         data: redeemedVoucher,
-        message: 'Voucher redeemed successfully'
+        message: 'Voucher redeemed successfully',
       });
       expect(mockVoucherService.redeemVoucher).toHaveBeenCalledWith(mockVoucher.code);
     });
@@ -354,11 +400,11 @@ describe('Voucher Controller', () => {
       const error = new Error('Voucher not found or already redeemed');
       mockVoucherService.redeemVoucher.mockRejectedValue(error);
 
-      await expect(voucherController.redeemVoucher(mockRequest as Request, mockResponse as Response, mockNext))
-        .rejects
-        .toThrow('Voucher not found or already redeemed');
-      
+      await expect(
+        voucherController.redeemVoucher(mockRequest as Request, mockResponse as Response, mockNext)
+      ).rejects.toThrow('Voucher not found or already redeemed');
+
       expect(mockVoucherService.redeemVoucher).toHaveBeenCalledWith('INVALID-CODE');
     });
   });
-}); 
+});

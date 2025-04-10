@@ -7,9 +7,5 @@ export interface IOrderRepository {
   create(order: IOrderInput): Promise<IOrder>;
   update(id: string, order: Partial<IOrder>): Promise<IOrder | null>;
   delete(id: string): Promise<boolean>;
-  findOneAndUpdate(
-    filter: any,
-    update: any,
-    options?: any
-  ): Promise<IOrder | null>;
-} 
+  findOneAndUpdate(filter: any, update: any, options?: any): Promise<IOrder | null>;
+}

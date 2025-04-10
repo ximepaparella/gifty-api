@@ -17,7 +17,7 @@ export class CustomerController {
     const customer = await this.service.createCustomer(customerData);
     res.status(201).json({
       status: 'success',
-      data: customer
+      data: customer,
     });
   });
 
@@ -26,7 +26,7 @@ export class CustomerController {
     const customers = await this.service.getCustomers(req.query); // Pass query params if needed
     res.status(200).json({
       status: 'success',
-      data: customers
+      data: customers,
     });
   });
 
@@ -36,7 +36,7 @@ export class CustomerController {
     const customer = await this.service.getCustomerById(id);
     res.status(200).json({
       status: 'success',
-      data: customer
+      data: customer,
     });
   });
 
@@ -47,7 +47,7 @@ export class CustomerController {
     const customer = await this.service.updateCustomer(id, customerData);
     res.status(200).json({
       status: 'success',
-      data: customer
+      data: customer,
     });
   });
 
@@ -58,7 +58,7 @@ export class CustomerController {
     res.status(200).json({
       status: 'success',
       message: 'Customer deleted successfully',
-      data: customer // Optionally return the deleted customer
+      data: customer, // Optionally return the deleted customer
     });
   });
 
@@ -68,7 +68,7 @@ export class CustomerController {
     const customer = await this.service.getOrCreateCustomer(customerData);
     res.status(200).json({
       status: 'success',
-      data: customer
+      data: customer,
     });
   });
-} 
+}

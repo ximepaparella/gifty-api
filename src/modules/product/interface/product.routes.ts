@@ -22,13 +22,20 @@ router.get('/', (req, res, next) => productController.getProducts(req, res, next
 router.get('/:id', (req, res, next) => productController.getProductById(req, res, next));
 
 // Get products by store ID
-router.get('/store/:storeId', (req, res, next) => productController.getProductsByStoreId(req, res, next));
+router.get('/store/:storeId', (req, res, next) =>
+  productController.getProductsByStoreId(req, res, next)
+);
 
 // Protected routes
 router.use(authenticate);
 
 // Helper function to handle file upload and product data
-const handleProductUpload = async (req: Request, res: Response, next: NextFunction, controllerMethod: Function) => {
+const handleProductUpload = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  controllerMethod: Function
+) => {
   try {
     await new Promise((resolve, reject) => {
       uploadProductImage(req, res, (err) => {
@@ -61,21 +68,21 @@ const handleProductUpload = async (req: Request, res: Response, next: NextFuncti
     logger.error('Product upload handler error:', error);
     return res.status(400).json({
       status: 'error',
-      message: error.message || 'Error processing product data'
+      message: error.message || 'Error processing product data',
     });
   }
 };
 
 // Create new product with image
-router.post('/', (req, res, next) => 
-  handleProductUpload(req, res, next, (req: Request, res: Response, next: NextFunction) => 
+router.post('/', (req, res, next) =>
+  handleProductUpload(req, res, next, (req: Request, res: Response, next: NextFunction) =>
     productController.createProduct(req, res, next)
   )
 );
 
 // Update product with image
-router.put('/:id', (req, res, next) => 
-  handleProductUpload(req, res, next, (req: Request, res: Response, next: NextFunction) => 
+router.put('/:id', (req, res, next) =>
+  handleProductUpload(req, res, next, (req: Request, res: Response, next: NextFunction) =>
     productController.updateProduct(req, res, next)
   )
 );
@@ -86,4 +93,4 @@ router.delete('/:id', (req, res, next) => productController.deleteProduct(req, r
 // Get product image
 router.get('/:id/image', (req, res, next) => productController.getImage(req, res, next));
 
-export { router as productRoutes }; 
+export { router as productRoutes };

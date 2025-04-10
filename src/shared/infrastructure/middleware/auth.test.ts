@@ -13,11 +13,11 @@ describe('Auth Middleware', () => {
 
   beforeEach(() => {
     req = {
-      headers: {}
+      headers: {},
     };
     res = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn()
+      json: jest.fn(),
     };
     next = jest.fn();
     process.env.JWT_SECRET = 'test_jwt_secret_key';
@@ -32,9 +32,9 @@ describe('Auth Middleware', () => {
       // Arrange
       const mockUser = { id: '1', email: 'test@example.com', role: 'user' };
       req.headers = {
-        authorization: 'Bearer valid-token'
+        authorization: 'Bearer valid-token',
       };
-      
+
       (jwt.verify as jest.Mock).mockReturnValue(mockUser);
 
       // Act
@@ -52,16 +52,18 @@ describe('Auth Middleware', () => {
 
       // Assert
       expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-        success: false,
-        error: 'No token provided'
-      }));
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          error: 'No token provided',
+        })
+      );
     });
 
     it('should throw AuthenticationError if token format is invalid', () => {
       // Arrange
       req.headers = {
-        authorization: 'InvalidFormat token'
+        authorization: 'InvalidFormat token',
       };
 
       // Act
@@ -69,18 +71,20 @@ describe('Auth Middleware', () => {
 
       // Assert
       expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-        success: false,
-        error: 'No token provided'
-      }));
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          error: 'No token provided',
+        })
+      );
     });
 
     it('should throw AuthenticationError if token is invalid', () => {
       // Arrange
       req.headers = {
-        authorization: 'Bearer invalid-token'
+        authorization: 'Bearer invalid-token',
       };
-      
+
       (jwt.verify as jest.Mock).mockImplementation(() => {
         throw new Error('Invalid token');
       });
@@ -91,10 +95,12 @@ describe('Auth Middleware', () => {
       // Assert
       expect(jwt.verify).toHaveBeenCalledWith('invalid-token', 'test_jwt_secret_key');
       expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-        success: false,
-        error: 'Invalid token'
-      }));
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          error: 'Invalid token',
+        })
+      );
     });
   });
 
@@ -108,12 +114,10 @@ describe('Auth Middleware', () => {
       const token = generateToken(user);
 
       // Assert
-      expect(jwt.sign).toHaveBeenCalledWith(
-        user,
-        'test_jwt_secret_key',
-        { expiresIn: expect.any(String) }
-      );
+      expect(jwt.sign).toHaveBeenCalledWith(user, 'test_jwt_secret_key', {
+        expiresIn: expect.any(String),
+      });
       expect(token).toBe('generated-token');
     });
   });
-}); 
+});

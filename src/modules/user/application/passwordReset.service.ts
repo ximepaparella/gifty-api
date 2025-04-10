@@ -33,12 +33,12 @@ class PasswordResetService {
       await sendEmail({
         to: user.email,
         subject: 'Your password reset token (valid for 1 hour)',
-        text: message
+        text: message,
       });
 
       return {
         status: 'success',
-        message: 'Password reset link sent to email'
+        message: 'Password reset link sent to email',
       };
     } catch (error) {
       user.passwordResetToken = undefined;
@@ -51,15 +51,12 @@ class PasswordResetService {
 
   async resetPassword(token: string, newPassword: string): Promise<PasswordResetResult> {
     // 1) Get hashed token
-    const hashedToken = crypto
-      .createHash('sha256')
-      .update(token)
-      .digest('hex');
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
     // 2) Get user based on token
     const user = await UserModel.findOne({
       passwordResetToken: hashedToken,
-      passwordResetExpires: { $gt: Date.now() }
+      passwordResetExpires: { $gt: Date.now() },
     });
 
     if (!user) {
@@ -76,9 +73,9 @@ class PasswordResetService {
 
     return {
       status: 'success',
-      message: 'Password successfully reset'
+      message: 'Password successfully reset',
     };
   }
 }
 
-export default new PasswordResetService(); 
+export default new PasswordResetService();

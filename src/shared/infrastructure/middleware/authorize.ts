@@ -11,12 +11,12 @@ import { RequestWithUser } from '@shared/types';
 export const authorize = (allowedRolesOrPermissions: string | string[] = []) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     const userReq = req as RequestWithUser;
-    
+
     if (!userReq.user) {
       logger.warn('No user found in request');
       res.status(403).json({
         status: 'fail',
-        message: 'Forbidden: User not found'
+        message: 'Forbidden: User not found',
       });
       return;
     }
@@ -24,12 +24,12 @@ export const authorize = (allowedRolesOrPermissions: string | string[] = []) => 
     logger.info('Authorization check:', {
       userRole: userReq.user.role,
       userPermissions: userReq.user.permissions,
-      allowedRolesOrPermissions
+      allowedRolesOrPermissions,
     });
 
     // Make role comparison case-insensitive
     const userRole = userReq.user.role.toLowerCase();
-    
+
     // Check if user is admin (case-insensitive)
     if (userRole === 'admin') {
       logger.info('Access granted - Admin role');
@@ -37,8 +37,8 @@ export const authorize = (allowedRolesOrPermissions: string | string[] = []) => 
       return;
     }
 
-    const hasAllPermission = Array.isArray(userReq.user.permissions) && 
-      userReq.user.permissions.includes('all');
+    const hasAllPermission =
+      Array.isArray(userReq.user.permissions) && userReq.user.permissions.includes('all');
 
     if (hasAllPermission) {
       logger.info('Access granted - All permissions');
@@ -46,8 +46,8 @@ export const authorize = (allowedRolesOrPermissions: string | string[] = []) => 
       return;
     }
 
-    const allowed = Array.isArray(allowedRolesOrPermissions) 
-      ? allowedRolesOrPermissions.map(role => role.toLowerCase())
+    const allowed = Array.isArray(allowedRolesOrPermissions)
+      ? allowedRolesOrPermissions.map((role) => role.toLowerCase())
       : [allowedRolesOrPermissions.toLowerCase()];
 
     // Check if user role is in allowed roles (case-insensitive)
@@ -58,8 +58,9 @@ export const authorize = (allowedRolesOrPermissions: string | string[] = []) => 
     }
 
     // Check permissions
-    const hasSpecificPermission = Array.isArray(userReq.user.permissions) && 
-      userReq.user.permissions.some((permission: string) => 
+    const hasSpecificPermission =
+      Array.isArray(userReq.user.permissions) &&
+      userReq.user.permissions.some((permission: string) =>
         allowed.includes(permission.toLowerCase())
       );
 
@@ -67,12 +68,12 @@ export const authorize = (allowedRolesOrPermissions: string | string[] = []) => 
       logger.warn('Access denied:', {
         userRole: userReq.user.role,
         userPermissions: userReq.user.permissions,
-        requiredPermissions: allowed
+        requiredPermissions: allowed,
       });
-      
+
       res.status(403).json({
         status: 'fail',
-        message: 'Forbidden: Insufficient permissions'
+        message: 'Forbidden: Insufficient permissions',
       });
       return;
     }
@@ -80,4 +81,4 @@ export const authorize = (allowedRolesOrPermissions: string | string[] = []) => 
     logger.info('Access granted - Required permissions found');
     next();
   };
-}; 
+};

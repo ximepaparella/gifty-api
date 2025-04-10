@@ -13,19 +13,19 @@ export class UserController {
   async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
       const { page, limit, sort } = req.query;
-      
+
       const options = {
         page: page ? parseInt(page as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined,
-        sort: sort as string | undefined
+        sort: sort as string | undefined,
       };
-      
+
       const result = await this.userService.getAllUsers(options);
-      
+
       res.status(200).json({
         status: 'success',
         data: result.data,
-        pagination: result.pagination
+        pagination: result.pagination,
       });
     } catch (error) {
       logger.error('Error in getAllUsers controller:', error);
@@ -40,10 +40,10 @@ export class UserController {
     try {
       const { id } = req.params;
       const user = await this.userService.getUserById(id);
-      
+
       res.status(200).json({
         status: 'success',
-        data: user
+        data: user,
       });
     } catch (error) {
       logger.error(`Error in getUserById controller for id ${req.params.id}:`, error);
@@ -58,10 +58,10 @@ export class UserController {
     try {
       const userData: CreateUserDTO = req.body;
       const user = await this.userService.createUser(userData);
-      
+
       res.status(201).json({
         status: 'success',
-        data: user
+        data: user,
       });
     } catch (error) {
       logger.error('Error in createUser controller:', error);
@@ -76,12 +76,12 @@ export class UserController {
     try {
       const { id } = req.params;
       const userData: UpdateUserDTO = req.body;
-      
+
       const user = await this.userService.updateUser(id, userData);
-      
+
       res.status(200).json({
         status: 'success',
-        data: user
+        data: user,
       });
     } catch (error) {
       logger.error(`Error in updateUser controller for id ${req.params.id}:`, error);
@@ -96,10 +96,10 @@ export class UserController {
     try {
       const { id } = req.params;
       await this.userService.deleteUser(id);
-      
+
       res.status(200).json({
         status: 'success',
-        message: 'User deleted successfully'
+        message: 'User deleted successfully',
       });
     } catch (error) {
       logger.error(`Error in deleteUser controller for id ${req.params.id}:`, error);
@@ -114,10 +114,10 @@ export class UserController {
     try {
       const credentials: LoginCredentialsDTO = req.body;
       const result = await this.userService.login(credentials);
-      
+
       res.status(200).json({
         status: 'success',
-        data: result
+        data: result,
       });
     } catch (error) {
       logger.error('Error in login controller:', error);
@@ -134,7 +134,7 @@ export class UserController {
       // TEMPORARY: Bypassing the check for existing users
       // const { page, limit } = { page: 1, limit: 1 };
       // const result = await this.userService.getAllUsers({ page, limit });
-      
+
       // // If users already exist, prevent creating another admin through this endpoint
       // if (result.pagination.total > 0) {
       //   res.status(403).json({
@@ -143,19 +143,19 @@ export class UserController {
       //   });
       //   return;
       // }
-      
+
       // Force the role to be admin
       const userData: CreateUserDTO = {
         ...req.body,
-        role: 'admin'
+        role: 'admin',
       };
-      
+
       const user = await this.userService.createUser(userData);
-      
+
       res.status(201).json({
         status: 'success',
         message: 'Admin user created successfully. You can now log in.',
-        data: user
+        data: user,
       });
     } catch (error) {
       logger.error('Error in createFirstAdmin controller:', error);
@@ -170,23 +170,23 @@ export class UserController {
     if (error instanceof ValidationError) {
       res.status(422).json({
         status: 'fail',
-        message: error.message
+        message: error.message,
       });
     } else if (error instanceof NotFoundError) {
       res.status(404).json({
         status: 'fail',
-        message: error.message
+        message: error.message,
       });
     } else if (error instanceof AuthenticationError) {
       res.status(401).json({
         status: 'fail',
-        message: error.message
+        message: error.message,
       });
     } else {
       res.status(500).json({
         status: 'error',
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   }
-} 
+}

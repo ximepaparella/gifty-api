@@ -50,7 +50,7 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
       subject: options.subject,
       text: options.text,
       html: options.html,
-      attachments: options.attachments
+      attachments: options.attachments,
     };
 
     // Send email
@@ -61,4 +61,4 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
     logger.error(`Error sending email: ${error.message}`, error);
     throw new AppError(`Error sending email: ${error.message}`, 500);
   }
-}; 
+};

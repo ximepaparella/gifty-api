@@ -14,27 +14,27 @@ export interface ICustomerRepository {
 export class CustomerRepository implements ICustomerRepository {
   async create(customerData: Partial<ICustomer>): Promise<ICustomer> {
     const customer = new CustomerModel(customerData);
-    return await customer.save();
+    return customer.save();
   }
 
   async findById(id: string): Promise<ICustomer | null> {
-    return await CustomerModel.findById(id).exec();
+    return CustomerModel.findById(id).exec();
   }
 
   async findByEmail(email: string): Promise<ICustomer | null> {
-    return await CustomerModel.findOne({ email }).exec();
+    return CustomerModel.findOne({ email }).exec();
   }
 
   async findAll(query: any = {}): Promise<ICustomer[]> {
     // Basic filtering/pagination can be added here if needed
-    return await CustomerModel.find(query).exec();
+    return CustomerModel.find(query).exec();
   }
 
   async update(id: string, customerData: Partial<ICustomer>): Promise<ICustomer | null> {
-    return await CustomerModel.findByIdAndUpdate(id, { $set: customerData }, { new: true }).exec();
+    return CustomerModel.findByIdAndUpdate(id, { $set: customerData }, { new: true }).exec();
   }
 
   async delete(id: string): Promise<ICustomer | null> {
-    return await CustomerModel.findByIdAndDelete(id).exec();
+    return CustomerModel.findByIdAndDelete(id).exec();
   }
-} 
+}

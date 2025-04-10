@@ -75,4 +75,4 @@ export interface IOrderRepository {
   findByVoucherCode(code: string): Promise<IOrder | null>;
   update(id: string, order: Partial<IOrderInput>): Promise<IOrder | null>;
   delete(id: string): Promise<boolean>;
-} 
+}

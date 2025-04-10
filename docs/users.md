@@ -13,11 +13,13 @@ Retrieves a list of all users. Only accessible by administrators.
 **Authentication Required**: Yes (Admin role)
 
 **Query Parameters**:
+
 - `page` (optional): Page number for pagination (default: 1)
 - `limit` (optional): Number of items per page (default: 10)
 - `sort` (optional): Sort criteria (e.g., "createdAt:desc")
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -49,6 +51,7 @@ Retrieves a list of all users. Only accessible by administrators.
 ```
 
 **Error Response**:
+
 ```json
 {
   "status": "error",
@@ -67,9 +70,11 @@ Retrieves a user by their ID. Admins can access any user, users can only access 
 **Authentication Required**: Yes
 
 **URL Parameters**:
+
 - `id`: ID of the user to retrieve
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -85,6 +90,7 @@ Retrieves a user by their ID. Admins can access any user, users can only access 
 ```
 
 **Error Response**:
+
 ```json
 {
   "status": "error",
@@ -103,6 +109,7 @@ Creates a new user. Only accessible by administrators.
 **Authentication Required**: Yes (Admin role)
 
 **Request Body**:
+
 ```json
 {
   "name": "New User",
@@ -113,6 +120,7 @@ Creates a new user. Only accessible by administrators.
 ```
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -128,6 +136,7 @@ Creates a new user. Only accessible by administrators.
 ```
 
 **Error Response**:
+
 ```json
 {
   "status": "error",
@@ -146,9 +155,11 @@ Updates a user's information. Admins can update any user, users can only update 
 **Authentication Required**: Yes
 
 **URL Parameters**:
+
 - `id`: ID of the user to update
 
 **Request Body**:
+
 ```json
 {
   "name": "Updated Name",
@@ -158,6 +169,7 @@ Updates a user's information. Admins can update any user, users can only update 
 ```
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -173,6 +185,7 @@ Updates a user's information. Admins can update any user, users can only update 
 ```
 
 **Error Response**:
+
 ```json
 {
   "status": "error",
@@ -191,9 +204,11 @@ Deletes a user. Admins can delete any user, users can only delete their own prof
 **Authentication Required**: Yes
 
 **URL Parameters**:
+
 - `id`: ID of the user to delete
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -202,6 +217,7 @@ Deletes a user. Admins can delete any user, users can only delete their own prof
 ```
 
 **Error Response**:
+
 ```json
 {
   "status": "error",
@@ -215,4 +231,4 @@ The system supports the following user roles:
 
 - `admin`: System administrators with full access to all features
 - `store_manager`: Store owners/managers who can manage their own stores, products, and vouchers
-- `customer`: Regular users who can purchase and redeem vouchers 
+- `customer`: Regular users who can purchase and redeem vouchers

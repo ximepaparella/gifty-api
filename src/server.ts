@@ -82,13 +82,18 @@ app.use('/api/v1/orders', orderRoutes);
 setupSwagger(app);
 
 // Error handling middleware
-const errorHandler: ErrorRequestHandler = (err: AppError, req: Request, res: Response, next: NextFunction): void => {
+const errorHandler: ErrorRequestHandler = (
+  err: AppError,
+  req: Request,
+  res: Response,
+  _next: NextFunction
+): void => {
   logger.error('Error:', err);
-  
+
   if (err.isOperational) {
     res.status(err.statusCode || 500).json({
       status: err.status || 'error',
-      message: err.message
+      message: err.message,
     });
     return;
   }
@@ -96,10 +101,11 @@ const errorHandler: ErrorRequestHandler = (err: AppError, req: Request, res: Res
   // Programming or other unknown error
   res.status(500).json({
     status: 'error',
-    message: 'Something went wrong!'
+    message: 'Something went wrong!',
   });
 };
 
+app.use(errorHandler);
 app.use(globalErrorHandler);
 
 // Database connection
@@ -111,15 +117,15 @@ if (!MONGO_URI) {
 mongoose
   .connect(MONGO_URI)
   .then(() => {
-    console.log('Connected to MongoDB');
+    logger.info('Connected to MongoDB');
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+      logger.info(`Server is running on port ${PORT}`);
     });
   })
   .catch((error) => {
-    console.error('Error connecting to MongoDB:', error);
+    logger.error('Error connecting to MongoDB:', error);
     process.exit(1);
   });
 
-export default app; 
+export default app;

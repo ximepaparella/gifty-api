@@ -6,13 +6,13 @@ export class AppError extends Error {
   public readonly statusCode: number;
   public readonly status: string;
   public readonly isOperational: boolean;
-  
+
   constructor(message: string, statusCode: number, isOperational = true) {
     super(message);
     this.statusCode = statusCode;
     this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
     this.isOperational = isOperational;
-    
+
     Error.captureStackTrace(this, this.constructor);
   }
 }
@@ -73,4 +73,4 @@ export const internalServerError = (message: string): AppError => {
 
 export const badRequestError = (message: string): AppError => {
   return new AppError(message, 400);
-}; 
+};

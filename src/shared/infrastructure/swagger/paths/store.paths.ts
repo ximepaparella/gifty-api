@@ -15,15 +15,15 @@ export const storePaths = {
                   status: { type: 'string', example: 'success' },
                   data: {
                     type: 'array',
-                    items: { $ref: '#/components/schemas/Store' }
-                  }
-                }
-              }
-            }
-          }
+                    items: { $ref: '#/components/schemas/Store' },
+                  },
+                },
+              },
+            },
+          },
         },
-        401: { $ref: '#/components/responses/UnauthorizedError' }
-      }
+        401: { $ref: '#/components/responses/UnauthorizedError' },
+      },
     },
     post: {
       tags: ['Stores'],
@@ -33,9 +33,9 @@ export const storePaths = {
         required: true,
         content: {
           'application/json': {
-            schema: { $ref: '#/components/schemas/StoreInput' }
-          }
-        }
+            schema: { $ref: '#/components/schemas/StoreInput' },
+          },
+        },
       },
       responses: {
         201: {
@@ -46,16 +46,16 @@ export const storePaths = {
                 type: 'object',
                 properties: {
                   status: { type: 'string', example: 'success' },
-                  data: { $ref: '#/components/schemas/Store' }
-                }
-              }
-            }
-          }
+                  data: { $ref: '#/components/schemas/Store' },
+                },
+              },
+            },
+          },
         },
         401: { $ref: '#/components/responses/UnauthorizedError' },
-        422: { $ref: '#/components/responses/ValidationError' }
-      }
-    }
+        422: { $ref: '#/components/responses/ValidationError' },
+      },
+    },
   },
   '/stores/{id}': {
     get: {
@@ -68,8 +68,8 @@ export const storePaths = {
           in: 'path',
           required: true,
           schema: { type: 'string' },
-          description: 'Store ID'
-        }
+          description: 'Store ID',
+        },
       ],
       responses: {
         200: {
@@ -80,15 +80,15 @@ export const storePaths = {
                 type: 'object',
                 properties: {
                   status: { type: 'string', example: 'success' },
-                  data: { $ref: '#/components/schemas/Store' }
-                }
-              }
-            }
-          }
+                  data: { $ref: '#/components/schemas/Store' },
+                },
+              },
+            },
+          },
         },
         401: { $ref: '#/components/responses/UnauthorizedError' },
-        404: { $ref: '#/components/responses/NotFoundError' }
-      }
+        404: { $ref: '#/components/responses/NotFoundError' },
+      },
     },
     put: {
       tags: ['Stores'],
@@ -100,16 +100,16 @@ export const storePaths = {
           in: 'path',
           required: true,
           schema: { type: 'string' },
-          description: 'Store ID'
-        }
+          description: 'Store ID',
+        },
       ],
       requestBody: {
         required: true,
         content: {
           'application/json': {
-            schema: { $ref: '#/components/schemas/StoreInput' }
-          }
-        }
+            schema: { $ref: '#/components/schemas/StoreInput' },
+          },
+        },
       },
       responses: {
         200: {
@@ -120,16 +120,16 @@ export const storePaths = {
                 type: 'object',
                 properties: {
                   status: { type: 'string', example: 'success' },
-                  data: { $ref: '#/components/schemas/Store' }
-                }
-              }
-            }
-          }
+                  data: { $ref: '#/components/schemas/Store' },
+                },
+              },
+            },
+          },
         },
         401: { $ref: '#/components/responses/UnauthorizedError' },
         404: { $ref: '#/components/responses/NotFoundError' },
-        422: { $ref: '#/components/responses/ValidationError' }
-      }
+        422: { $ref: '#/components/responses/ValidationError' },
+      },
     },
     delete: {
       tags: ['Stores'],
@@ -141,8 +141,8 @@ export const storePaths = {
           in: 'path',
           required: true,
           schema: { type: 'string' },
-          description: 'Store ID'
-        }
+          description: 'Store ID',
+        },
       ],
       responses: {
         200: {
@@ -153,17 +153,17 @@ export const storePaths = {
                 type: 'object',
                 properties: {
                   status: { type: 'string', example: 'success' },
-                  data: { $ref: '#/components/schemas/Store' }
-                }
-              }
-            }
-          }
+                  data: { $ref: '#/components/schemas/Store' },
+                },
+              },
+            },
+          },
         },
         401: { $ref: '#/components/responses/UnauthorizedError' },
         403: { $ref: '#/components/responses/ForbiddenError' },
-        404: { $ref: '#/components/responses/NotFoundError' }
-      }
-    }
+        404: { $ref: '#/components/responses/NotFoundError' },
+      },
+    },
   },
   '/stores/owner/{ownerId}': {
     get: {
@@ -176,8 +176,8 @@ export const storePaths = {
           in: 'path',
           required: true,
           schema: { type: 'string' },
-          description: 'Owner ID'
-        }
+          description: 'Owner ID',
+        },
       ],
       responses: {
         200: {
@@ -190,15 +190,15 @@ export const storePaths = {
                   status: { type: 'string', example: 'success' },
                   data: {
                     type: 'array',
-                    items: { $ref: '#/components/schemas/Store' }
-                  }
-                }
-              }
-            }
-          }
+                    items: { $ref: '#/components/schemas/Store' },
+                  },
+                },
+              },
+            },
+          },
         },
-        401: { $ref: '#/components/responses/UnauthorizedError' }
-      }
-    }
-  }
-}; 
+        401: { $ref: '#/components/responses/UnauthorizedError' },
+      },
+    },
+  },
+};

@@ -12,7 +12,9 @@ export class ProductService {
     this.repository = repository;
   }
 
-  async createProduct(productData: Omit<IProduct, 'storeId'> & { storeId: string }): Promise<IProduct> {
+  async createProduct(
+    productData: Omit<IProduct, 'storeId'> & { storeId: string }
+  ): Promise<IProduct> {
     const { error } = validateProduct(productData);
     if (error) {
       logger.error(`Error creating product: ${error.details[0].message}`);
@@ -21,13 +23,13 @@ export class ProductService {
 
     const product = new Product({
       ...productData,
-      storeId: new mongoose.Types.ObjectId(productData.storeId)
+      storeId: new mongoose.Types.ObjectId(productData.storeId),
     });
-    return await this.repository.create(product);
+    return this.repository.create(product);
   }
 
   async getProducts(): Promise<IProduct[]> {
-    return await this.repository.findAll();
+    return this.repository.findAll();
   }
 
   async getProductById(id: string): Promise<IProduct> {
@@ -40,10 +42,13 @@ export class ProductService {
   }
 
   async getProductsByStoreId(storeId: string): Promise<IProduct[]> {
-    return await this.repository.findByStoreId(storeId);
+    return this.repository.findByStoreId(storeId);
   }
 
-  async updateProduct(id: string, productData: Partial<Omit<IProduct, 'storeId'>> & { storeId?: string }): Promise<IProduct> {
+  async updateProduct(
+    id: string,
+    productData: Partial<Omit<IProduct, 'storeId'>> & { storeId?: string }
+  ): Promise<IProduct> {
     const existingProduct = await this.repository.findById(id);
     if (!existingProduct) {
       logger.error(`Product with id ${id} not found`);
@@ -56,7 +61,7 @@ export class ProductService {
       description: productData.description ?? existingProduct.description,
       price: productData.price ?? existingProduct.price,
       isActive: productData.isActive ?? existingProduct.isActive,
-      storeId: productData.storeId ?? existingProduct.storeId.toString()
+      storeId: productData.storeId ?? existingProduct.storeId.toString(),
     };
 
     const { error } = validateProduct(cleanData);
@@ -68,7 +73,7 @@ export class ProductService {
     const { storeId, ...restData } = productData;
     const updateData: Partial<IProduct> = {
       ...restData,
-      ...(storeId && { storeId: new mongoose.Types.ObjectId(storeId) })
+      ...(storeId && { storeId: new mongoose.Types.ObjectId(storeId) }),
     };
 
     const product = await this.repository.update(id, updateData);
@@ -87,4 +92,4 @@ export class ProductService {
     }
     return product;
   }
-} 
+}

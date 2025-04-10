@@ -13,7 +13,7 @@ cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME || '',
   api_key: process.env.CLOUDINARY_API_KEY || '',
   api_secret: process.env.CLOUDINARY_API_SECRET || '',
-  secure: true
+  secure: true,
 });
 
 // Helper function to sanitize folder names
@@ -30,45 +30,49 @@ const storageForStoreLogo = new CloudinaryStorage({
       if (req.params && req.params.id) {
         const storeId = req.params.id;
         logger.info('Using existing store ID:', storeId);
-        
+
         return {
           folder: `stores/${storeId}`,
           format: 'jpg',
           public_id: 'logo',
           overwrite: true,
-          transformation: [{ 
-            width: 500, 
-            height: 500, 
-            crop: 'limit',
-            quality: 'auto',
-            fetch_format: 'auto'
-          }],
-          resource_type: 'auto'
+          transformation: [
+            {
+              width: 500,
+              height: 500,
+              crop: 'limit',
+              quality: 'auto',
+              fetch_format: 'auto',
+            },
+          ],
+          resource_type: 'auto',
         };
       }
-      
+
       // For new store creation (no ID yet)
       const tempId = Date.now().toString();
       logger.info('Using temporary ID:', tempId);
-      
+
       return {
         folder: 'stores/temp',
         format: 'jpg',
         public_id: `${tempId}-logo`,
-        transformation: [{ 
-          width: 500, 
-          height: 500, 
-          crop: 'limit',
-          quality: 'auto',
-          fetch_format: 'auto'
-        }],
-        resource_type: 'auto'
+        transformation: [
+          {
+            width: 500,
+            height: 500,
+            crop: 'limit',
+            quality: 'auto',
+            fetch_format: 'auto',
+          },
+        ],
+        resource_type: 'auto',
       };
     } catch (error) {
       logger.error('Error in storage configuration:', error);
       throw error;
     }
-  }
+  },
 });
 
 // Configure product image storage in Cloudinary
@@ -78,9 +82,9 @@ const storageForProductImage = new CloudinaryStorage({
     try {
       let storeId = null;
       let folderPath = 'products/temp'; // Default temp folder
-      
+
       logger.info('Request body:', req.body);
-      
+
       // Try to parse storeId from form data
       if (req.body && typeof req.body.data === 'string') {
         try {
@@ -94,7 +98,7 @@ const storageForProductImage = new CloudinaryStorage({
           logger.error('Error parsing JSON data:', error);
         }
       }
-      
+
       // If no storeId in JSON, check direct body
       if (!storeId && req.body && req.body.storeId) {
         storeId = req.body.storeId;
@@ -105,7 +109,9 @@ const storageForProductImage = new CloudinaryStorage({
       // For updates, try to get storeId from existing product
       if (!storeId && req.params && req.params.id) {
         try {
-          const existingProduct = await fetch(`${req.protocol}://${req.get('host')}/api/products/${req.params.id}`).then(r => r.json());
+          const existingProduct = await fetch(
+            `${req.protocol}://${req.get('host')}/api/products/${req.params.id}`
+          ).then((r) => r.json());
           if (existingProduct && existingProduct.data && existingProduct.data.storeId) {
             storeId = existingProduct.data.storeId;
             folderPath = `stores/${storeId}/products`;
@@ -119,25 +125,27 @@ const storageForProductImage = new CloudinaryStorage({
       // Generate timestamp for unique file naming
       const timestamp = Date.now().toString();
       logger.info('Using folder path:', folderPath);
-      
+
       return {
         folder: folderPath,
         format: 'jpg',
         public_id: `product-${timestamp}`,
-        transformation: [{ 
-          width: 800, 
-          height: 800, 
-          crop: 'limit',
-          quality: 'auto',
-          fetch_format: 'auto'
-        }],
-        resource_type: 'auto'
+        transformation: [
+          {
+            width: 800,
+            height: 800,
+            crop: 'limit',
+            quality: 'auto',
+            fetch_format: 'auto',
+          },
+        ],
+        resource_type: 'auto',
       };
     } catch (error) {
       logger.error('Error in product image storage configuration:', error);
       logger.error('Request details:', {
         body: req.body,
-        params: req.params
+        params: req.params,
       });
       // Return default configuration instead of throwing
       const timestamp = Date.now().toString();
@@ -145,17 +153,19 @@ const storageForProductImage = new CloudinaryStorage({
         folder: 'products/temp',
         format: 'jpg',
         public_id: `product-${timestamp}`,
-        transformation: [{ 
-          width: 800, 
-          height: 800, 
-          crop: 'limit',
-          quality: 'auto',
-          fetch_format: 'auto'
-        }],
-        resource_type: 'auto'
+        transformation: [
+          {
+            width: 800,
+            height: 800,
+            crop: 'limit',
+            quality: 'auto',
+            fetch_format: 'auto',
+          },
+        ],
+        resource_type: 'auto',
       };
     }
-  }
+  },
 });
 
 // Configure voucher PDF storage in Cloudinary
@@ -167,22 +177,22 @@ const storageForVoucherPDF = new CloudinaryStorage({
       const timestamp = Date.now().toString();
       const folderPath = 'vouchers';
       logger.info('Using voucher folder path:', folderPath);
-      
+
       return {
         folder: folderPath,
         format: 'pdf',
         public_id: `voucher-${timestamp}`,
-        resource_type: 'raw' // Important: Use raw for PDFs
+        resource_type: 'raw', // Important: Use raw for PDFs
       };
     } catch (error) {
       logger.error('Error in voucher PDF storage configuration:', error);
       logger.error('Request details:', {
         body: req.body,
-        params: req.params
+        params: req.params,
       });
       throw error;
     }
-  }
+  },
 });
 
 // File filter for images
@@ -208,24 +218,24 @@ export const uploadStoreLogo = multer({
   storage: storageForStoreLogo,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  }
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
 }).single('logo');
 
 export const uploadProductImage = multer({
   storage: storageForProductImage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  }
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
 }).single('image');
 
 export const uploadVoucherPDF = multer({
   storage: storageForVoucherPDF,
   fileFilter: pdfFileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit for PDFs
-  }
+    fileSize: 10 * 1024 * 1024, // 10MB limit for PDFs
+  },
 }).single('pdf');
 
 // Function to delete file from Cloudinary
@@ -240,7 +250,7 @@ export const deleteFile = async (publicUrl: string) => {
 
     logger.info('Attempting to delete file with public_id:', publicId);
     const result = await cloudinary.uploader.destroy(publicId);
-    
+
     if (result.result === 'ok') {
       logger.info(`Successfully deleted file from Cloudinary: ${publicId}`);
     } else {
@@ -255,6 +265,6 @@ export const deleteFile = async (publicUrl: string) => {
 export const getCloudinaryUrl = (publicId: string, transformation = {}) => {
   return cloudinary.url(publicId, {
     secure: true,
-    transformation
+    transformation,
   });
-}; 
+};

@@ -6,39 +6,42 @@ import logger from '@shared/infrastructure/logging/logger';
 
 const UserSchema = new Schema<UserDocument>(
   {
-    name: { 
-      type: String, 
+    name: {
+      type: String,
       required: [true, 'Name is required'],
       trim: true,
       minlength: [2, 'Name must be at least 2 characters long'],
-      maxlength: [50, 'Name cannot exceed 50 characters']
+      maxlength: [50, 'Name cannot exceed 50 characters'],
     },
-    email: { 
-      type: String, 
-      required: [true, 'Email is required'], 
+    email: {
+      type: String,
+      required: [true, 'Email is required'],
       unique: true,
       trim: true,
       lowercase: true,
-      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email address']
+      match: [
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+        'Please provide a valid email address',
+      ],
     },
-    password: { 
-      type: String, 
+    password: {
+      type: String,
       required: [true, 'Password is required'],
-      minlength: [8, 'Password must be at least 8 characters long']
+      minlength: [8, 'Password must be at least 8 characters long'],
     },
-    role: { 
-      type: String, 
+    role: {
+      type: String,
       enum: {
         values: Object.values(UserRole),
-        message: '{VALUE} is not a valid role'
+        message: '{VALUE} is not a valid role',
       },
       default: UserRole.CUSTOMER,
-      required: true 
+      required: true,
     },
     passwordResetToken: String,
-    passwordResetExpires: Date
+    passwordResetExpires: Date,
   },
-  { 
+  {
     timestamps: true,
     toJSON: {
       transform: (_, ret) => {
@@ -49,8 +52,8 @@ const UserSchema = new Schema<UserDocument>(
         delete ret.passwordResetToken;
         delete ret.passwordResetExpires;
         return ret;
-      }
-    }
+      },
+    },
   }
 );
 
@@ -59,10 +62,10 @@ UserSchema.index({ email: 1 }, { unique: true }); // Fast lookup by email
 UserSchema.index({ role: 1 }); // Queries by user role
 
 // Pre-save hook to hash password
-UserSchema.pre('save', async function(next) {
+UserSchema.pre('save', async function (next) {
   // Only hash the password if it's modified (or new)
   if (!this.isModified('password')) return next();
-  
+
   try {
     // Generate a salt and hash the password
     const salt = await bcrypt.genSalt(10);
@@ -75,7 +78,7 @@ UserSchema.pre('save', async function(next) {
 });
 
 // Method to compare password for login
-UserSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
   try {
     return await bcrypt.compare(candidatePassword, this.password);
   } catch (error) {
@@ -85,15 +88,12 @@ UserSchema.methods.comparePassword = async function(candidatePassword: string): 
 };
 
 // Method to create password reset token
-UserSchema.methods.createPasswordResetToken = function(): string {
+UserSchema.methods.createPasswordResetToken = function (): string {
   // Generate random reset token
   const resetToken = crypto.randomBytes(32).toString('hex');
 
   // Hash token and set to resetPasswordToken field
-  this.passwordResetToken = crypto
-    .createHash('sha256')
-    .update(resetToken)
-    .digest('hex');
+  this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
   // Set token expiry (1 hour from now)
   this.passwordResetExpires = new Date(Date.now() + 3600000);
@@ -101,4 +101,4 @@ UserSchema.methods.createPasswordResetToken = function(): string {
   return resetToken;
 };
 
-export const UserModel = mongoose.model<UserDocument>('User', UserSchema); 
+export const UserModel = mongoose.model<UserDocument>('User', UserSchema);

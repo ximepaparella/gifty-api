@@ -8,15 +8,15 @@ import crypto from 'crypto';
 export const generateVoucherCode = (length: number = 16): string => {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = '';
-  
+
   // Use crypto for secure random number generation
   const randomBytes = crypto.randomBytes(length);
-  
+
   for (let i = 0; i < length; i++) {
     const randomIndex = randomBytes[i] % characters.length;
     result += characters.charAt(randomIndex);
   }
-  
+
   return result;
 };
 
@@ -27,4 +27,4 @@ export const generateVoucherCode = (length: number = 16): string => {
  */
 export const generateRandomCode = (length: number = 16): string => {
   return generateVoucherCode(length);
-}; 
+};

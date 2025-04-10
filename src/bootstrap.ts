@@ -27,5 +27,5 @@ moduleAlias.addAliases({
   '@role-repository': path.join(baseDir, 'modules/role/infrastructure/role.repository'),
   '@role-service': path.join(baseDir, 'modules/role/application/role.service'),
   '@role-controller': path.join(baseDir, 'modules/role/interface/role.controller'),
-  '@utils': path.join(baseDir, 'shared/utils')
-}); 
+  '@utils': path.join(baseDir, 'shared/utils'),
+});

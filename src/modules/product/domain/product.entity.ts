@@ -34,4 +34,4 @@ export class Product implements IProduct {
     this.createdAt = product.createdAt;
     this.updatedAt = product.updatedAt;
   }
-} 
+}

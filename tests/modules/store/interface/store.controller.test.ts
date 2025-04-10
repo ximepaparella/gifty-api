@@ -24,8 +24,8 @@ describe('Store Controller', () => {
     social: {
       instagram: 'https://instagram.com/teststore',
       facebook: 'https://facebook.com/teststore',
-      twitter: 'https://twitter.com/teststore'
-    }
+      twitter: 'https://twitter.com/teststore',
+    },
   };
 
   beforeEach(() => {
@@ -36,7 +36,7 @@ describe('Store Controller', () => {
       findByOwnerId: jest.fn(),
       findAll: jest.fn(),
       update: jest.fn(),
-      delete: jest.fn()
+      delete: jest.fn(),
     } as unknown as jest.Mocked<IStoreRepository>;
 
     mockStoreService = new StoreService(mockRepository) as jest.Mocked<StoreService>;
@@ -47,13 +47,13 @@ describe('Store Controller', () => {
       getStoresByOwnerId: jest.fn(),
       updateStore: jest.fn(),
       deleteStore: jest.fn(),
-      updateStoreLogo: jest.fn()
+      updateStoreLogo: jest.fn(),
     });
 
     mockRequest = {};
     mockResponse = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn()
+      json: jest.fn(),
     };
     mockNext = jest.fn();
 
@@ -69,8 +69,8 @@ describe('Store Controller', () => {
           email: mockStore.email,
           phone: mockStore.phone,
           address: mockStore.address,
-          social: mockStore.social
-        })
+          social: mockStore.social,
+        }),
       };
       mockStoreService.createStore.mockResolvedValue(mockStore);
 
@@ -79,7 +79,7 @@ describe('Store Controller', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
-        data: mockStore
+        data: mockStore,
       });
     });
 
@@ -91,11 +91,11 @@ describe('Store Controller', () => {
           email: mockStore.email,
           phone: mockStore.phone,
           address: mockStore.address,
-          social: mockStore.social
-        })
+          social: mockStore.social,
+        }),
       };
       mockRequest.file = {
-        path: 'uploads/stores/logo.png'
+        path: 'uploads/stores/logo.png',
       } as Express.Multer.File;
       mockStoreService.createStore.mockResolvedValue({ ...mockStore, logo: undefined });
       mockStoreService.updateStore.mockResolvedValue(mockStore);
@@ -105,7 +105,7 @@ describe('Store Controller', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
-        data: mockStore
+        data: mockStore,
       });
     });
   });
@@ -120,7 +120,7 @@ describe('Store Controller', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
-        data: stores
+        data: stores,
       });
     });
   });
@@ -130,12 +130,16 @@ describe('Store Controller', () => {
       mockRequest.params = { id: mockStore._id.toString() };
       mockStoreService.getStoreById.mockResolvedValue(mockStore);
 
-      await storeController.getStoreById(mockRequest as Request, mockResponse as Response, mockNext);
+      await storeController.getStoreById(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
+      );
 
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
-        data: mockStore
+        data: mockStore,
       });
     });
   });
@@ -146,12 +150,16 @@ describe('Store Controller', () => {
       mockRequest.params = { ownerId: mockStore.ownerId.toString() };
       mockStoreService.getStoresByOwnerId.mockResolvedValue(stores);
 
-      await storeController.getStoresByOwnerId(mockRequest as Request, mockResponse as Response, mockNext);
+      await storeController.getStoresByOwnerId(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
+      );
 
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
-        data: stores
+        data: stores,
       });
     });
   });
@@ -159,24 +167,24 @@ describe('Store Controller', () => {
   describe('updateStore', () => {
     it('should update store successfully', async () => {
       mockRequest.params = { id: mockStore._id.toString() };
-      mockRequest.body = { 
+      mockRequest.body = {
         data: JSON.stringify({
           name: 'Updated Store',
           ownerId: mockStore.ownerId.toString(),
           social: {
             instagram: 'https://instagram.com/updatedstore',
-            facebook: 'https://facebook.com/updatedstore'
-          }
-        })
+            facebook: 'https://facebook.com/updatedstore',
+          },
+        }),
       };
-      const updatedStore = { 
-        ...mockStore, 
+      const updatedStore = {
+        ...mockStore,
         name: 'Updated Store',
         social: {
           instagram: 'https://instagram.com/updatedstore',
           facebook: 'https://facebook.com/updatedstore',
-          twitter: 'https://twitter.com/teststore'
-        }
+          twitter: 'https://twitter.com/teststore',
+        },
       };
       mockStoreService.updateStore.mockResolvedValue(updatedStore);
 
@@ -185,25 +193,25 @@ describe('Store Controller', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
-        data: updatedStore
+        data: updatedStore,
       });
     });
 
     it('should update store with logo successfully', async () => {
       mockRequest.params = { id: mockStore._id.toString() };
-      mockRequest.body = { 
+      mockRequest.body = {
         data: JSON.stringify({
-          name: 'Updated Store'
-        })
+          name: 'Updated Store',
+        }),
       };
       mockRequest.file = {
-        path: 'uploads/stores/newlogo.png'
+        path: 'uploads/stores/newlogo.png',
       } as Express.Multer.File;
-      
+
       const updatedStore = {
         ...mockStore,
         name: 'Updated Store',
-        logo: 'uploads/stores/newlogo.png'
+        logo: 'uploads/stores/newlogo.png',
       };
       mockStoreService.getStoreById.mockResolvedValue(mockStore);
       mockStoreService.updateStore.mockResolvedValue(updatedStore);
@@ -213,7 +221,7 @@ describe('Store Controller', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
-        data: updatedStore
+        data: updatedStore,
       });
     });
   });
@@ -222,12 +230,12 @@ describe('Store Controller', () => {
     it('should upload store logo successfully', async () => {
       mockRequest.params = { id: mockStore._id.toString() };
       mockRequest.file = {
-        path: 'uploads/stores/logo.png'
+        path: 'uploads/stores/logo.png',
       } as Express.Multer.File;
-      
+
       const updatedStore = {
         ...mockStore,
-        logo: 'uploads/stores/logo.png'
+        logo: 'uploads/stores/logo.png',
       };
       mockStoreService.getStoreById.mockResolvedValue(mockStore);
       mockStoreService.updateStore.mockResolvedValue(updatedStore);
@@ -237,7 +245,7 @@ describe('Store Controller', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
-        data: updatedStore
+        data: updatedStore,
       });
     });
 
@@ -250,7 +258,7 @@ describe('Store Controller', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'error',
-        message: 'No file uploaded'
+        message: 'No file uploaded',
       });
     });
   });
@@ -265,8 +273,8 @@ describe('Store Controller', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
-        data: mockStore
+        data: mockStore,
       });
     });
   });
-}); 
+});

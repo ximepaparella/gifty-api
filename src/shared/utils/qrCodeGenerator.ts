@@ -14,10 +14,10 @@ export async function generateQRCode(content: string): Promise<string> {
       width: 300,
       color: {
         dark: '#000000',
-        light: '#ffffff'
-      }
+        light: '#ffffff',
+      },
     });
-    
+
     return qrCodeDataUrl;
   } catch (error) {
     console.error('Error generating QR code:', error);
@@ -34,11 +34,11 @@ export async function generateVoucherRedemptionQRCode(voucherCode: string): Prom
   try {
     // Generate the redemption URL using the voucher code
     const redemptionUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/vouchers/redeem/${voucherCode}`;
-    
+
     // Generate QR code for the redemption URL
     return await generateQRCode(redemptionUrl);
   } catch (error) {
     console.error('Error generating voucher redemption QR code:', error);
     throw new Error('Failed to generate voucher redemption QR code');
   }
-} 
+}

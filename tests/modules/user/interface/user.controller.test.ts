@@ -1,7 +1,11 @@
 import { Request, Response } from 'express';
 import { UserController } from '../../../../src/modules/user/interface/user.controller';
 import { UserService } from '../../../../src/modules/user/application/user.service';
-import { ValidationError, NotFoundError, AuthenticationError } from '../../../../src/shared/infrastructure/errors';
+import {
+  ValidationError,
+  NotFoundError,
+  AuthenticationError,
+} from '../../../../src/shared/infrastructure/errors';
 import { UserRole } from '../../../../src/modules/user/domain/user.entity';
 
 describe('UserController', () => {
@@ -18,7 +22,7 @@ describe('UserController', () => {
       createUser: jest.fn(),
       updateUser: jest.fn(),
       deleteUser: jest.fn(),
-      login: jest.fn()
+      login: jest.fn(),
     } as unknown as jest.Mocked<UserService>;
 
     // Create the controller with the mock service
@@ -28,12 +32,12 @@ describe('UserController', () => {
     mockRequest = {
       params: {},
       query: {},
-      body: {}
+      body: {},
     };
 
     mockResponse = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn()
+      json: jest.fn(),
     };
   });
 
@@ -50,21 +54,21 @@ describe('UserController', () => {
           email: 'test@example.com',
           role: UserRole.CUSTOMER,
           createdAt: new Date(),
-          updatedAt: new Date()
-        }
+          updatedAt: new Date(),
+        },
       ];
 
       const mockPagination = {
         total: 1,
         page: 1,
         limit: 10,
-        pages: 1
+        pages: 1,
       };
 
       mockRequest.query = { page: '1', limit: '10' };
       mockUserService.getAllUsers.mockResolvedValue({
         data: mockUsers,
-        pagination: mockPagination
+        pagination: mockPagination,
       });
 
       await userController.getAllUsers(mockRequest as Request, mockResponse as Response);
@@ -72,13 +76,13 @@ describe('UserController', () => {
       expect(mockUserService.getAllUsers).toHaveBeenCalledWith({
         page: 1,
         limit: 10,
-        sort: undefined
+        sort: undefined,
       });
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
         data: mockUsers,
-        pagination: mockPagination
+        pagination: mockPagination,
       });
     });
 
@@ -90,7 +94,7 @@ describe('UserController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'error',
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     });
   });
@@ -103,7 +107,7 @@ describe('UserController', () => {
         email: 'test@example.com',
         role: UserRole.CUSTOMER,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       mockRequest.params = { id: '123' };
@@ -115,7 +119,7 @@ describe('UserController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
-        data: mockUser
+        data: mockUser,
       });
     });
 
@@ -128,7 +132,7 @@ describe('UserController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'fail',
-        message: 'User not found'
+        message: 'User not found',
       });
     });
   });
@@ -141,13 +145,13 @@ describe('UserController', () => {
         email: 'new@example.com',
         role: UserRole.CUSTOMER,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       mockRequest.body = {
         name: 'New User',
         email: 'new@example.com',
-        password: 'password123'
+        password: 'password123',
       };
       mockUserService.createUser.mockResolvedValue(mockUser);
 
@@ -157,7 +161,7 @@ describe('UserController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
-        data: mockUser
+        data: mockUser,
       });
     });
 
@@ -165,7 +169,7 @@ describe('UserController', () => {
       mockRequest.body = {
         name: 'New User',
         email: 'existing@example.com',
-        password: 'password123'
+        password: 'password123',
       };
       mockUserService.createUser.mockRejectedValue(new ValidationError('Email already registered'));
 
@@ -174,7 +178,7 @@ describe('UserController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(422);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'fail',
-        message: 'Email already registered'
+        message: 'Email already registered',
       });
     });
   });
@@ -187,7 +191,7 @@ describe('UserController', () => {
         email: 'test@example.com',
         role: UserRole.CUSTOMER,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       mockRequest.params = { id: '123' };
@@ -200,7 +204,7 @@ describe('UserController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
-        data: mockUser
+        data: mockUser,
       });
     });
 
@@ -214,7 +218,7 @@ describe('UserController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'fail',
-        message: 'User not found'
+        message: 'User not found',
       });
     });
   });
@@ -230,7 +234,7 @@ describe('UserController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
-        message: 'User deleted successfully'
+        message: 'User deleted successfully',
       });
     });
 
@@ -243,7 +247,7 @@ describe('UserController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'fail',
-        message: 'User not found'
+        message: 'User not found',
       });
     });
   });
@@ -258,13 +262,13 @@ describe('UserController', () => {
           email: 'test@example.com',
           role: UserRole.CUSTOMER,
           createdAt: new Date(),
-          updatedAt: new Date()
-        }
+          updatedAt: new Date(),
+        },
       };
 
       mockRequest.body = {
         email: 'test@example.com',
-        password: 'password123'
+        password: 'password123',
       };
       mockUserService.login.mockResolvedValue(mockLoginResponse);
 
@@ -274,14 +278,14 @@ describe('UserController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
-        data: mockLoginResponse
+        data: mockLoginResponse,
       });
     });
 
     it('should handle AuthenticationError', async () => {
       mockRequest.body = {
         email: 'test@example.com',
-        password: 'wrongpassword'
+        password: 'wrongpassword',
       };
       mockUserService.login.mockRejectedValue(new AuthenticationError('Invalid credentials'));
 
@@ -290,7 +294,7 @@ describe('UserController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(401);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'fail',
-        message: 'Invalid credentials'
+        message: 'Invalid credentials',
       });
     });
   });
@@ -303,13 +307,13 @@ describe('UserController', () => {
         email: 'admin@example.com',
         role: UserRole.ADMIN,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       mockRequest.body = {
         name: 'Admin User',
         email: 'admin@example.com',
-        password: 'adminpassword123'
+        password: 'adminpassword123',
       };
       mockUserService.createUser.mockResolvedValue(mockAdmin);
 
@@ -317,13 +321,13 @@ describe('UserController', () => {
 
       expect(mockUserService.createUser).toHaveBeenCalledWith({
         ...mockRequest.body,
-        role: 'admin'
+        role: 'admin',
       });
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'success',
         message: 'Admin user created successfully. You can now log in.',
-        data: mockAdmin
+        data: mockAdmin,
       });
     });
 
@@ -331,7 +335,7 @@ describe('UserController', () => {
       mockRequest.body = {
         name: 'Admin User',
         email: 'admin@example.com',
-        password: 'adminpassword123'
+        password: 'adminpassword123',
       };
       mockUserService.createUser.mockRejectedValue(new ValidationError('Email already registered'));
 
@@ -340,8 +344,8 @@ describe('UserController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(422);
       expect(mockResponse.json).toHaveBeenCalledWith({
         status: 'fail',
-        message: 'Email already registered'
+        message: 'Email already registered',
       });
     });
   });
-}); 
+});
