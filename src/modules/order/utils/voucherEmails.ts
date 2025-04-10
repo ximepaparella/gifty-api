@@ -11,10 +11,7 @@ import path from 'path';
 import fs from 'fs';
 import puppeteer from 'puppeteer';
 import { AppError } from '@shared/types/appError';
-import OrderModel from '../infrastructure/order.model';
-
-// Get models
-const Order = mongoose.model('Order');
+import { OrderModel } from '../domain/order.schema';
 
 export const sendStoreEmail = async (
   order: IOrder,
@@ -160,35 +157,41 @@ export const sendCustomerEmail = async (order: IOrder, pdfPath: string): Promise
  */
 export const sendAllVoucherEmails = async (orderId: string, pdfPath: string): Promise<boolean> => {
   try {
+    logger.info(`Starting to send all voucher emails for order ${orderId}`);
+
     // Get order details
     const order = await OrderModel.findById(orderId);
     if (!order) {
-      throw new Error('Order not found');
+      throw new AppError('Order not found', 404);
     }
 
     // Get store details
     const store = await Store.findById(order.voucher.storeId);
     if (!store) {
-      throw new Error('Store not found');
+      throw new AppError('Store not found', 404);
     }
 
     // Verify PDF path is accessible
     if (!fs.existsSync(pdfPath)) {
-      throw new Error(`PDF path is not accessible: ${pdfPath}`);
+      throw new AppError(`PDF path is not accessible: ${pdfPath}`, 400);
     }
 
-    // Send emails
-    await Promise.all([
-      sendStoreEmail(order, store, pdfPath),
-      sendReceiverEmail(order, pdfPath),
-      sendCustomerEmail(order, pdfPath),
-    ]);
+    // Send emails in sequence to better track failures
+    logger.info(`Sending store email for order ${orderId}`);
+    await sendStoreEmail(order, store, pdfPath);
+    
+    logger.info(`Sending receiver email for order ${orderId}`);
+    await sendReceiverEmail(order, pdfPath);
+    
+    logger.info(`Sending customer email for order ${orderId}`);
+    await sendCustomerEmail(order, pdfPath);
 
+    logger.info(`Successfully sent all emails for order ${orderId}`);
     return true;
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    logger.error(`Error sending voucher emails: ${errorMessage}`, error);
-    return false;
+    logger.error(`Error sending voucher emails for order ${orderId}: ${errorMessage}`, error);
+    throw new AppError(`Failed to send voucher emails: ${errorMessage}`, error instanceof AppError ? error.statusCode : 500);
   }
 };
 
@@ -205,12 +208,12 @@ export const resendCustomerEmail = async (orderId: string, pdfPath: string): Pro
     // Get order data
     const order = await OrderModel.findById(orderId);
     if (!order) {
-      throw new Error(`Order not found with ID: ${orderId}`);
+      throw new AppError(`Order not found with ID: ${orderId}`, 404);
     }
 
     // Verify PDF path is accessible
     if (!fs.existsSync(pdfPath)) {
-      throw new Error(`PDF path is not accessible: ${pdfPath}`);
+      throw new AppError(`PDF path is not accessible: ${pdfPath}`, 400);
     }
 
     // Send email to customer
@@ -221,7 +224,7 @@ export const resendCustomerEmail = async (orderId: string, pdfPath: string): Pro
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`Error resending customer email for order ${orderId}: ${errorMessage}`, error);
-    return false;
+    throw new AppError(`Failed to resend customer email: ${errorMessage}`, error instanceof AppError ? error.statusCode : 500);
   }
 };
 
@@ -238,12 +241,12 @@ export const resendReceiverEmail = async (orderId: string, pdfPath: string): Pro
     // Get order data
     const order = await OrderModel.findById(orderId);
     if (!order) {
-      throw new Error(`Order not found with ID: ${orderId}`);
+      throw new AppError(`Order not found with ID: ${orderId}`, 404);
     }
 
     // Verify PDF path is accessible
     if (!fs.existsSync(pdfPath)) {
-      throw new Error(`PDF path is not accessible: ${pdfPath}`);
+      throw new AppError(`PDF path is not accessible: ${pdfPath}`, 400);
     }
 
     // Send email to receiver
@@ -254,7 +257,7 @@ export const resendReceiverEmail = async (orderId: string, pdfPath: string): Pro
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`Error resending receiver email for order ${orderId}: ${errorMessage}`, error);
-    return false;
+    throw new AppError(`Failed to resend receiver email: ${errorMessage}`, error instanceof AppError ? error.statusCode : 500);
   }
 };
 
@@ -271,18 +274,18 @@ export const resendStoreEmail = async (orderId: string, pdfPath: string): Promis
     // Get order data
     const order = await OrderModel.findById(orderId);
     if (!order) {
-      throw new Error(`Order not found with ID: ${orderId}`);
+      throw new AppError(`Order not found with ID: ${orderId}`, 404);
     }
 
     // Get store information
     const store = await Store.findById(order.voucher.storeId);
     if (!store) {
-      throw new Error(`Store not found with ID: ${order.voucher.storeId}`);
+      throw new AppError(`Store not found with ID: ${order.voucher.storeId}`, 404);
     }
 
     // Verify PDF path is accessible
     if (!fs.existsSync(pdfPath)) {
-      throw new Error(`PDF path is not accessible: ${pdfPath}`);
+      throw new AppError(`PDF path is not accessible: ${pdfPath}`, 400);
     }
 
     // Send email to store
@@ -293,7 +296,7 @@ export const resendStoreEmail = async (orderId: string, pdfPath: string): Promis
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`Error resending store email for order ${orderId}: ${errorMessage}`, error);
-    return false;
+    throw new AppError(`Failed to resend store email: ${errorMessage}`, error instanceof AppError ? error.statusCode : 500);
   }
 };
 
@@ -401,7 +404,7 @@ export const generateVoucherPDF = async (orderId: string): Promise<string | null
       return new Promise<void>((resolve) => {
         const checkImages = () => {
           const allImages = document.getElementsByTagName('img');
-          const allLoaded = Array.from(allImages).every(img => img.complete);
+          const allLoaded = Array.from(allImages).every((img) => img.complete);
           
           if (allLoaded) {
             resolve();

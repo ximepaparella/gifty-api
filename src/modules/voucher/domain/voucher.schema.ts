@@ -1,5 +1,4 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { IVoucher } from './voucher.interface';
 
 // Explicitly define our document interface with correct types
 export interface IVoucherDocument extends Document {

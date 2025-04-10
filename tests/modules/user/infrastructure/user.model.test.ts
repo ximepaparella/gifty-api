@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import { UserModel } from '../../../../src/modules/user/infrastructure/user.model';
 import { UserRole } from '../../../../src/modules/user/domain/user.entity';

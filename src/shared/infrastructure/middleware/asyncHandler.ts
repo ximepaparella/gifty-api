@@ -8,9 +8,11 @@ type AsyncFunction = (req: Request, res: Response, next: NextFunction) => Promis
  * @param fn - The async function to wrap
  * @returns Express middleware function
  */
-export const handleAsync = (fn: AsyncFunction) => (req: Request, res: Response, next: NextFunction) => {
-  Promise.resolve(fn(req, res, next)).catch((error) => {
-    logger.error('Request error:', { error, method: req.method, path: req.path });
-    next(error);
-  });
-};
+export const handleAsync =
+  (fn: AsyncFunction) =>
+  (req: Request, res: Response, next: NextFunction): void => {
+    Promise.resolve(fn(req, res, next)).catch((error) => {
+      logger.error('Request error:', { error, method: req.method, path: req.path });
+      next(error);
+    });
+  };

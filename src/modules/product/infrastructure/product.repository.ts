@@ -1,7 +1,6 @@
 import { Types } from 'mongoose';
 import { IProduct } from '../domain/product.entity';
 import { Product } from '../domain/product.schema';
-import logger from '@shared/infrastructure/logging/logger';
 import { deleteFile } from '@shared/infrastructure/services/fileUpload';
 
 export class ProductRepository {

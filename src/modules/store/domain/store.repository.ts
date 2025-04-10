@@ -2,7 +2,6 @@ import { Types } from 'mongoose';
 import Store from './store.schema';
 import { IStore } from './store.entity';
 import { deleteFile } from '@shared/infrastructure/services/fileUpload';
-import logger from '@shared/infrastructure/logging/logger';
 
 export interface IStoreRepository {
   create(store: IStore): Promise<IStore>;

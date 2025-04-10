@@ -7,9 +7,7 @@ import mongoose from 'mongoose';
 import path from 'path';
 import fs from 'fs';
 
-import { connectDatabase } from '@shared/infrastructure/database/connection';
 import logger from '@shared/infrastructure/logging/logger';
-import { initCloudinary } from '@shared/infrastructure/services/cloudinary.config';
 import { AppError } from '@shared/types/appError';
 import { errorHandler as globalErrorHandler } from '@shared/infrastructure/errors/errorHandler';
 import { setupSwagger } from '@shared/infrastructure/swagger/swagger';

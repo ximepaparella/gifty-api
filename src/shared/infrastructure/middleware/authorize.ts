@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { forbiddenError } from '@shared/types/appError';
 import logger from '@shared/infrastructure/logging/logger';
 import { RequestWithUser } from '@shared/types';
 

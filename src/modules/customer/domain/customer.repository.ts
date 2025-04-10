@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import { ICustomer } from './customer.entity';
 import { CustomerModel } from './customer.schema';
 

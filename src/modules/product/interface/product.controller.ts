@@ -1,11 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { ProductService } from '../application/product.service';
 import { handleAsync } from '@shared/infrastructure/middleware/asyncHandler';
-import { IProduct } from '../domain/product.entity';
 import logger from '@shared/infrastructure/logging/logger';
 import { deleteFile } from '@shared/infrastructure/services/fileUpload';
-import path from 'path';
-import { v2 as cloudinary } from 'cloudinary';
 
 // Extended Request type to include file from multer
 interface RequestWithFile extends Request {

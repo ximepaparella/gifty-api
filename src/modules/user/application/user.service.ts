@@ -151,9 +151,8 @@ export class UserService {
   // Helper method to compare passwords
   private async comparePassword(candidatePassword: string, userPassword: string): Promise<boolean> {
     try {
-      // Import bcrypt here to avoid circular dependencies
       const bcrypt = require('bcrypt');
-      return await bcrypt.compare(candidatePassword, userPassword);
+      return bcrypt.compare(candidatePassword, userPassword);
     } catch (error) {
       logger.error('Error comparing passwords:', error);
       return false;

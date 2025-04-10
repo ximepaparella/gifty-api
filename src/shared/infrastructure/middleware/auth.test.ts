@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { authenticate, generateToken } from './auth';
-import { AuthenticationError } from '@shared/infrastructure/errors';
 
 // Mock jsonwebtoken
 jest.mock('jsonwebtoken');
