@@ -5,6 +5,7 @@ import { ProductRepository } from '../infrastructure/product.repository';
 import { authenticate } from '@shared/infrastructure/middleware/auth';
 import { uploadProductImage } from '@shared/infrastructure/services/fileUpload';
 import { NextFunction, Request, Response } from 'express';
+import { ErrorTypes } from '@shared/types/appError';
 import logger from '@shared/infrastructure/logging/logger';
 
 const router = express.Router();
@@ -98,7 +99,7 @@ const handleProductUpload = async (
         }
       } catch (error) {
         logger.error('Error parsing product data:', error);
-        throw new Error('Invalid product data format');
+        throw ErrorTypes.BAD_REQUEST('Invalid product data format');
       }
     } else {
       logger.warn('No product data found in request body');

@@ -1,9 +1,10 @@
 import bcrypt from 'bcrypt';
-import jwt, { Secret } from 'jsonwebtoken';
+import { Secret, SignOptions, verify, sign } from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
-import { AppError, unauthorizedError, forbiddenError } from '@shared/types/appError';
+import { AppError, ErrorTypes } from '@shared/types/appError';
 import { RequestWithUser } from '@shared/types';
 import logger from '@shared/infrastructure/logging/logger';
+import { StringValue } from '@shared/types/stringValue';
 
 // Environment variables
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
@@ -37,12 +38,10 @@ export const comparePassword = async (password: string, hash: string): Promise<b
  * Generate a JWT token
  */
 export const generateToken = (payload: JwtPayload): string => {
-  // Using a simpler approach to avoid type issues
-  return jwt.sign(
-    payload,
-    JWT_SECRET as Secret,
-    { expiresIn: '24h' } // Hardcoded value to avoid type issues
-  );
+  const options: SignOptions = {
+    expiresIn: JWT_EXPIRES_IN as StringValue,
+  };
+  return sign(payload, JWT_SECRET as Secret, options);
 };
 
 /**
@@ -50,9 +49,9 @@ export const generateToken = (payload: JwtPayload): string => {
  */
 export const verifyToken = (token: string): JwtPayload => {
   try {
-    return jwt.verify(token, JWT_SECRET as Secret) as JwtPayload;
+    return verify(token, JWT_SECRET as Secret) as JwtPayload;
   } catch (error) {
-    throw unauthorizedError('Invalid token');
+    throw ErrorTypes.UNAUTHORIZED('Invalid token');
   }
 };
 
@@ -65,7 +64,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw unauthorizedError('No token provided');
+      throw ErrorTypes.UNAUTHORIZED('No token provided');
     }
 
     // Extract token
@@ -84,13 +83,9 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
     next();
   } catch (error) {
     logger.error('Authentication error:', error);
-
-    const appError = error instanceof AppError ? error : unauthorizedError('Authentication failed');
-
-    res.status(appError.statusCode).json({
-      success: false,
-      error: appError.message,
-    });
+    const appError =
+      error instanceof AppError ? error : ErrorTypes.UNAUTHORIZED('Authentication failed');
+    next(appError);
   }
 };
 
@@ -103,26 +98,21 @@ export const authorize = (roles: string[]) => {
       const userReq = req as RequestWithUser;
 
       if (!userReq.user) {
-        throw unauthorizedError('User not authenticated');
+        throw ErrorTypes.UNAUTHORIZED('User not authenticated');
       }
 
       if (!roles.includes(userReq.user.role)) {
-        throw forbiddenError('Not authorized to access this resource');
+        throw ErrorTypes.FORBIDDEN('Not authorized to access this resource');
       }
 
       next();
     } catch (error) {
       logger.error('Authorization error:', error);
-
       const appError =
         error instanceof AppError
           ? error
-          : forbiddenError('Not authorized to access this resource');
-
-      res.status(appError.statusCode).json({
-        success: false,
-        error: appError.message,
-      });
+          : ErrorTypes.FORBIDDEN('Not authorized to access this resource');
+      next(appError);
     }
   };
 };

@@ -1,81 +1,61 @@
-import crypto from 'crypto';
-import { AppError } from '@shared/types/appError';
-import { UserModel } from '../infrastructure/user.model';
+import { UserRepository } from '../domain/user.repository';
+import { AppError, ErrorTypes } from '@shared/types/appError';
+import { generateToken } from '@shared/infrastructure/middleware/auth';
+import logger from '@shared/infrastructure/logging/logger';
 import { sendEmail } from '@shared/utils/email';
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import { hashPassword } from '@shared/utils/password';
 
-interface PasswordResetResult {
-  status: string;
-  message: string;
-}
+export class PasswordResetService {
+  constructor(private userRepository: UserRepository) {}
 
-class PasswordResetService {
-  async requestPasswordReset(email: string): Promise<PasswordResetResult> {
-    // 1) Get user based on email
-    const user = await UserModel.findOne({ email, isDeleted: false });
+  async requestPasswordReset(email: string): Promise<void> {
+    const user = await this.userRepository.findByEmail(email);
     if (!user) {
-      throw new AppError('No user found with that email address', 404);
+      throw ErrorTypes.NOT_FOUND('User');
     }
-
-    // 2) Generate random reset token
-    const resetToken = user.createPasswordResetToken();
-    await user.save({ validateBeforeSave: false });
-
-    // 3) Create reset URL
-    const resetURL = `${process.env.FRONTEND_URL}/auth/reset-password/${resetToken}`;
-
-    const message = `
-      Forgot your password? 
-      Submit a request with your new password to: ${resetURL}
-      If you didn't request this, please ignore this email.
-    `;
 
     try {
-      await sendEmail({
-        to: user.email,
-        subject: 'Your password reset token (valid for 1 hour)',
-        text: message,
+      // Generate reset token
+      const resetToken = generateToken({
+        id: user.id!,
+        email: user.email,
+        role: user.role,
       });
 
-      return {
-        status: 'success',
-        message: 'Password reset link sent to email',
-      };
+      // Send email with reset link
+      await sendEmail({
+        to: user.email,
+        subject: 'Password Reset Request',
+        html: `Click here to reset your password: ${process.env.FRONTEND_URL}/reset-password/${resetToken}`,
+      });
     } catch (error) {
-      user.passwordResetToken = undefined;
-      user.passwordResetExpires = undefined;
-      await user.save({ validateBeforeSave: false });
-
-      throw new AppError('Error sending email. Please try again later.', 500);
+      logger.error('Error sending password reset email:', error);
+      throw ErrorTypes.INTERNAL('Error sending email. Please try again later.');
     }
   }
 
-  async resetPassword(token: string, newPassword: string): Promise<PasswordResetResult> {
-    // 1) Get hashed token
-    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    try {
+      // Verify token and get user info
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+      const user = await this.userRepository.findById(decoded.id);
 
-    // 2) Get user based on token
-    const user = await UserModel.findOne({
-      passwordResetToken: hashedToken,
-      passwordResetExpires: { $gt: Date.now() },
-    });
+      if (!user) {
+        throw ErrorTypes.NOT_FOUND('User');
+      }
 
-    if (!user) {
-      throw new AppError('Token is invalid or has expired', 400);
+      // Hash new password
+      const hashedPassword = await hashPassword(newPassword);
+
+      // Update user's password
+      await this.userRepository.update(user.id!, { password: hashedPassword });
+    } catch (error) {
+      logger.error('Error resetting password:', error);
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw ErrorTypes.BAD_REQUEST('Token is invalid or has expired');
+      }
+      throw error;
     }
-
-    // 3) Set new password
-    user.password = newPassword;
-    user.passwordResetToken = undefined;
-    user.passwordResetExpires = undefined;
-
-    // 4) Save user
-    await user.save();
-
-    return {
-      status: 'success',
-      message: 'Password successfully reset',
-    };
   }
 }
-
-export default new PasswordResetService();

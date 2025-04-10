@@ -3,7 +3,7 @@ import { User, CreateUserDTO, UpdateUserDTO } from '../domain/user.entity';
 import { UserRepository } from '../domain/user.repository';
 import { UserModel } from './user.model';
 import { PaginationOptions, PaginatedResult } from '@shared/types';
-import { DatabaseError } from '@shared/infrastructure/errors';
+import { ErrorTypes } from '@shared/types/appError';
 import logger from '@shared/infrastructure/logging/logger';
 
 export class MongoUserRepository implements UserRepository {
@@ -37,8 +37,8 @@ export class MongoUserRepository implements UserRepository {
         },
       };
     } catch (error) {
-      logger.error('Error finding users:', error);
-      throw new DatabaseError('Failed to retrieve users');
+      logger.error('Failed to retrieve users:', error);
+      throw ErrorTypes.INTERNAL('Failed to retrieve users');
     }
   }
 
@@ -60,7 +60,7 @@ export class MongoUserRepository implements UserRepository {
       } as User;
     } catch (error) {
       logger.error(`Error finding user by id ${id}:`, error);
-      throw new DatabaseError('Failed to retrieve user');
+      throw ErrorTypes.INTERNAL('Failed to retrieve user');
     }
   }
 
@@ -78,7 +78,7 @@ export class MongoUserRepository implements UserRepository {
       } as User;
     } catch (error) {
       logger.error(`Error finding user by email ${email}:`, error);
-      throw new DatabaseError('Failed to retrieve user');
+      throw ErrorTypes.INTERNAL('Failed to retrieve user');
     }
   }
 
@@ -91,8 +91,8 @@ export class MongoUserRepository implements UserRepository {
         id: user._id.toString(),
       } as User;
     } catch (error) {
-      logger.error('Error creating user:', error);
-      throw new DatabaseError('Failed to create user');
+      logger.error('Failed to create user:', error);
+      throw ErrorTypes.INTERNAL('Failed to create user');
     }
   }
 
@@ -118,7 +118,7 @@ export class MongoUserRepository implements UserRepository {
       } as User;
     } catch (error) {
       logger.error(`Error updating user ${id}:`, error);
-      throw new DatabaseError('Failed to update user');
+      throw ErrorTypes.INTERNAL('Failed to update user');
     }
   }
 
@@ -132,7 +132,7 @@ export class MongoUserRepository implements UserRepository {
       return !!result;
     } catch (error) {
       logger.error(`Error deleting user ${id}:`, error);
-      throw new DatabaseError('Failed to delete user');
+      throw ErrorTypes.INTERNAL('Failed to delete user');
     }
   }
 
@@ -140,8 +140,8 @@ export class MongoUserRepository implements UserRepository {
     try {
       return await UserModel.countDocuments(filter);
     } catch (error) {
-      logger.error('Error counting users:', error);
-      throw new DatabaseError('Failed to count users');
+      logger.error('Failed to count users:', error);
+      throw ErrorTypes.INTERNAL('Failed to count users');
     }
   }
 

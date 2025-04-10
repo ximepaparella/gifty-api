@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { ProductService } from '../application/product.service';
-import { handleAsync } from '@shared/infrastructure/middleware/asyncHandler';
 import logger from '@shared/infrastructure/logging/logger';
 import { deleteFile } from '@shared/infrastructure/services/fileUpload';
+import { ErrorTypes } from '@shared/types/appError';
 
 // Extended Request type to include file from multer
 interface RequestWithFile extends Request {
@@ -19,13 +19,9 @@ interface ProductData {
 }
 
 export class ProductController {
-  private service: ProductService;
+  constructor(private productService: ProductService) {}
 
-  constructor(service: ProductService) {
-    this.service = service;
-  }
-
-  createProduct = handleAsync(async (req: RequestWithFile, res: Response) => {
+  createProduct = async (req: RequestWithFile, res: Response, next: NextFunction) => {
     let productData: ProductData = {
       name: '',
       description: '',
@@ -36,12 +32,11 @@ export class ProductController {
 
     try {
       logger.info('Starting product creation');
-      // Parse product data from request body
+
       if (req.body.data) {
         productData = JSON.parse(req.body.data);
         logger.info('Parsed product data from JSON:', productData);
       } else {
-        // If no JSON data, use form fields
         productData = {
           name: req.body.name,
           description: req.body.description,
@@ -52,7 +47,10 @@ export class ProductController {
         logger.info('Created product data from form fields:', productData);
       }
 
-      // If there's an image file, store the path
+      if (!productData.name || !productData.storeId || isNaN(productData.price)) {
+        return next(ErrorTypes.VALIDATION('Invalid product data'));
+      }
+
       if (req.file?.path) {
         logger.info('Image file detected:', {
           originalname: req.file.originalname,
@@ -61,22 +59,20 @@ export class ProductController {
           size: req.file.size,
         });
         productData.image = req.file.path;
-      } else {
-        logger.info('No image file in request');
       }
 
-      // Create the product
-      logger.info('Creating product with data:', productData);
-      const product = await this.service.createProduct(productData);
-      logger.info('Product created successfully:', product);
+      const product = await this.productService.createProduct(productData);
+      if (!product) {
+        return next(ErrorTypes.INTERNAL('Failed to create product'));
+      }
 
+      logger.info('Product created successfully:', product);
       res.status(201).json({
-        status: 'success',
+        success: true,
         data: product,
       });
     } catch (error) {
       logger.error('Error creating product:', error);
-      // If there's an error and we uploaded a file, clean it up
       if (req.file?.path) {
         try {
           await deleteFile(req.file.path);
@@ -85,59 +81,72 @@ export class ProductController {
           logger.error('Error cleaning up image:', cleanupError);
         }
       }
-      throw error;
+      next(error);
     }
-  });
+  };
 
-  getProducts = handleAsync(async (req: Request, res: Response) => {
-    const products = await this.service.getProducts();
-    res.status(200).json({
-      status: 'success',
-      data: products,
-    });
-  });
+  getProducts = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const products = await this.productService.getProducts();
+      res.status(200).json({
+        success: true,
+        data: products,
+      });
+    } catch (error) {
+      logger.error('Error getting products:', error);
+      next(error);
+    }
+  };
 
-  getProductById = handleAsync(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const product = await this.service.getProductById(id);
-    res.status(200).json({
-      status: 'success',
-      data: product,
-    });
-  });
+  getProductById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const product = await this.productService.getProductById(id);
 
-  getProductsByStoreId = handleAsync(async (req: Request, res: Response) => {
-    const { storeId } = req.params;
-    const products = await this.service.getProductsByStoreId(storeId);
-    res.status(200).json({
-      status: 'success',
-      data: products,
-    });
-  });
+      if (!product) {
+        return next(ErrorTypes.NOT_FOUND('Product'));
+      }
 
-  updateProduct = handleAsync(async (req: RequestWithFile, res: Response) => {
+      res.status(200).json({
+        success: true,
+        data: product,
+      });
+    } catch (error) {
+      logger.error('Error getting product by ID:', error);
+      next(error);
+    }
+  };
+
+  getProductsByStoreId = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { storeId } = req.params;
+      const products = await this.productService.getProductsByStoreId(storeId);
+      res.status(200).json({
+        success: true,
+        data: products,
+      });
+    } catch (error) {
+      logger.error('Error getting products by store ID:', error);
+      next(error);
+    }
+  };
+
+  updateProduct = async (req: RequestWithFile, res: Response, next: NextFunction) => {
     const { id } = req.params;
     let productData: Partial<ProductData> = {};
 
     try {
       logger.info(`Starting product update for ID: ${id}`);
 
-      // Get existing product first
-      const existingProduct = await this.service.getProductById(id);
+      const existingProduct = await this.productService.getProductById(id);
       if (!existingProduct) {
-        return res.status(404).json({
-          status: 'error',
-          message: 'Product not found',
-        });
+        return next(ErrorTypes.NOT_FOUND('Product'));
       }
-      logger.info('Found existing product:', existingProduct);
 
-      // Parse product data from request body
       if (req.body.data) {
         productData = JSON.parse(req.body.data);
         logger.info('Parsed product data:', productData);
       } else {
-        // If no JSON data, use form fields
         productData = {
           name: req.body.name,
           description: req.body.description,
@@ -147,7 +156,6 @@ export class ProductController {
         logger.info('Created product data from form fields:', productData);
       }
 
-      // Handle image update
       if (req.file?.path) {
         logger.info('New image file detected:', {
           originalname: req.file.originalname,
@@ -156,7 +164,6 @@ export class ProductController {
           size: req.file.size,
         });
 
-        // Delete old image if it exists
         if (existingProduct.image) {
           logger.info('Attempting to delete old image:', existingProduct.image);
           try {
@@ -167,11 +174,9 @@ export class ProductController {
           }
         }
 
-        // Set the new image path
         productData.image = req.file.path;
         logger.info('Added new image path:', req.file.path);
       } else if ('image' in productData && !productData.image) {
-        // Handle image removal
         logger.info('Image removal requested');
         if (existingProduct.image) {
           logger.info('Attempting to delete image:', existingProduct.image);
@@ -186,44 +191,75 @@ export class ProductController {
       }
 
       logger.info('Updating product with data:', productData);
-      const product = await this.service.updateProduct(id, productData);
-      logger.info('Product update completed:', product);
+      const updatedProduct = await this.productService.updateProduct(id, productData);
+      if (!updatedProduct) {
+        return next(ErrorTypes.INTERNAL('Failed to update product'));
+      }
 
+      logger.info('Product update completed:', updatedProduct);
       res.status(200).json({
-        status: 'success',
-        data: product,
+        success: true,
+        data: updatedProduct,
       });
     } catch (error) {
       logger.error('Error updating product:', error);
-      throw error;
+      next(error);
     }
-  });
+  };
 
-  deleteProduct = handleAsync(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const product = await this.service.deleteProduct(id);
-    res.status(200).json({
-      status: 'success',
-      data: product,
-    });
-  });
+  deleteProduct = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const product = await this.productService.getProductById(id);
 
-  getImage = handleAsync(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const product = await this.service.getProductById(id);
+      if (!product) {
+        return next(ErrorTypes.NOT_FOUND('Product'));
+      }
 
-    if (!product?.image) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'No image found for this product',
+      if (product.image) {
+        try {
+          await deleteFile(product.image);
+          logger.info('Successfully deleted product image:', product.image);
+        } catch (deleteError) {
+          logger.error('Error deleting product image:', deleteError);
+        }
+      }
+
+      const result = await this.productService.deleteProduct(id);
+      if (!result) {
+        return next(ErrorTypes.INTERNAL('Failed to delete product'));
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Product deleted successfully',
       });
+    } catch (error) {
+      logger.error('Error deleting product:', error);
+      next(error);
     }
+  };
 
-    res.status(200).json({
-      status: 'success',
-      data: {
-        imageUrl: product.image,
-      },
-    });
-  });
+  getImage = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const product = await this.productService.getProductById(id);
+
+      if (!product) {
+        return next(ErrorTypes.NOT_FOUND('Product'));
+      }
+
+      if (!product.image) {
+        return next(ErrorTypes.NOT_FOUND('Product image'));
+      }
+
+      res.status(200).json({
+        success: true,
+        data: { imageUrl: product.image },
+      });
+    } catch (error) {
+      logger.error('Error getting product image:', error);
+      next(error);
+    }
+  };
 }

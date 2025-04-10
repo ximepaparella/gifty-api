@@ -1,44 +1,51 @@
 import QRCode from 'qrcode';
+import { ErrorTypes } from '@shared/types/appError';
+import logger from '@shared/infrastructure/logging/logger';
 
 /**
- * Generates a QR code as a data URL for the given content
- * @param content The content to encode in the QR code
- * @returns A Promise that resolves to a data URL string
+ * Generate a QR code from text
+ * @param text The text to encode in the QR code
+ * @returns Promise<string> The QR code as a data URL
  */
-export async function generateQRCode(content: string): Promise<string> {
+export async function generateQRCode(text: string): Promise<string> {
   try {
-    // Generate QR code as data URL
-    const qrCodeDataUrl = await QRCode.toDataURL(content, {
+    logger.info('Generating QR code');
+    const qrCode = await QRCode.toDataURL(text, {
       errorCorrectionLevel: 'H',
       margin: 1,
       width: 300,
-      color: {
-        dark: '#000000',
-        light: '#ffffff',
-      },
     });
-
-    return qrCodeDataUrl;
+    logger.info('QR code generated successfully');
+    return qrCode;
   } catch (error) {
-    console.error('Error generating QR code:', error);
-    throw new Error('Failed to generate QR code');
+    logger.error('Error generating QR code:', error);
+    throw ErrorTypes.INTERNAL('Failed to generate QR code');
   }
 }
 
 /**
  * Generate a QR code for voucher redemption
- * @param voucherCode The voucher code to be redeemed
- * @returns A Promise that resolves to a data URL string of the QR code
+ * @param code The voucher code
+ * @returns Promise<string> The QR code as a data URL
  */
-export async function generateVoucherRedemptionQRCode(voucherCode: string): Promise<string> {
+export async function generateVoucherRedemptionQRCode(code: string): Promise<string> {
   try {
-    // Generate the redemption URL using the voucher code
-    const redemptionUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/vouchers/redeem/${voucherCode}`;
+    logger.info(`Generating redemption QR code for voucher code ${code}`);
+    const redemptionData = {
+      code,
+      timestamp: Date.now(),
+    };
 
-    // Generate QR code for the redemption URL
-    return await generateQRCode(redemptionUrl);
+    const qrCode = await QRCode.toDataURL(JSON.stringify(redemptionData), {
+      errorCorrectionLevel: 'H',
+      margin: 1,
+      width: 300,
+    });
+
+    logger.info('Redemption QR code generated successfully');
+    return qrCode;
   } catch (error) {
-    console.error('Error generating voucher redemption QR code:', error);
-    throw new Error('Failed to generate voucher redemption QR code');
+    logger.error('Error generating voucher redemption QR code:', error);
+    throw ErrorTypes.INTERNAL('Failed to generate voucher redemption QR code');
   }
 }

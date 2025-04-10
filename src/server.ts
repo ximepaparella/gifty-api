@@ -7,14 +7,19 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import path from 'path';
 import fs from 'fs';
+import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import morgan from 'morgan';
 
-import { connectDatabase } from '@shared/infrastructure/database/connection';
+import { connectDB } from '@shared/infrastructure/database/connection';
 import logger from '@shared/infrastructure/logging/logger';
 import { initCloudinary } from '@shared/infrastructure/services/cloudinary.config';
-import { AppError } from '@shared/types/appError';
+import { AppError, ErrorTypes } from '@shared/types/appError';
 import { errorHandler as globalErrorHandler } from '@shared/infrastructure/errors/errorHandler';
 import { setupSwagger } from '@shared/infrastructure/swagger/swagger';
 import { applySecurityMiddleware } from '@shared/infrastructure/middleware/security';
+import { setupRoutes } from './modules/routes';
 
 // Import routes
 import userRoutes from '@modules/user/interface/user.routes';
@@ -37,32 +42,31 @@ const userRepository = new MongoUserRepository();
 const userService = new UserService(userRepository);
 const userController = new UserController(userService);
 
-// Apply security middleware (includes CORS, Helmet, and Rate Limiting)
-applySecurityMiddleware(app);
-
-// Basic middleware
+// Apply middleware
+app.use(cors());
+app.use(helmet());
+app.use(compression());
+app.use(morgan('dev'));
 app.use(express.json());
-app.use(passport.initialize());
+app.use(express.urlencoded({ extended: true }));
 
-// Create uploads directory for voucher PDFs
-const uploadsDir = path.join(__dirname, '../uploads');
-const vouchersDir = path.join(uploadsDir, 'vouchers');
+// Initialize services
+connectDB()
+  .then(() => {
+    logger.info('Connected to MongoDB');
+    initCloudinary();
+    logger.info('Cloudinary initialized');
+  })
+  .catch((error) => {
+    logger.error('Failed to connect to MongoDB:', error);
+    process.exit(1);
+  });
 
-if (!fs.existsSync(uploadsDir)) {
-  logger.info(`Creating uploads directory: ${uploadsDir}`);
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-if (!fs.existsSync(vouchersDir)) {
-  logger.info(`Creating vouchers directory: ${vouchersDir}`);
-  fs.mkdirSync(vouchersDir, { recursive: true });
-}
-
-// Serve static files from uploads directory
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// Configure routes
+setupRoutes(app);
 
 // Public routes
-app.post('/api/v1/login', (req: Request, res: Response) => userController.login(req, res));
+app.post('/api/v1/login', (req: Request, res: Response, next: NextFunction) => userController.login(req, res, next));
 app.use('/api/v1/auth', passwordResetRoutes);
 app.use('/api/v1/customers', customerRoutes);
 
@@ -91,7 +95,7 @@ const errorHandler: ErrorRequestHandler = (
   logger.error('Error:', err);
 
   if (err.isOperational) {
-    res.status(err.statusCode || 500).json({
+    res.status(err.status || 500).json({
       status: err.status || 'error',
       message: err.message,
     });
@@ -106,26 +110,5 @@ const errorHandler: ErrorRequestHandler = (
 };
 
 app.use(errorHandler);
-app.use(globalErrorHandler);
-
-// Database connection
-const MONGO_URI = process.env.MONGO_URI;
-if (!MONGO_URI) {
-  throw new Error('MONGO_URI environment variable is not defined');
-}
-
-mongoose
-  .connect(MONGO_URI)
-  .then(() => {
-    logger.info('Connected to MongoDB');
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-      logger.info(`Server is running on port ${PORT}`);
-    });
-  })
-  .catch((error) => {
-    logger.error('Error connecting to MongoDB:', error);
-    process.exit(1);
-  });
 
 export default app;

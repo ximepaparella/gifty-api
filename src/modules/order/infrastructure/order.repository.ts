@@ -1,6 +1,6 @@
 import { IOrder, IOrderInput, IOrderRepository } from '../domain/order.interface';
 import { OrderModel } from '../domain/order.schema';
-import { notFoundError } from '@shared/types/appError';
+import { ErrorTypes } from '@shared/types/appError';
 import logger from '@shared/infrastructure/logging/logger';
 import mongoose from 'mongoose';
 
@@ -136,21 +136,23 @@ export class OrderRepository implements IOrderRepository {
 
         if (!existingOrder) {
           logger.warn(`Voucher with code ${voucherCode} not found`);
-          throw notFoundError(`Voucher with code ${voucherCode} not found`);
+          throw ErrorTypes.NOT_FOUND(`Voucher with code ${voucherCode}`);
         }
 
         if (existingOrder.voucher.status === 'redeemed') {
           logger.warn(`Voucher with code ${voucherCode} has already been redeemed`);
-          throw new Error(`Voucher with code ${voucherCode} has already been redeemed`);
+          throw ErrorTypes.BAD_REQUEST(
+            `Voucher with code ${voucherCode} has already been redeemed`
+          );
         }
 
         if (existingOrder.voucher.expirationDate < now) {
           logger.warn(`Voucher with code ${voucherCode} has expired`);
-          throw new Error(`Voucher with code ${voucherCode} has expired`);
+          throw ErrorTypes.BAD_REQUEST(`Voucher with code ${voucherCode} has expired`);
         }
 
         logger.warn(`Unable to redeem voucher with code ${voucherCode}`);
-        throw new Error(`Unable to redeem voucher with code ${voucherCode}`);
+        throw ErrorTypes.BAD_REQUEST(`Unable to redeem voucher with code ${voucherCode}`);
       }
 
       logger.info(`Voucher with code ${voucherCode} redeemed successfully`);

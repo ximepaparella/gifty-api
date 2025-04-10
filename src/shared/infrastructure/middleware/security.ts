@@ -1,63 +1,59 @@
+import { Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 import helmet from 'helmet';
-import express, { Express, Request } from 'express';
+import express, { Express } from 'express';
 import { securityConfig } from '../config/security.config';
 import {
   monitorRateLimitHit,
   monitorFileUpload,
-  validateApiKey,
-  requestSizeLimiter,
 } from './securityMonitoring';
+import { ErrorTypes } from '@shared/types/appError';
 
-// Interface is now defined in types/express/index.d.ts
-
-// Extend Express Request type to include trusted property
-declare global {
-  namespace Express {
-    interface Request {
-      trusted?: boolean;
-    }
+// Type declarations
+declare module 'express' {
+  interface Request {
+    trusted?: boolean;
   }
 }
 
-// Rate limiting configuration
+// Middleware functions
+export const validateApiKey = (req: Request, res: Response, next: NextFunction): void => {
+  const apiKey = req.headers['x-api-key'];
+  
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    throw ErrorTypes.UNAUTHORIZED('Invalid API Key');
+  }
+  
+  next();
+};
+
+export const securityHeaders = (req: Request, res: Response, next: NextFunction): void => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+};
+
+export const requestSizeLimiter = (maxSize: string) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (
+      req.headers['content-length'] &&
+      parseInt(req.headers['content-length']) > parseInt(maxSize)
+    ) {
+      throw ErrorTypes.BAD_REQUEST('Request entity too large');
+    }
+    next();
+  };
+};
+
+// Configuration objects
 export const rateLimiter = rateLimit({
-  windowMs: securityConfig.rateLimits.general.windowMs,
-  max: (req: Request): number => {
-    return req.trusted
-      ? securityConfig.rateLimits.general.max * 2
-      : securityConfig.rateLimits.general.max;
-  },
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: (req, res, next, options) => {
-    monitorRateLimitHit(req, res, next);
-    res.status(429).json({
-      status: 'error',
-      message: options.message,
-    });
-  },
 });
 
-// Specific limiter for login attempts
-export const loginLimiter = rateLimit({
-  windowMs: securityConfig.rateLimits.login.windowMs,
-  max: securityConfig.rateLimits.login.max,
-  message: 'Too many login attempts from this IP, please try again after 15 minutes',
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: (req, res, next, options) => {
-    monitorRateLimitHit(req, res, next);
-    res.status(429).json({
-      status: 'error',
-      message: options.message,
-    });
-  },
-});
-
-// CORS configuration
 export const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     if (!origin || securityConfig.cors.allowedOrigins.includes(origin)) {
@@ -72,7 +68,6 @@ export const corsOptions = {
   maxAge: securityConfig.cors.maxAge,
 };
 
-// Helmet configuration
 export const helmetConfig = {
   contentSecurityPolicy: {
     directives: {
@@ -93,7 +88,7 @@ export const helmetConfig = {
   },
 };
 
-// Function to apply all security middleware
+// Main security setup function
 export const applySecurityMiddleware = (app: Express): void => {
   // API key validation
   app.use(validateApiKey);
@@ -110,7 +105,6 @@ export const applySecurityMiddleware = (app: Express): void => {
 
   // Apply rate limiting
   app.use('/api/', rateLimiter);
-  app.use('/api/v1/login', loginLimiter);
 
   // Monitor file uploads for specific routes
   const fileUploadPaths = [

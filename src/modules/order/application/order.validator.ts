@@ -23,15 +23,6 @@ export const validateOrder = (orderData: IOrderInput): string[] => {
       errors.push('Payment ID is required');
     }
 
-    // Check paymentStatus
-    if (!orderData.paymentDetails.paymentStatus) {
-      errors.push('Payment status is required');
-    } else if (
-      !['pending', 'completed', 'failed'].includes(orderData.paymentDetails.paymentStatus)
-    ) {
-      errors.push('Payment status must be pending, completed, or failed');
-    }
-
     // Check paymentEmail
     if (!orderData.paymentDetails.paymentEmail) {
       errors.push('Payment email is required');

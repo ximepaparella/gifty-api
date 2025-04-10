@@ -19,7 +19,10 @@ setInterval(
 ); // Clean up every hour
 
 export const monitorRateLimitHit = (req: Request, res: Response, next: NextFunction) => {
-  const ip = req.ip;
+  const ip = req.ip || req.connection.remoteAddress;
+  if (!ip) {
+    return next();
+  }
 
   // Log rate limit hit
   logger.warn('Rate limit exceeded', {

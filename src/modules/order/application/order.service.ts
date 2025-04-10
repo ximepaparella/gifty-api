@@ -1,5 +1,5 @@
 import { IOrder, IOrderInput } from '../domain/order.interface';
-import { notFoundError, validationError, AppError } from '@shared/types/appError';
+import { ErrorTypes } from '@shared/types/appError';
 import { validateOrder } from './order.validator';
 import logger from '@shared/infrastructure/logging/logger';
 import path from 'path';
@@ -61,7 +61,7 @@ export class OrderService {
     // Validate order data
     const validationErrors = validateOrder(orderData);
     if (validationErrors.length > 0) {
-      throw validationError(validationErrors.join(', '));
+      throw ErrorTypes.VALIDATION(validationErrors.join(', '));
     }
 
     // Generate voucher code if not provided
@@ -107,8 +107,8 @@ export class OrderService {
 
       return newOrder;
     } catch (error: any) {
-      logger.error(`Error during order creation: ${error.message}`, error);
-      throw new AppError(`Failed to create order: ${error.message}`, 500);
+      logger.error('Failed to create order:', error);
+      throw ErrorTypes.INTERNAL(`Failed to create order: ${error.message}`);
     }
   }
 
@@ -121,7 +121,7 @@ export class OrderService {
     // Check if order exists
     const existingOrder = await this.orderRepository.findById(id);
     if (!existingOrder) {
-      throw notFoundError('Order not found');
+      throw ErrorTypes.NOT_FOUND('Order');
     }
 
     // Update the order
@@ -143,7 +143,7 @@ export class OrderService {
     // Check if order exists
     const existingOrder = await this.orderRepository.findById(id);
     if (!existingOrder) {
-      throw notFoundError('Order not found');
+      throw ErrorTypes.NOT_FOUND('Order');
     }
 
     // Delete the order
@@ -153,56 +153,22 @@ export class OrderService {
   /**
    * Redeem a voucher by its code
    */
-  async redeemVoucher(code: string): Promise<IOrder | null> {
-    logger.info(`Redeeming voucher with code ${code}`);
-
-    try {
-      // Use atomic findOneAndUpdate to prevent race conditions
-      const now = new Date();
-      const updatedOrder = await this.orderRepository.findOneAndUpdate(
-        {
-          'voucher.code': code,
-          'voucher.status': 'active',
-          'voucher.isRedeemed': false,
-          'voucher.expirationDate': { $gte: now },
-        },
-        {
-          $set: {
-            'voucher.status': 'redeemed',
-            'voucher.isRedeemed': true,
-            'voucher.redeemedAt': now,
-            status: 'redeemed',
-            updatedAt: now,
-          },
-        },
-        { new: true }
-      );
-
-      if (!updatedOrder) {
-        // Check if voucher exists and why it can't be redeemed
-        const existingOrder = await this.orderRepository.findByVoucherCode(code);
-
-        if (!existingOrder) {
-          throw notFoundError('Voucher not found');
-        }
-
-        if (existingOrder.voucher.isRedeemed) {
-          throw new AppError('Voucher has already been redeemed', 400);
-        }
-
-        if (existingOrder.voucher.expirationDate < now) {
-          throw new AppError('Voucher has expired', 400);
-        }
-
-        throw new AppError('Voucher cannot be redeemed', 400);
-      }
-
-      logger.info(`Voucher with code ${code} redeemed successfully`);
-      return updatedOrder;
-    } catch (error: any) {
-      logger.error(`Error redeeming voucher with code ${code}:`, error);
-      throw error;
+  async redeemVoucher(orderId: string): Promise<IOrder> {
+    const order = await this.orderRepository.findById(orderId);
+    if (!order) {
+      throw ErrorTypes.NOT_FOUND('Order');
     }
+
+    if (!order.voucher || order.voucher.isRedeemed) {
+      throw ErrorTypes.BAD_REQUEST('Voucher cannot be redeemed');
+    }
+
+    const redeemedOrder = await this.orderRepository.redeemVoucher(orderId);
+    if (!redeemedOrder) {
+      throw ErrorTypes.INTERNAL('Failed to redeem voucher');
+    }
+
+    return redeemedOrder;
   }
 
   /**
@@ -214,7 +180,7 @@ export class OrderService {
     // Check if order exists
     const order = await this.orderRepository.findById(id);
     if (!order) {
-      throw notFoundError('Order not found');
+      throw ErrorTypes.NOT_FOUND('Order');
     }
 
     try {
@@ -251,7 +217,7 @@ export class OrderService {
       const emailResult = await sendAllVoucherEmails(id, result.pdfUrl);
 
       if (!emailResult) {
-        throw new Error(`Failed to send emails for order ${id}`);
+        throw ErrorTypes.INTERNAL(`Failed to send emails for order ${id}`);
       }
 
       // Update order to mark emails as sent
@@ -281,7 +247,7 @@ export class OrderService {
       const emailResult = await resendCustomerEmail(id, result.pdfUrl);
 
       if (!emailResult) {
-        throw new Error(`Failed to send customer email for order ${id}`);
+        throw ErrorTypes.INTERNAL(`Failed to send customer email for order ${id}`);
       }
 
       return true;
@@ -305,7 +271,7 @@ export class OrderService {
       const emailResult = await resendReceiverEmail(id, result.pdfUrl);
 
       if (!emailResult) {
-        throw new Error(`Failed to send receiver email for order ${id}`);
+        throw ErrorTypes.INTERNAL(`Failed to send receiver email for order ${id}`);
       }
 
       return true;
@@ -329,7 +295,7 @@ export class OrderService {
       const emailResult = await resendStoreEmail(id, result.pdfUrl);
 
       if (!emailResult) {
-        throw new Error(`Failed to send store email for order ${id}`);
+        throw ErrorTypes.INTERNAL(`Failed to send store email for order ${id}`);
       }
 
       return true;
@@ -351,7 +317,7 @@ export class OrderService {
       const emailResult = await sendAllVoucherEmails(orderId, result.pdfUrl);
 
       if (!emailResult) {
-        throw new Error(`Failed to send emails for order ${orderId}`);
+        throw ErrorTypes.INTERNAL(`Failed to send emails for order ${orderId}`);
       }
 
       // Update order to mark emails as sent
@@ -378,13 +344,13 @@ export class OrderService {
       // Get order details
       const order = await this.orderRepository.findById(orderId);
       if (!order) {
-        throw new AppError('Order not found', 404);
+        throw ErrorTypes.NOT_FOUND('Order');
       }
 
       // Get store details
       const store = await Store.findById(order.voucher.storeId);
       if (!store) {
-        throw new AppError('Store not found', 404);
+        throw ErrorTypes.NOT_FOUND('Store');
       }
 
       // Create vouchers directory if it doesn't exist
@@ -410,7 +376,7 @@ export class OrderService {
       logger.info(`Using template: ${templatePath}`);
 
       if (!fs.existsSync(templatePath)) {
-        throw new AppError(`Template ${templateNumber} not found`, 404);
+        throw ErrorTypes.NOT_FOUND(`Template ${templateNumber}`);
       }
 
       let templateContent = fs.readFileSync(templatePath, 'utf-8');
@@ -493,14 +459,15 @@ export class OrderService {
       });
 
       // Verify PDF buffer
-      if (!pdfBuffer || pdfBuffer.length === 0) {
-        throw new AppError('Generated PDF is empty', 500);
+      if (!pdfBuffer) {
+        logger.error('Failed to generate PDF for order:', orderId);
+        throw ErrorTypes.INTERNAL('Failed to generate PDF');
       }
 
       // Verify PDF header
       const pdfHeader = Buffer.from(pdfBuffer).subarray(0, 5).toString('ascii');
       if (!pdfHeader.startsWith('%PDF-')) {
-        throw new AppError('Generated file is not a valid PDF', 500);
+        throw ErrorTypes.INTERNAL('Generated file is not a valid PDF');
       }
 
       // Save PDF locally
@@ -516,8 +483,8 @@ export class OrderService {
 
       return pdfPath;
     } catch (error: any) {
-      logger.error(`Error generating voucher PDF: ${error.message}`, error);
-      throw new AppError(error.message || 'Failed to generate voucher PDF', error.status || 500);
+      logger.error('Failed to generate voucher PDF:', error);
+      throw ErrorTypes.INTERNAL(error.message || 'Failed to generate voucher PDF');
     } finally {
       if (browser) {
         try {

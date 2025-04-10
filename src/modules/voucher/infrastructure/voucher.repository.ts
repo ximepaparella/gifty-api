@@ -1,8 +1,13 @@
 import { IVoucher, IVoucherInput, IVoucherRepository } from '../domain/voucher.interface';
 import VoucherModel, { IVoucherDocument } from './voucher.model';
-import { notFoundError } from '@shared/types/appError';
+import { ErrorTypes } from '@shared/types/appError';
 import logger from '@shared/infrastructure/logging/logger';
 import { Model } from 'mongoose';
+
+interface ValidationError extends Error {
+  name: 'ValidationError';
+  errors: Record<string, { message: string }>;
+}
 
 export class VoucherRepository implements IVoucherRepository {
   private voucherModel: Model<IVoucherDocument>;
@@ -16,11 +21,11 @@ export class VoucherRepository implements IVoucherRepository {
   }
 
   async findById(id: string): Promise<IVoucher | null> {
-    return this.voucherModel.findById(id).lean();
+    return this.voucherModel.findById(id);
   }
 
   async findByCode(code: string): Promise<IVoucher | null> {
-    return await this.voucherModel.findOne({ code }).lean();
+    return this.voucherModel.findOne({ code });
   }
 
   async findByStoreId(storeId: string): Promise<IVoucher[]> {
@@ -60,16 +65,13 @@ export class VoucherRepository implements IVoucherRepository {
       const savedVoucher = await voucher.save();
       logger.info(`Voucher saved successfully with ID: ${savedVoucher._id}`);
 
-      return savedVoucher.toObject();
-    } catch (error: any) {
-      logger.error('Error creating voucher in repository:', error);
-
-      // Provide more context about the error
-      if (error.name === 'ValidationError') {
-        logger.error('Validation error details:', JSON.stringify(error.errors, null, 2));
+      return await savedVoucher.toObject();
+    } catch (error: unknown) {
+      logger.error('Error creating voucher:', error);
+      if (error instanceof Error) {
+        throw ErrorTypes.VALIDATION('Invalid voucher data: ' + error.message);
       }
-
-      throw error;
+      throw ErrorTypes.VALIDATION('Invalid voucher data');
     }
   }
 
@@ -103,21 +105,27 @@ export class VoucherRepository implements IVoucherRepository {
       ).lean();
 
       if (!updatedVoucher) {
-        throw notFoundError(`Voucher with id ${id} not found`);
+        throw ErrorTypes.NOT_FOUND('Voucher');
       }
 
       logger.info(`Voucher ${id} updated successfully`);
       return updatedVoucher;
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error(`Error updating voucher ${id} in repository:`, error);
 
-      // Provide more context about the error
-      if (error.name === 'ValidationError') {
-        logger.error('Validation error details:', JSON.stringify(error.errors, null, 2));
+      if (error instanceof Error) {
+        if (error.name === 'ValidationError' && this.isValidationError(error)) {
+          logger.error('Validation error details:', JSON.stringify(error.errors, null, 2));
+          throw ErrorTypes.VALIDATION(error.message);
+        }
+        throw error;
       }
-
       throw error;
     }
+  }
+
+  private isValidationError(error: Error): error is ValidationError {
+    return error.name === 'ValidationError' && 'errors' in error;
   }
 
   async delete(id: string): Promise<boolean> {

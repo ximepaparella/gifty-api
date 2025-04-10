@@ -1,8 +1,9 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { VoucherService } from '../application/voucher.service';
 import catchAsync from '@shared/utils/catchAsync';
 import { IVoucherInput } from '../domain/voucher.interface';
 import logger from '@shared/infrastructure/logging/logger';
+import { ErrorTypes } from '@shared/types/appError';
 
 export class VoucherController {
   constructor(private voucherService: VoucherService) {}
@@ -10,171 +11,217 @@ export class VoucherController {
   /**
    * Get all vouchers
    */
-  getAllVouchers = catchAsync(async (req: Request, res: Response) => {
-    const vouchers = await this.voucherService.getAllVouchers();
-    res.status(200).json({
-      success: true,
-      data: vouchers,
-    });
-  });
+  getAllVouchers = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const vouchers = await this.voucherService.getAllVouchers();
+      res.status(200).json({
+        success: true,
+        data: vouchers,
+      });
+    } catch (error) {
+      logger.error('Error getting all vouchers:', error);
+      next(error);
+    }
+  };
 
   /**
    * Get voucher by ID
    */
-  getVoucherById = catchAsync(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const voucher = await this.voucherService.getVoucherById(id);
+  getVoucherById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const voucher = await this.voucherService.getVoucherById(id);
 
-    res.status(200).json({
-      success: true,
-      data: voucher,
-    });
-  });
+      if (!voucher) {
+        return next(ErrorTypes.NOT_FOUND('Voucher'));
+      }
+
+      res.status(200).json({
+        success: true,
+        data: voucher,
+      });
+    } catch (error) {
+      logger.error('Error getting voucher by ID:', error);
+      next(error);
+    }
+  };
 
   /**
    * Get voucher by code
    */
-  getVoucherByCode = catchAsync(async (req: Request, res: Response) => {
-    const { code } = req.params;
-    const voucher = await this.voucherService.getVoucherByCode(code);
+  getVoucherByCode = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { code } = req.params;
+      const voucher = await this.voucherService.getVoucherByCode(code);
 
-    res.status(200).json({
-      success: true,
-      data: voucher,
-    });
-  });
+      if (!voucher) {
+        return next(ErrorTypes.NOT_FOUND('Voucher'));
+      }
+
+      res.status(200).json({
+        success: true,
+        data: voucher,
+      });
+    } catch (error) {
+      logger.error('Error getting voucher by code:', error);
+      next(error);
+    }
+  };
 
   /**
    * Get vouchers by store ID
    */
-  getVouchersByStoreId = catchAsync(async (req: Request, res: Response) => {
-    const { storeId } = req.params;
-    const vouchers = await this.voucherService.getVouchersByStoreId(storeId);
-
-    res.status(200).json({
-      success: true,
-      data: vouchers,
-    });
-  });
+  getVouchersByStoreId = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { storeId } = req.params;
+      const vouchers = await this.voucherService.getVouchersByStoreId(storeId);
+      res.status(200).json({
+        success: true,
+        data: vouchers,
+      });
+    } catch (error) {
+      logger.error('Error getting vouchers by store ID:', error);
+      next(error);
+    }
+  };
 
   /**
    * Get vouchers by customer email
    */
-  getVouchersByCustomerEmail = catchAsync(async (req: Request, res: Response) => {
-    const { email } = req.params;
-    const vouchers = await this.voucherService.getVouchersByCustomerEmail(email);
-
-    res.status(200).json({
-      success: true,
-      data: vouchers,
-    });
-  });
+  getVouchersByCustomerEmail = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email } = req.params;
+      const vouchers = await this.voucherService.getVouchersByCustomerEmail(email);
+      res.status(200).json({
+        success: true,
+        data: vouchers,
+      });
+    } catch (error) {
+      logger.error('Error getting vouchers by customer email:', error);
+      next(error);
+    }
+  };
 
   /**
    * Create a new voucher
    */
-  createVoucher = async (req: Request, res: Response) => {
+  createVoucher = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const voucherData: IVoucherInput = req.body;
 
+      if (!voucherData.storeId || !voucherData.productId) {
+        return next(ErrorTypes.VALIDATION('Store ID and Product ID are required'));
+      }
+
+      if (voucherData.qrCode && voucherData.qrCode.length > 1000) {
+        return next(ErrorTypes.VALIDATION('QR code size exceeds maximum limit'));
+      }
+
       const newVoucher = await this.voucherService.createVoucher(voucherData);
+      if (!newVoucher) {
+        return next(ErrorTypes.INTERNAL('Failed to create voucher'));
+      }
 
       res.status(201).json({
         success: true,
         data: newVoucher,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Error creating voucher:', error);
-
-      const statusCode = error.statusCode || 500;
-      const message = error.message || 'Internal server error';
-      const stack = process.env.NODE_ENV === 'production' ? undefined : error.stack;
-
-      res.status(statusCode).json({
-        success: false,
-        error: message,
-        details: error.details || undefined,
-        stack,
-        receivedData: {
-          qrCode: req.body.qrCode ? 'Present (length: ' + req.body.qrCode.length + ')' : 'Missing',
-          customerId: req.body.customerId || 'Missing',
-          // Include other key fields for debugging
-          storeId: req.body.storeId,
-          productId: req.body.productId,
-          template: req.body.template,
-        },
-      });
+      next(error);
     }
   };
 
   /**
    * Update an existing voucher
    */
-  updateVoucher = async (req: Request, res: Response) => {
+  updateVoucher = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      logger.info(`Updating voucher ${id} with data:`, JSON.stringify(req.body, null, 2));
-
       const voucherData: Partial<IVoucherInput> = req.body;
 
-      // Log the specific fields we're having trouble with
-      logger.info(`QR Code length: ${voucherData.qrCode?.length || 'undefined'}`);
-      logger.info(`CustomerId: ${voucherData.customerId || 'undefined'}`);
+      logger.info(`Updating voucher ${id} with data:`, JSON.stringify(voucherData, null, 2));
+
+      if (voucherData.qrCode && voucherData.qrCode.length > 1000) {
+        return next(ErrorTypes.VALIDATION('QR code size exceeds maximum limit'));
+      }
+
+      const existingVoucher = await this.voucherService.getVoucherById(id);
+      if (!existingVoucher) {
+        return next(ErrorTypes.NOT_FOUND('Voucher'));
+      }
 
       const updatedVoucher = await this.voucherService.updateVoucher(id, voucherData);
+      if (!updatedVoucher) {
+        return next(ErrorTypes.INTERNAL('Failed to update voucher'));
+      }
 
       res.status(200).json({
         success: true,
         data: updatedVoucher,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`Error updating voucher ${req.params.id}:`, error);
-
-      const statusCode = error.statusCode || 500;
-      const message = error.message || 'Internal server error';
-      const stack = process.env.NODE_ENV === 'production' ? undefined : error.stack;
-
-      res.status(statusCode).json({
-        success: false,
-        error: message,
-        details: error.details || undefined,
-        stack,
-        receivedData: {
-          qrCode: req.body.qrCode ? 'Present (length: ' + req.body.qrCode.length + ')' : 'Missing',
-          customerId: req.body.customerId || 'Missing',
-          // Include other key fields for debugging
-          storeId: req.body.storeId,
-          productId: req.body.productId,
-          template: req.body.template,
-        },
-      });
+      next(error);
     }
   };
 
   /**
    * Delete a voucher
    */
-  deleteVoucher = catchAsync(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    await this.voucherService.deleteVoucher(id);
+  deleteVoucher = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
 
-    res.status(200).json({
-      success: true,
-      message: 'Voucher deleted successfully',
-    });
-  });
+      const existingVoucher = await this.voucherService.getVoucherById(id);
+      if (!existingVoucher) {
+        return next(ErrorTypes.NOT_FOUND('Voucher'));
+      }
+
+      const result = await this.voucherService.deleteVoucher(id);
+      if (!result) {
+        return next(ErrorTypes.INTERNAL('Failed to delete voucher'));
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Voucher deleted successfully',
+      });
+    } catch (error) {
+      logger.error('Error deleting voucher:', error);
+      next(error);
+    }
+  };
 
   /**
    * Redeem a voucher by code
    */
-  redeemVoucher = catchAsync(async (req: Request, res: Response) => {
-    const { code } = req.params;
-    const redeemedVoucher = await this.voucherService.redeemVoucher(code);
+  redeemVoucher = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { code } = req.params;
 
-    res.status(200).json({
-      success: true,
-      data: redeemedVoucher,
-      message: 'Voucher redeemed successfully',
-    });
-  });
+      const voucher = await this.voucherService.getVoucherByCode(code);
+      if (!voucher) {
+        return next(ErrorTypes.NOT_FOUND('Voucher'));
+      }
+
+      if (voucher.isRedeemed) {
+        return next(ErrorTypes.BAD_REQUEST('Voucher has already been redeemed'));
+      }
+
+      const redeemedVoucher = await this.voucherService.redeemVoucher(code);
+      if (!redeemedVoucher) {
+        return next(ErrorTypes.INTERNAL('Failed to redeem voucher'));
+      }
+
+      res.status(200).json({
+        success: true,
+        data: redeemedVoucher,
+        message: 'Voucher redeemed successfully',
+      });
+    } catch (error) {
+      logger.error('Error redeeming voucher:', error);
+      next(error);
+    }
+  };
 }

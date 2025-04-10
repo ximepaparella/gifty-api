@@ -7,6 +7,7 @@ import { handleAsync } from '@shared/infrastructure/middleware/asyncHandler';
 import { deleteFile } from '@shared/infrastructure/services/fileUpload';
 import logger from '@shared/infrastructure/logging/logger';
 import { v2 as cloudinary } from 'cloudinary';
+import { ErrorTypes } from '@shared/types/appError';
 
 // Extended Request type to include file from multer
 interface RequestWithFile extends Request {
@@ -48,11 +49,9 @@ export class StoreController {
       // Validate store data
       const validationResult = validateStore(storeData);
       if (!validationResult || validationResult.error) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'Invalid store data',
-          errors: validationResult?.error?.message || 'Validation failed',
-        });
+        return next(
+          ErrorTypes.VALIDATION(validationResult?.error?.message || 'Invalid store data')
+        );
       }
 
       // If there's a logo file, store the temporary path
@@ -82,57 +81,59 @@ export class StoreController {
           );
 
           // Update the store with the new logo path
-          await this.service.updateStore(store._id.toString(), {
+          const updatedStore = await this.service.updateStore(store._id.toString(), {
             logo: result.secure_url,
           });
 
-          store.logo = result.secure_url;
+          res.status(201).json({
+            success: true,
+            data: updatedStore,
+          });
         } catch (error) {
           logger.error('Error moving logo file:', error);
-          // Don't throw here, we still want to return the created store
+          next(ErrorTypes.INTERNAL('Error processing store logo'));
         }
+      } else {
+        res.status(201).json({
+          success: true,
+          data: store,
+        });
       }
-
-      res.status(201).json({
-        status: 'success',
-        data: store,
-      });
     } catch (error) {
       logger.error('Error creating store:', error);
       // If there's an error and we uploaded a file, clean it up
       if (tempLogoPath) {
-        await deleteFile(tempLogoPath);
+        await deleteFile(tempLogoPath).catch((err) =>
+          logger.error('Error deleting temporary logo:', err)
+        );
       }
-      throw error;
+      next(error);
     }
   });
 
-  getStores = catchAsync(async (req: Request, res: Response) => {
+  getStores = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const stores = await this.service.getStores();
     res.status(200).json({
-      status: 'success',
+      success: true,
       data: stores,
     });
   });
 
-  getStoreById = catchAsync(async (req: Request, res: Response) => {
+  getStoreById = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const store = await this.service.getStoreById(req.params.id);
     if (!store) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Store not found',
-      });
+      return next(ErrorTypes.NOT_FOUND('Store'));
     }
     res.status(200).json({
-      status: 'success',
+      success: true,
       data: store,
     });
   });
 
-  getStoresByOwnerId = catchAsync(async (req: Request, res: Response) => {
+  getStoresByOwnerId = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const stores = await this.service.getStoresByOwnerId(req.params.ownerId);
     res.status(200).json({
-      status: 'success',
+      success: true,
       data: stores,
     });
   });
@@ -146,15 +147,17 @@ export class StoreController {
       const storeData = JSON.parse(req.body.data || '{}');
       logger.info('Parsed store data:', storeData);
 
+      const existingStore = await this.service.getStoreById(id);
+      if (!existingStore) {
+        return next(ErrorTypes.NOT_FOUND('Store'));
+      }
+
       // If there's a logo file, add the Cloudinary URL to store data
       if (req.file && req.file.path) {
         logger.info('New logo file detected:', req.file);
 
         // Get existing store to delete old logo
-        const existingStore = await this.service.getStoreById(id);
-        logger.info('Existing store:', existingStore);
-
-        if (existingStore?.logo) {
+        if (existingStore.logo) {
           logger.info('Attempting to delete old logo:', existingStore.logo);
           try {
             await deleteFile(existingStore.logo);
@@ -172,8 +175,7 @@ export class StoreController {
         // Check if logo should be removed
         if (Object.hasOwn(storeData, 'logo') && !storeData.logo) {
           logger.info('Logo removal requested');
-          const existingStore = await this.service.getStoreById(id);
-          if (existingStore?.logo) {
+          if (existingStore.logo) {
             logger.info('Attempting to delete logo:', existingStore.logo);
             try {
               await deleteFile(existingStore.logo);
@@ -185,16 +187,19 @@ export class StoreController {
         }
       }
 
-      const store = await this.service.updateStore(id, storeData);
-      logger.info('Store update completed:', store);
+      const updatedStore = await this.service.updateStore(id, storeData);
+      if (!updatedStore) {
+        return next(ErrorTypes.INTERNAL('Failed to update store'));
+      }
 
+      logger.info('Store update completed:', updatedStore);
       res.status(200).json({
-        status: 'success',
-        data: store,
+        success: true,
+        data: updatedStore,
       });
     } catch (error) {
       logger.error('Error in updateStore:', error);
-      throw error;
+      next(error);
     }
   });
 

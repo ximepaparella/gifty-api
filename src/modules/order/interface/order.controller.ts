@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { OrderService } from '../application/order.service';
 import { catchAsync } from '@shared/utils';
-import { AppError } from '@shared/types/appError';
+import { ErrorTypes } from '../../../shared/types/appError';
 import path from 'path';
 import fs from 'fs';
+import logger from '../../../shared/infrastructure/logging/logger';
 
 export class OrderController {
   constructor(private orderService: OrderService) {}
@@ -23,17 +24,21 @@ export class OrderController {
    * Get order by ID
    */
   getOrderById = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.params;
-    const order = await this.orderService.getOrderById(id);
+    try {
+      const { id } = req.params;
+      const order = await this.orderService.getOrderById(id);
 
-    if (!order) {
-      return next(new AppError('Order not found', 404));
+      if (!order) {
+        return next(ErrorTypes.NOT_FOUND('Order'));
+      }
+
+      res.status(200).json({
+        success: true,
+        data: order,
+      });
+    } catch (error) {
+      next(error);
     }
-
-    res.status(200).json({
-      success: true,
-      data: order,
-    });
   });
 
   /**
@@ -51,18 +56,22 @@ export class OrderController {
   /**
    * Get order by voucher code
    */
-  getVoucherByCode = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { code } = req.params;
-    const order = await this.orderService.getOrderByVoucherCode(code);
+  getOrderByVoucherCode = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { code } = req.params;
+      const order = await this.orderService.getOrderByVoucherCode(code);
 
-    if (!order) {
-      return next(new AppError('Order with this voucher code not found', 404));
+      if (!order) {
+        return next(ErrorTypes.NOT_FOUND('Order with this voucher code'));
+      }
+
+      res.status(200).json({
+        success: true,
+        data: order,
+      });
+    } catch (error) {
+      next(error);
     }
-
-    res.status(200).json({
-      success: true,
-      data: order,
-    });
   });
 
   /**
@@ -88,7 +97,7 @@ export class OrderController {
     const updatedOrder = await this.orderService.updateOrder(id, orderData);
 
     if (!updatedOrder) {
-      return next(new AppError('Order not found', 404));
+      return next(ErrorTypes.NOT_FOUND('Order'));
     }
 
     res.status(200).json({
@@ -105,7 +114,7 @@ export class OrderController {
     const result = await this.orderService.deleteOrder(id);
 
     if (!result) {
-      return next(new AppError('Order not found', 404));
+      return next(ErrorTypes.NOT_FOUND('Order'));
     }
 
     res.status(200).json({
@@ -118,18 +127,24 @@ export class OrderController {
    * Redeem a voucher
    */
   redeemVoucher = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { code } = req.params;
-    const redeemedOrder = await this.orderService.redeemVoucher(code);
-
-    if (!redeemedOrder) {
-      return next(new AppError('Voucher not found or already redeemed', 404));
+    try {
+      const { id } = req.params;
+      const order = await this.orderService.getOrderById(id);
+      if (!order) {
+        return next(ErrorTypes.NOT_FOUND('Order'));
+      }
+      if (!order.voucher || order.voucher.isRedeemed) {
+        return next(ErrorTypes.BAD_REQUEST('Voucher not found or already redeemed'));
+      }
+      const redeemedOrder = await this.orderService.redeemVoucher(id);
+      res.status(200).json({
+        success: true,
+        data: redeemedOrder,
+        message: 'Voucher redeemed successfully',
+      });
+    } catch (error) {
+      next(error);
     }
-
-    res.status(200).json({
-      success: true,
-      data: redeemedOrder,
-      message: 'Voucher redeemed successfully',
-    });
   });
 
   /**
@@ -140,7 +155,10 @@ export class OrderController {
     const result = await this.orderService.resendVoucherEmails(id);
 
     if (!result) {
-      return next(new AppError('Order not found or emails could not be sent', 404));
+      return next(
+        ErrorTypes.NOT_FOUND('Order') ||
+          ErrorTypes.INTERNAL('Order not found or emails could not be sent')
+      );
     }
 
     res.status(200).json({
@@ -153,29 +171,31 @@ export class OrderController {
    * Send voucher emails with PDF attachments
    */
   sendVoucherEmails = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.params;
-    const order = await this.orderService.getOrderById(id);
+    try {
+      const { id } = req.params;
+      const order = await this.orderService.getOrderById(id);
 
-    if (!order) {
-      return next(new AppError('Order not found', 404));
+      if (!order) {
+        return next(ErrorTypes.NOT_FOUND('Order'));
+      }
+
+      // Ensure PDF exists
+      const pdfBuffer = await this.orderService.generateVoucherPDF(id);
+      if (!pdfBuffer) {
+        return next(ErrorTypes.INTERNAL('Failed to generate PDF for the voucher'));
+      }
+
+      // Send emails
+      await this.orderService.resendVoucherEmails(id);
+
+      res.status(200).json({
+        success: true,
+        message: 'Voucher emails with PDF attachments sent successfully',
+      });
+    } catch (error) {
+      logger.error('Failed to send voucher emails:', error);
+      next(ErrorTypes.INTERNAL('Failed to send voucher emails'));
     }
-
-    // Ensure PDF exists
-    const pdfBuffer = await this.orderService.generateVoucherPDF(id);
-    if (!pdfBuffer) {
-      return next(new AppError('Failed to generate PDF for the voucher', 500));
-    }
-
-    // Send emails
-    const result = await this.orderService.resendVoucherEmails(id);
-    if (!result) {
-      return next(new AppError('Failed to send voucher emails', 500));
-    }
-
-    res.status(200).json({
-      success: true,
-      message: 'Voucher emails with PDF attachments sent successfully',
-    });
   });
 
   /**
@@ -186,13 +206,13 @@ export class OrderController {
     const order = await this.orderService.getOrderById(id);
 
     if (!order) {
-      return next(new AppError('Order not found', 404));
+      return next(ErrorTypes.NOT_FOUND('Order'));
     }
 
     // Send customer email with PDF
     const result = await this.orderService.resendCustomerEmail(id);
     if (!result) {
-      return next(new AppError('Failed to send voucher email to customer', 500));
+      return next(ErrorTypes.INTERNAL('Failed to send voucher email to customer'));
     }
 
     res.status(200).json({
@@ -209,13 +229,13 @@ export class OrderController {
     const order = await this.orderService.getOrderById(id);
 
     if (!order) {
-      return next(new AppError('Order not found', 404));
+      return next(ErrorTypes.NOT_FOUND('Order'));
     }
 
     // Send receiver email with PDF
     const result = await this.orderService.resendReceiverEmail(id);
     if (!result) {
-      return next(new AppError('Failed to send voucher email to receiver', 500));
+      return next(ErrorTypes.INTERNAL('Failed to send voucher email to receiver'));
     }
 
     res.status(200).json({
@@ -232,13 +252,13 @@ export class OrderController {
     const order = await this.orderService.getOrderById(id);
 
     if (!order) {
-      return next(new AppError('Order not found', 404));
+      return next(ErrorTypes.NOT_FOUND('Order'));
     }
 
     // Send store email with PDF
     const result = await this.orderService.resendStoreEmail(id);
     if (!result) {
-      return next(new AppError('Failed to send voucher email to store', 500));
+      return next(ErrorTypes.INTERNAL('Failed to send voucher email to store'));
     }
 
     res.status(200).json({
@@ -255,7 +275,7 @@ export class OrderController {
     const order = await this.orderService.getOrderById(id);
 
     if (!order) {
-      return next(new AppError('Order not found', 404));
+      return next(ErrorTypes.NOT_FOUND('Order'));
     }
 
     // Check if PDF has already been generated
@@ -280,7 +300,7 @@ export class OrderController {
     const pdfBuffer = await this.orderService.generateVoucherPDF(id);
 
     if (!pdfBuffer) {
-      return next(new AppError('Order not found or PDF could not be generated', 404));
+      return next(ErrorTypes.INTERNAL('Order not found or PDF could not be generated'));
     }
 
     res.setHeader('Content-Type', 'application/pdf');

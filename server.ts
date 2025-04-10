@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import passport from 'passport';
@@ -9,7 +9,7 @@ import fs from 'fs';
 
 import logger from '@shared/infrastructure/logging/logger';
 import { AppError } from '@shared/types/appError';
-import { errorHandler as globalErrorHandler } from '@shared/infrastructure/errors/errorHandler';
+import { errorHandler, notFoundHandler } from '@shared/infrastructure/errors/errorHandler';
 import { setupSwagger } from '@shared/infrastructure/swagger/swagger';
 import { authenticate } from '@shared/infrastructure/middleware/auth';
 
@@ -138,49 +138,30 @@ app.delete(
 // Setup Swagger documentation
 setupSwagger(app);
 
-// Error handling middleware
-const errorHandler: ErrorRequestHandler = (
-  err: AppError,
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
-  logger.error('Error:', err);
+// Add 404 handler after all routes
+app.use(notFoundHandler);
 
-  if (err.isOperational) {
-    res.status(err.statusCode || 500).json({
-      status: err.status || 'error',
-      message: err.message,
-    });
-    return;
-  }
-
-  // Programming or other unknown error
-  res.status(500).json({
-    status: 'error',
-    message: 'Something went wrong!',
-  });
-};
-
-app.use(globalErrorHandler);
+// Global error handler
+app.use(errorHandler);
 
 // Database connection
 const MONGO_URI = process.env.MONGO_URI;
 if (!MONGO_URI) {
-  throw new Error('MONGO_URI environment variable is not defined');
+  logger.error('MONGO_URI environment variable is not defined');
+  throw new AppError('Database connection configuration is missing', 500, false);
 }
 
 mongoose
   .connect(MONGO_URI)
   .then(() => {
-    console.log('Connected to MongoDB');
+    logger.info('Connected to MongoDB');
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+      logger.info(`Server is running on port ${PORT}`);
     });
   })
   .catch((error) => {
-    console.error('Error connecting to MongoDB:', error);
+    logger.error('Error connecting to MongoDB:', error);
     process.exit(1);
   });
 
