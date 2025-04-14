@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { UserService } from '../application/user.service';
 import { CreateUserDTO, UpdateUserDTO, LoginCredentialsDTO } from '../domain/user.entity';
 import { ErrorTypes } from '@shared/types/appError';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 
 export class UserController {
   constructor(private userService: UserService) {}

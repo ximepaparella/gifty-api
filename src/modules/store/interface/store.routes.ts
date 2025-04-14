@@ -5,7 +5,7 @@ import { StoreRepository } from '../infrastructure/store.repository';
 import { authenticate } from '@shared/infrastructure/middleware/auth';
 import { uploadStoreLogo } from '@shared/infrastructure/services/fileUpload';
 
-const router = express.Router();
+export const storeRouter = express.Router();
 
 // Initialize repository, service, and controller
 const storeRepository = new StoreRepository();
@@ -14,26 +14,24 @@ const storeController = new StoreController(storeService);
 
 // Public routes
 // Get all stores
-router.get('/', (req, res, next) => storeController.getStores(req, res, next));
+storeRouter.get('/', (req, res, next) => storeController.getStores(req, res, next));
 
 // Get store by ID
-router.get('/:id', (req, res, next) => storeController.getStoreById(req, res, next));
+storeRouter.get('/:id', (req, res, next) => storeController.getStoreById(req, res, next));
 
 // Get store logo
-router.get('/:id/logo', (req, res, next) => storeController.getLogo(req, res, next));
+storeRouter.get('/:id/logo', (req, res, next) => storeController.getLogo(req, res, next));
 
 // Protected routes
-router.use(authenticate);
+storeRouter.use(authenticate);
 
 // Create new store with logo
-router.post('/', uploadStoreLogo, (req, res, next) => storeController.createStore(req, res, next));
+storeRouter.post('/', uploadStoreLogo, (req, res, next) => storeController.createStore(req, res, next));
 
 // Update store with logo
-router.put('/:id', uploadStoreLogo, (req, res, next) =>
+storeRouter.put('/:id', uploadStoreLogo, (req, res, next) =>
   storeController.updateStore(req, res, next)
 );
 
 // Delete store
-router.delete('/:id', (req, res, next) => storeController.deleteStore(req, res, next));
-
-export default router;
+storeRouter.delete('/:id', (req, res, next) => storeController.deleteStore(req, res, next));

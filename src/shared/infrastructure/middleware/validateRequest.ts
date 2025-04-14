@@ -21,4 +21,4 @@ const validateRequest = (schema: Schema) => {
   };
 };
 
-export default validateRequest;
+export { validateRequest };

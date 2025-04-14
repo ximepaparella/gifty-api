@@ -28,4 +28,4 @@ const passwordResetSchema = {
   }),
 };
 
-export default passwordResetSchema;
+export { passwordResetSchema };

@@ -57,4 +57,3 @@ export const validateProduct = (product: unknown) => {
 };
 
 export const Product = mongoose.model<IProduct>('Product', ProductSchema);
-export default Product;

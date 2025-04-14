@@ -1,7 +1,7 @@
 import express from 'express';
 import * as passwordResetController from './passwordReset.controller';
-import validateRequest from '@shared/infrastructure/middleware/validateRequest';
-import passwordResetSchema from '../domain/passwordReset.schema';
+import { validateRequest } from '@shared/infrastructure/middleware/validateRequest';
+import { passwordResetSchema } from '../domain/passwordReset.schema';
 
 const router = express.Router();
 
@@ -19,4 +19,4 @@ router.post(
   passwordResetController.resetPassword
 );
 
-export default router;
+export { router as passwordResetRouter };

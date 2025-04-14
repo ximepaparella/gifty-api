@@ -1,11 +1,16 @@
 import winston from 'winston';
 import path from 'path';
 import fs from 'fs';
+import { ErrorTypes } from '@shared/types/appError';
 
 // Create logs directory if it doesn't exist
 const logDir = path.join(process.cwd(), 'logs');
 if (!fs.existsSync(logDir)) {
-  fs.mkdirSync(logDir);
+  try {
+    fs.mkdirSync(logDir);
+  } catch (error) {
+    throw ErrorTypes.INTERNAL(`Failed to create logs directory: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
 
 // Define log format
@@ -28,20 +33,28 @@ const logger = winston.createLogger({
     new winston.transports.File({
       filename: path.join(logDir, 'error.log'),
       level: 'error',
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
     }),
     // Write all logs with level 'info' and below to combined.log
     new winston.transports.File({
       filename: path.join(logDir, 'combined.log'),
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
     }),
   ],
   exceptionHandlers: [
     new winston.transports.File({
       filename: path.join(logDir, 'exceptions.log'),
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
     }),
   ],
   rejectionHandlers: [
     new winston.transports.File({
       filename: path.join(logDir, 'rejections.log'),
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
     }),
   ],
 });
@@ -61,4 +74,4 @@ if (process.env.NODE_ENV !== 'production') {
   );
 }
 
-export default logger;
+export { logger };
