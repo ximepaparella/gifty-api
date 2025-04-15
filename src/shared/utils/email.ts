@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import { AppError, ErrorTypes } from '@shared/types/appError';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 
 /**
  * Email options interface

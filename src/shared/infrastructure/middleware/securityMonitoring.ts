@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import logger from '../logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 import { securityConfig } from '../config/security.config';
 
 // In-memory store for IP violations (in production, use Redis or similar)

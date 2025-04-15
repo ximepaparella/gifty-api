@@ -1,7 +1,7 @@
 import { IVoucher, IVoucherInput, IVoucherRepository } from '../domain/voucher.interface';
-import VoucherModel, { IVoucherDocument } from './voucher.model';
+import { VoucherModel } from './voucher.model';
 import { ErrorTypes } from '@shared/types/appError';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 import { Model } from 'mongoose';
 
 interface ValidationError extends Error {

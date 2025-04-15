@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { VoucherService } from '../application/voucher.service';
-import catchAsync from '@shared/utils/catchAsync';
 import { IVoucherInput } from '../domain/voucher.interface';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 import { ErrorTypes } from '@shared/types/appError';
 
 export class VoucherController {

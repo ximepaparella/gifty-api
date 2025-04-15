@@ -1,7 +1,7 @@
 import { IVoucher, IVoucherInput } from '../domain/voucher.interface';
 import { AppError, ErrorTypes } from '@shared/types/appError';
 import { validateVoucher } from './voucher.validator';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 import { VoucherRepository } from '../infrastructure/voucher.repository';
 
 export class VoucherService {

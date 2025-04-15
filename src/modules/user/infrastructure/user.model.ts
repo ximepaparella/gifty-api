@@ -2,7 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { UserDocument, UserRole } from '../domain/user.entity';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 
 const UserSchema = new Schema<UserDocument>(
   {

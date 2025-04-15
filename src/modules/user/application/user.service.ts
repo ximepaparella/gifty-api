@@ -10,7 +10,7 @@ import { UserRepository } from '../domain/user.repository';
 import { PaginationOptions, PaginatedResult } from '@shared/types';
 import { ErrorTypes } from '@shared/types/appError';
 import { generateToken } from '@shared/infrastructure/middleware/auth';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 
 export class UserService {
   constructor(private userRepository: UserRepository) {}

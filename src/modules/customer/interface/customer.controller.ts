@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { CustomerService } from '../application/customer.service';
 import { ICustomer } from '../domain/customer.entity';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 import { ErrorTypes } from '@shared/types/appError';
 
 export class CustomerController {

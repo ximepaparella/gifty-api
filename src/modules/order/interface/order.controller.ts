@@ -4,7 +4,7 @@ import { catchAsync } from '@shared/utils';
 import { ErrorTypes } from '../../../shared/types/appError';
 import path from 'path';
 import fs from 'fs';
-import logger from '../../../shared/infrastructure/logging/logger';
+import { logger } from '../../../shared/infrastructure/logging/logger';
 
 export class OrderController {
   constructor(private orderService: OrderService) {}

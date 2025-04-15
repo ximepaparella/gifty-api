@@ -6,7 +6,7 @@ import { authenticate } from '@shared/infrastructure/middleware/auth';
 import { uploadProductImage } from '@shared/infrastructure/services/fileUpload';
 import { NextFunction, Request, Response } from 'express';
 import { ErrorTypes } from '@shared/types/appError';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 
 export const productRouter = express.Router();
 

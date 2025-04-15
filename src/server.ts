@@ -42,7 +42,10 @@ const customerRepository = new CustomerRepository();
 const customerService = new CustomerService(customerRepository);
 const customerController = new CustomerController(customerService);
 
-// Apply middleware
+// Apply security middleware
+applySecurityMiddleware(app);
+
+// Apply basic middleware
 app.use(cors());
 app.use(helmet());
 app.use(compression());
@@ -84,7 +87,7 @@ const startServer = async () => {
     logger.info('Cloudinary initialized');
 
     // Public routes
-    app.post('/api/v1/login', (req: Request, res: Response, next: NextFunction) => userController.login(req, res, next));
+    app.post('/api/v1/auth/login', (req: Request, res: Response, next: NextFunction) => userController.login(req, res, next));
 
     // Health check endpoint
     app.get('/api/v1/health', (req: Request, res: Response) => {
@@ -101,11 +104,13 @@ const startServer = async () => {
     // Setup Swagger documentation
     setupSwagger(app);
 
-    // Add 404 handler
+    // Add 404 handler - must be after all routes
     app.use(notFoundHandler);
 
-    // Global error handler
-    app.use(globalErrorHandler);
+    // Global error handler - must be last
+    app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+      globalErrorHandler(err, req, res, next);
+    });
 
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {

@@ -4,7 +4,7 @@ import { UserRepository } from '../domain/user.repository';
 import { UserModel } from './user.model';
 import { PaginationOptions, PaginatedResult } from '@shared/types';
 import { ErrorTypes } from '@shared/types/appError';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 
 export class MongoUserRepository implements UserRepository {
   async findAll(

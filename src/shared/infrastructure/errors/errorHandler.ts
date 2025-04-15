@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ErrorTypes } from '../../types/appError';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 import { sendErrorResponse } from '@shared/utils/response.utils';
 
 export const errorHandler = (
@@ -11,7 +11,11 @@ export const errorHandler = (
 ): void => {
   // Log the error for debugging
   logger.error('Error caught by global error handler:', {
-    error: err,
+    error: {
+      message: err.message,
+      name: err.name,
+      stack: err.stack
+    },
     path: req.path,
     method: req.method,
     query: req.query,
@@ -24,6 +28,6 @@ export const errorHandler = (
 
 // 404 handler middleware
 export const notFoundHandler = (req: Request, _res: Response, next: NextFunction) => {
-  const error = ErrorTypes.NOT_FOUND(`Route ${req.originalUrl}`);
+  const error = ErrorTypes.NOT_FOUND(`Route ${req.originalUrl} not found`);
   next(error);
 };

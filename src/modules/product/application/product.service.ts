@@ -1,8 +1,8 @@
 import { IProduct, Product } from '../domain/product.entity';
 import { ProductRepository, IProductRepository } from '../domain/product.repository';
 import { validateProduct } from '../domain/product.schema';
-import { AppError, ErrorTypes } from '@shared/types/appError';
-import logger from '@shared/infrastructure/logging/logger';
+import { ErrorTypes } from '@shared/types/appError';
+import { logger } from '@shared/infrastructure/logging/logger';
 import mongoose from 'mongoose';
 
 export class ProductService {
