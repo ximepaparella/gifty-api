@@ -568,4 +568,4 @@ export const voucherSwagger = {
       },
     },
   },
-} as const; 
+} as const;

@@ -1,4 +1,4 @@
-import mongoose, { Types } from 'mongoose';
+import { Types } from 'mongoose';
 
 export interface IPaymentDetails {
   paymentId: string;
@@ -68,11 +68,11 @@ export interface IOrderInput {
 }
 
 export interface IOrderRepository {
-  create(order: IOrder): Promise<IOrder>;
+  create(order: IOrderInput): Promise<IOrder>;
   findAll(): Promise<IOrder[]>;
   findById(id: string): Promise<IOrder | null>;
   findByCustomerId(customerId: string): Promise<IOrder[]>;
   findByVoucherCode(code: string): Promise<IOrder | null>;
   update(id: string, order: Partial<IOrderInput>): Promise<IOrder | null>;
   delete(id: string): Promise<boolean>;
-} 
+}

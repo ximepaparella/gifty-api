@@ -12,8 +12,8 @@ describe('Store Schema Validation', () => {
     social: {
       instagram: 'https://instagram.com/teststore',
       facebook: 'https://facebook.com/teststore',
-      twitter: 'https://twitter.com/teststore'
-    }
+      twitter: 'https://twitter.com/teststore',
+    },
   };
 
   it('should validate a correct store object', () => {
@@ -62,8 +62,8 @@ describe('Store Schema Validation', () => {
       social: {
         instagram: 'not-a-url',
         facebook: 'not-a-url',
-        twitter: 'not-a-url'
-      }
+        twitter: 'not-a-url',
+      },
     };
     const { error } = validateStore(invalidData);
     expect(error?.details[0].message).toContain('must be a valid uri');
@@ -72,7 +72,7 @@ describe('Store Schema Validation', () => {
   it('should accept a store without logo', () => {
     const { error } = validateStore({
       ...validStoreData,
-      logo: undefined
+      logo: undefined,
     });
     expect(error).toBeUndefined();
   });
@@ -80,7 +80,7 @@ describe('Store Schema Validation', () => {
   it('should accept a store without social media', () => {
     const { error } = validateStore({
       ...validStoreData,
-      social: undefined
+      social: undefined,
     });
     expect(error).toBeUndefined();
   });
@@ -89,9 +89,9 @@ describe('Store Schema Validation', () => {
     const { error } = validateStore({
       ...validStoreData,
       social: {
-        instagram: 'https://instagram.com/teststore'
-      }
+        instagram: 'https://instagram.com/teststore',
+      },
     });
     expect(error).toBeUndefined();
   });
-}); 
+});

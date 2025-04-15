@@ -15,30 +15,26 @@ const ProductModel = mongoose.model<IProduct>('Product', ProductSchema);
 
 export class ProductRepository implements IProductRepository {
   async create(product: IProduct): Promise<IProduct> {
-    return await ProductModel.create(product);
+    return ProductModel.create(product);
   }
 
   async findAll(): Promise<IProduct[]> {
-    return await ProductModel.find().exec();
+    return ProductModel.find().exec();
   }
 
   async findById(id: string): Promise<IProduct | null> {
-    return await ProductModel.findById(id).exec();
+    return ProductModel.findById(id).exec();
   }
 
   async findByStoreId(storeId: string): Promise<IProduct[]> {
-    return await ProductModel.find({ storeId: new mongoose.Types.ObjectId(storeId) }).exec();
+    return ProductModel.find({ storeId: new mongoose.Types.ObjectId(storeId) }).exec();
   }
 
   async update(id: string, product: Partial<IProduct>): Promise<IProduct | null> {
-    return await ProductModel.findByIdAndUpdate(
-      id,
-      { $set: product },
-      { new: true }
-    ).exec();
+    return ProductModel.findByIdAndUpdate(id, { $set: product }, { new: true }).exec();
   }
 
   async delete(id: string): Promise<IProduct | null> {
-    return await ProductModel.findByIdAndDelete(id).exec();
+    return ProductModel.findByIdAndDelete(id).exec();
   }
-} 
+}

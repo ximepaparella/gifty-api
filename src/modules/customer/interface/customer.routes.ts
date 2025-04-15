@@ -17,15 +17,15 @@ const customerController = new CustomerController(customerService);
 router.post('/', (req, res, next) => customerController.createCustomer(req, res, next));
 
 // Get or create customer
-router.post('/get-or-create', (req, res, next) => customerController.getOrCreateCustomer(req, res, next));
-
+router.post('/get-or-create', (req, res, next) =>
+  customerController.getOrCreateCustomer(req, res, next)
+);
 
 // Protected routes
 router.use(authenticate);
 
 // Get customer by ID
 router.get('/:id', (req, res, next) => customerController.getCustomerById(req, res, next));
-
 
 // Get all customers
 router.get('/', (req, res, next) => customerController.getCustomers(req, res, next));
@@ -37,4 +37,4 @@ router.put('/:id', (req, res, next) => customerController.updateCustomer(req, re
 router.delete('/:id', (req, res, next) => customerController.deleteCustomer(req, res, next));
 
 // Export the router
-export default router; 
+export { router as customerRouter };

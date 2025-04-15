@@ -12,4 +12,4 @@ const catchAsync = (fn: (req: Request, res: Response, next: NextFunction) => Pro
   };
 };
 
-export default catchAsync; 
+export { catchAsync };

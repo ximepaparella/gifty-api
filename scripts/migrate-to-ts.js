@@ -21,7 +21,7 @@ const IGNORE_DIRS = ['node_modules', 'dist', '.git'];
 function getAllFiles(dir, fileList = []) {
   const files = fs.readdirSync(dir);
 
-  files.forEach(file => {
+  files.forEach((file) => {
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
 
@@ -45,16 +45,16 @@ function renameJsToTs(filePath) {
 // Main function
 function migrateToTypeScript() {
   console.log('Starting migration to TypeScript...');
-  
+
   // Get all JavaScript files
   const jsFiles = getAllFiles(SRC_DIR);
   console.log(`Found ${jsFiles.length} JavaScript files to convert.`);
-  
+
   // Rename files
-  jsFiles.forEach(file => {
+  jsFiles.forEach((file) => {
     renameJsToTs(file);
   });
-  
+
   console.log('Migration completed!');
   console.log('Next steps:');
   console.log('1. Update imports in TypeScript files');
@@ -63,4 +63,4 @@ function migrateToTypeScript() {
 }
 
 // Run the migration
-migrateToTypeScript(); 
+migrateToTypeScript();

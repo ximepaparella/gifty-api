@@ -41,4 +41,4 @@ export class Customer implements ICustomer {
     this.createdAt = customer.createdAt;
     this.updatedAt = customer.updatedAt;
   }
-} 
+}

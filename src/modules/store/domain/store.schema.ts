@@ -15,10 +15,10 @@ const StoreSchema = new mongoose.Schema<IStore>({
     facebook: { type: String, default: null },
     tiktok: { type: String, default: null },
     youtube: { type: String, default: null },
-    others: [{ name: String, url: String }]
+    others: [{ name: String, url: String }],
   },
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 });
 
 // Add indexes
@@ -29,7 +29,9 @@ StoreSchema.index({ email: 1 }, { unique: true });
 export const validateStore = (store: any) => {
   const schema = Joi.object({
     name: Joi.string().required(),
-    ownerId: Joi.string().pattern(/^[0-9a-fA-F]{24}$/).required(),
+    ownerId: Joi.string()
+      .pattern(/^[0-9a-fA-F]{24}$/)
+      .required(),
     email: Joi.string().email().required(),
     phone: Joi.string().required(),
     address: Joi.string().required(),
@@ -39,16 +41,17 @@ export const validateStore = (store: any) => {
       facebook: Joi.string().allow(null),
       tiktok: Joi.string().allow(null),
       youtube: Joi.string().allow(null),
-      others: Joi.array().items(
-        Joi.object({
-          name: Joi.string().required(),
-          url: Joi.string().required()
-        })
-      ).default([])
-    }).default({})
+      others: Joi.array()
+        .items(
+          Joi.object({
+            name: Joi.string().required(),
+            url: Joi.string().required(),
+          })
+        )
+        .default([]),
+    }).default({}),
   });
   return schema.validate(store);
 };
 
 export const Store = mongoose.model<IStore>('Store', StoreSchema);
-export default Store; 

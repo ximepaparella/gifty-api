@@ -13,6 +13,7 @@ Authenticates a user and returns a JWT token.
 **Authentication Required**: No
 
 **Request Body**:
+
 ```json
 {
   "email": "user@example.com",
@@ -21,6 +22,7 @@ Authenticates a user and returns a JWT token.
 ```
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -39,13 +41,13 @@ Authenticates a user and returns a JWT token.
 ```
 
 **Error Response**:
+
 ```json
 {
   "status": "error",
   "message": "Invalid email or password"
 }
 ```
-
 
 Resets a user's password using a reset token.
 
@@ -56,6 +58,7 @@ Resets a user's password using a reset token.
 **Authentication Required**: No
 
 **Request Body**:
+
 ```json
 {
   "token": "reset-token-from-email",
@@ -64,6 +67,7 @@ Resets a user's password using a reset token.
 ```
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -72,6 +76,7 @@ Resets a user's password using a reset token.
 ```
 
 **Error Response**:
+
 ```json
 {
   "status": "error",
@@ -89,4 +94,4 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ## Token Expiration
 
-JWT tokens expire after 24 hours. After expiration, you'll need to login again to obtain a new token. 
+JWT tokens expire after 24 hours. After expiration, you'll need to login again to obtain a new token.

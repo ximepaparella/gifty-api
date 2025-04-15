@@ -249,10 +249,10 @@ export const authSwagger = {
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/LoginInput'
-              }
-            }
-          }
+                $ref: '#/components/schemas/LoginInput',
+              },
+            },
+          },
         },
         responses: {
           200: {
@@ -263,17 +263,17 @@ export const authSwagger = {
                   type: 'object',
                   properties: {
                     status: { type: 'string', example: 'success' },
-                    token: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }
-                  }
-                }
-              }
-            }
+                    token: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
+                  },
+                },
+              },
+            },
           },
           401: {
-            $ref: '#/components/responses/UnauthorizedError'
-          }
-        }
-      }
+            $ref: '#/components/responses/UnauthorizedError',
+          },
+        },
+      },
     },
     '/auth/register': {
       post: {
@@ -284,10 +284,10 @@ export const authSwagger = {
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/RegisterInput'
-              }
-            }
-          }
+                $ref: '#/components/schemas/RegisterInput',
+              },
+            },
+          },
         },
         responses: {
           201: {
@@ -299,18 +299,18 @@ export const authSwagger = {
                   properties: {
                     status: { type: 'string', example: 'success' },
                     data: {
-                      $ref: '#/components/schemas/User'
-                    }
-                  }
-                }
-              }
-            }
+                      $ref: '#/components/schemas/User',
+                    },
+                  },
+                },
+              },
+            },
           },
           400: {
-            $ref: '#/components/responses/ValidationError'
-          }
-        }
-      }
+            $ref: '#/components/responses/ValidationError',
+          },
+        },
+      },
     },
     '/auth/forgot-password': {
       post: {
@@ -321,10 +321,10 @@ export const authSwagger = {
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/PasswordResetRequest'
-              }
-            }
-          }
+                $ref: '#/components/schemas/PasswordResetRequest',
+              },
+            },
+          },
         },
         responses: {
           200: {
@@ -335,14 +335,14 @@ export const authSwagger = {
                   type: 'object',
                   properties: {
                     status: { type: 'string', example: 'success' },
-                    message: { type: 'string', example: 'Password reset email sent' }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                    message: { type: 'string', example: 'Password reset email sent' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     '/auth/reset-password': {
       post: {
@@ -353,10 +353,10 @@ export const authSwagger = {
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/PasswordReset'
-              }
-            }
-          }
+                $ref: '#/components/schemas/PasswordReset',
+              },
+            },
+          },
         },
         responses: {
           200: {
@@ -367,18 +367,18 @@ export const authSwagger = {
                   type: 'object',
                   properties: {
                     status: { type: 'string', example: 'success' },
-                    message: { type: 'string', example: 'Password reset successful' }
-                  }
-                }
-              }
-            }
+                    message: { type: 'string', example: 'Password reset successful' },
+                  },
+                },
+              },
+            },
           },
           400: {
-            $ref: '#/components/responses/ValidationError'
-          }
-        }
-      }
-    }
+            $ref: '#/components/responses/ValidationError',
+          },
+        },
+      },
+    },
   },
   components: {
     schemas: {
@@ -387,8 +387,8 @@ export const authSwagger = {
         required: ['email', 'password'],
         properties: {
           email: { type: 'string', format: 'email', example: 'john@example.com' },
-          password: { type: 'string', format: 'password', example: 'password123' }
-        }
+          password: { type: 'string', format: 'password', example: 'password123' },
+        },
       },
       RegisterInput: {
         type: 'object',
@@ -396,24 +396,24 @@ export const authSwagger = {
         properties: {
           name: { type: 'string', example: 'John Doe' },
           email: { type: 'string', format: 'email', example: 'john@example.com' },
-          password: { type: 'string', format: 'password', example: 'password123' }
-        }
+          password: { type: 'string', format: 'password', example: 'password123' },
+        },
       },
       PasswordResetRequest: {
         type: 'object',
         required: ['email'],
         properties: {
-          email: { type: 'string', format: 'email', example: 'john@example.com' }
-        }
+          email: { type: 'string', format: 'email', example: 'john@example.com' },
+        },
       },
       PasswordReset: {
         type: 'object',
         required: ['token', 'password'],
         properties: {
           token: { type: 'string', example: 'reset-token-123' },
-          password: { type: 'string', format: 'password', example: 'newpassword123' }
-        }
-      }
-    }
-  }
-} as const; 
+          password: { type: 'string', format: 'password', example: 'newpassword123' },
+        },
+      },
+    },
+  },
+} as const;

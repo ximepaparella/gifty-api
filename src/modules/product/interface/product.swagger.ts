@@ -16,14 +16,14 @@ export const productSwagger = {
                     status: { type: 'string', example: 'success' },
                     data: {
                       type: 'array',
-                      items: { $ref: '#/components/schemas/Product' }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+                      items: { $ref: '#/components/schemas/Product' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       post: {
         tags: ['Products'],
@@ -41,11 +41,11 @@ export const productSwagger = {
                   name: { type: 'string', example: 'Product Name' },
                   description: { type: 'string', example: 'Product Description' },
                   price: { type: 'number', example: 99.99 },
-                  isActive: { type: 'boolean', example: true }
-                }
-              }
-            }
-          }
+                  isActive: { type: 'boolean', example: true },
+                },
+              },
+            },
+          },
         },
         responses: {
           201: {
@@ -56,14 +56,14 @@ export const productSwagger = {
                   type: 'object',
                   properties: {
                     status: { type: 'string', example: 'success' },
-                    data: { $ref: '#/components/schemas/Product' }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                    data: { $ref: '#/components/schemas/Product' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     '/products/{id}': {
       get: {
@@ -76,8 +76,8 @@ export const productSwagger = {
             in: 'path',
             required: true,
             schema: { type: 'string' },
-            description: 'Product ID'
-          }
+            description: 'Product ID',
+          },
         ],
         responses: {
           200: {
@@ -88,13 +88,13 @@ export const productSwagger = {
                   type: 'object',
                   properties: {
                     status: { type: 'string', example: 'success' },
-                    data: { $ref: '#/components/schemas/Product' }
-                  }
-                }
-              }
-            }
-          }
-        }
+                    data: { $ref: '#/components/schemas/Product' },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       put: {
         tags: ['Products'],
@@ -106,8 +106,8 @@ export const productSwagger = {
             in: 'path',
             required: true,
             schema: { type: 'string' },
-            description: 'Product ID'
-          }
+            description: 'Product ID',
+          },
         ],
         requestBody: {
           required: true,
@@ -120,11 +120,11 @@ export const productSwagger = {
                   name: { type: 'string', example: 'Updated Product Name' },
                   description: { type: 'string', example: 'Updated Product Description' },
                   price: { type: 'number', example: 149.99 },
-                  isActive: { type: 'boolean', example: true }
-                }
-              }
-            }
-          }
+                  isActive: { type: 'boolean', example: true },
+                },
+              },
+            },
+          },
         },
         responses: {
           200: {
@@ -135,13 +135,13 @@ export const productSwagger = {
                   type: 'object',
                   properties: {
                     status: { type: 'string', example: 'success' },
-                    data: { $ref: '#/components/schemas/Product' }
-                  }
-                }
-              }
-            }
-          }
-        }
+                    data: { $ref: '#/components/schemas/Product' },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       delete: {
         tags: ['Products'],
@@ -153,8 +153,8 @@ export const productSwagger = {
             in: 'path',
             required: true,
             schema: { type: 'string' },
-            description: 'Product ID'
-          }
+            description: 'Product ID',
+          },
         ],
         responses: {
           200: {
@@ -165,14 +165,14 @@ export const productSwagger = {
                   type: 'object',
                   properties: {
                     status: { type: 'string', example: 'success' },
-                    data: { $ref: '#/components/schemas/Product' }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                    data: { $ref: '#/components/schemas/Product' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     '/products/store/{storeId}': {
       get: {
@@ -185,8 +185,8 @@ export const productSwagger = {
             in: 'path',
             required: true,
             schema: { type: 'string' },
-            description: 'Store ID'
-          }
+            description: 'Store ID',
+          },
         ],
         responses: {
           200: {
@@ -199,16 +199,16 @@ export const productSwagger = {
                     status: { type: 'string', example: 'success' },
                     data: {
                       type: 'array',
-                      items: { $ref: '#/components/schemas/Product' }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      items: { $ref: '#/components/schemas/Product' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   components: {
     schemas: {
@@ -222,9 +222,9 @@ export const productSwagger = {
           price: { type: 'number', example: 99.99 },
           isActive: { type: 'boolean', example: true },
           createdAt: { type: 'string', format: 'date-time' },
-          updatedAt: { type: 'string', format: 'date-time' }
-        }
-      }
-    }
-  }
-} as const; 
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+    },
+  },
+} as const;

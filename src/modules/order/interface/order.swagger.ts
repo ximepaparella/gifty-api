@@ -121,7 +121,17 @@ export const orderSwagger = {
               },
               template: {
                 type: 'string',
-                enum: ['template1', 'template2', 'template3', 'template4', 'template5', 'birthday', 'christmas', 'valentine', 'general'],
+                enum: [
+                  'template1',
+                  'template2',
+                  'template3',
+                  'template4',
+                  'template5',
+                  'birthday',
+                  'christmas',
+                  'valentine',
+                  'general',
+                ],
                 description: 'Template design for the voucher',
                 example: 'birthday',
               },
@@ -258,7 +268,17 @@ export const orderSwagger = {
               },
               template: {
                 type: 'string',
-                enum: ['template1', 'template2', 'template3', 'template4', 'template5', 'birthday', 'christmas', 'valentine', 'general'],
+                enum: [
+                  'template1',
+                  'template2',
+                  'template3',
+                  'template4',
+                  'template5',
+                  'birthday',
+                  'christmas',
+                  'valentine',
+                  'general',
+                ],
                 description: 'Template design for the voucher',
                 example: 'birthday',
               },
@@ -709,4 +729,4 @@ export const orderSwagger = {
       },
     },
   },
-} as const; 
+} as const;

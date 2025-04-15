@@ -1,10 +1,11 @@
-import { IVoucher, IVoucherInput, IVoucherRepository } from '../domain/voucher.interface';
-import { notFoundError, validationError } from '@shared/types/appError';
+import { IVoucher, IVoucherInput } from '../domain/voucher.interface';
+import { AppError, ErrorTypes } from '@shared/types/appError';
 import { validateVoucher } from './voucher.validator';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
+import { VoucherRepository } from '../infrastructure/voucher.repository';
 
 export class VoucherService {
-  constructor(private voucherRepository: IVoucherRepository) {}
+  constructor(private voucherRepository: VoucherRepository) {}
 
   /**
    * Get all vouchers
@@ -20,11 +21,9 @@ export class VoucherService {
   async getVoucherById(id: string): Promise<IVoucher> {
     logger.info(`Getting voucher with ID ${id}`);
     const voucher = await this.voucherRepository.findById(id);
-    
     if (!voucher) {
-      throw notFoundError(`Voucher with ID ${id} not found`);
+      throw ErrorTypes.NOT_FOUND('Voucher');
     }
-    
     return voucher;
   }
 
@@ -34,11 +33,9 @@ export class VoucherService {
   async getVoucherByCode(code: string): Promise<IVoucher> {
     logger.info(`Getting voucher with code ${code}`);
     const voucher = await this.voucherRepository.findByCode(code);
-    
     if (!voucher) {
-      throw notFoundError(`Voucher with code ${code} not found`);
+      throw ErrorTypes.NOT_FOUND('Voucher');
     }
-    
     return voucher;
   }
 
@@ -64,54 +61,45 @@ export class VoucherService {
   async createVoucher(voucherData: IVoucherInput): Promise<IVoucher> {
     try {
       logger.info('Validating voucher data');
-      
+
       const validationErrors = validateVoucher(voucherData);
       if (validationErrors.length > 0) {
-        const error = validationError('Invalid voucher data');
-        (error as any).details = validationErrors;
-        throw error;
+        throw ErrorTypes.VALIDATION(validationErrors.join(', '));
       }
-      
+
       // Create a safe copy of the data to log (without the full QR code)
-      const safeDataForLogging = {...voucherData};
+      const safeDataForLogging = { ...voucherData };
       if (safeDataForLogging.qrCode) {
         safeDataForLogging.qrCode = `${safeDataForLogging.qrCode.substring(0, 30)}... (length: ${safeDataForLogging.qrCode.length})`;
       }
       logger.info('Creating voucher with data:', JSON.stringify(safeDataForLogging, null, 2));
-      
+
       // Check if QR code or customerId is present
-      logger.info(`QR Code provided: ${Boolean(voucherData.qrCode)}, CustomerId provided: ${Boolean(voucherData.customerId)}`);
-      
-      return this.voucherRepository.create(voucherData);
+      logger.info(
+        `QR Code provided: ${Boolean(voucherData.qrCode)}, CustomerId provided: ${Boolean(voucherData.customerId)}`
+      );
+
+      return await this.voucherRepository.create(voucherData);
     } catch (error: any) {
-      logger.error('Error in createVoucher service:', error);
-      
-      // Add more context to the error
+      logger.error('Error creating voucher:', error);
+
+      // Handle mongoose validation errors
       if (error.name === 'ValidationError' && error.errors) {
-        // Mongoose validation error
-        const validationErrors = Object.keys(error.errors).map(field => ({
+        const validationErrors = Object.keys(error.errors).map((field) => ({
           field,
-          message: error.errors[field].message
+          message: error.errors[field].message,
         }));
-        
-        const enhancedError = validationError('Mongoose validation failed');
-        (enhancedError as any).details = validationErrors;
-        throw enhancedError;
+        throw ErrorTypes.VALIDATION(
+          `Validation failed: ${validationErrors.map((e) => `${e.field}: ${e.message}`).join(', ')}`
+        );
       }
-      
-      // Re-throw the error with additional context
-      if (!error.isOperational) {
-        const wrappedError = new Error(`Error creating voucher: ${error.message}`);
-        (wrappedError as any).originalError = error;
-        (wrappedError as any).receivedData = {
-          hasQrCode: Boolean(voucherData.qrCode),
-          hasCustomerId: Boolean(voucherData.customerId),
-          fields: Object.keys(voucherData)
-        };
-        throw wrappedError;
+
+      // Re-throw AppError instances
+      if (error instanceof AppError) {
+        throw error;
       }
-      
-      throw error;
+
+      throw ErrorTypes.INTERNAL(`Error creating voucher: ${error.message}`);
     }
   }
 
@@ -121,45 +109,47 @@ export class VoucherService {
   async updateVoucher(id: string, voucherData: Partial<IVoucherInput>): Promise<IVoucher> {
     try {
       logger.info(`Updating voucher with ID ${id}`);
-      
+
       // Check if voucher exists
       const existingVoucher = await this.voucherRepository.findById(id);
       if (!existingVoucher) {
-        throw notFoundError(`Voucher with ID ${id} not found`);
+        throw ErrorTypes.NOT_FOUND('Voucher');
       }
-      
+
       // Create a safe copy of the data to log (without the full QR code)
-      const safeDataForLogging = {...voucherData};
+      const safeDataForLogging = { ...voucherData };
       if (safeDataForLogging.qrCode) {
         safeDataForLogging.qrCode = `${safeDataForLogging.qrCode.substring(0, 30)}... (length: ${safeDataForLogging.qrCode.length})`;
       }
       logger.info('Updating voucher with data:', JSON.stringify(safeDataForLogging, null, 2));
-      
+
       // Check if QR code or customerId is present
-      logger.info(`QR Code provided: ${Boolean(voucherData.qrCode)}, CustomerId provided: ${Boolean(voucherData.customerId)}`);
-      
+      logger.info(
+        `QR Code provided: ${Boolean(voucherData.qrCode)}, CustomerId provided: ${Boolean(voucherData.customerId)}`
+      );
+
       const updatedVoucher = await this.voucherRepository.update(id, voucherData);
       if (!updatedVoucher) {
-        throw notFoundError(`Failed to update voucher with ID ${id}`);
+        throw ErrorTypes.INTERNAL('Failed to update voucher');
       }
-      
+
       return updatedVoucher;
     } catch (error: any) {
       logger.error(`Error in updateVoucher service for ID ${id}:`, error);
-      
+
       // Add more context to the error
       if (error.name === 'ValidationError' && error.errors) {
         // Mongoose validation error
-        const validationErrors = Object.keys(error.errors).map(field => ({
+        const validationErrors = Object.keys(error.errors).map((field) => ({
           field,
-          message: error.errors[field].message
+          message: error.errors[field].message,
         }));
-        
-        const enhancedError = validationError('Mongoose validation failed');
+
+        const enhancedError = ErrorTypes.VALIDATION('Mongoose validation failed');
         (enhancedError as any).details = validationErrors;
         throw enhancedError;
       }
-      
+
       // Re-throw the error with additional context
       if (!error.isOperational) {
         const wrappedError = new Error(`Error updating voucher: ${error.message}`);
@@ -167,11 +157,11 @@ export class VoucherService {
         (wrappedError as any).receivedData = {
           hasQrCode: Boolean(voucherData.qrCode),
           hasCustomerId: Boolean(voucherData.customerId),
-          fields: Object.keys(voucherData)
+          fields: Object.keys(voucherData),
         };
         throw wrappedError;
       }
-      
+
       throw error;
     }
   }
@@ -179,21 +169,21 @@ export class VoucherService {
   /**
    * Delete a voucher
    */
-  async deleteVoucher(id: string): Promise<boolean> {
+  async deleteVoucher(id: string): Promise<IVoucher> {
     logger.info(`Deleting voucher with ID ${id}`);
-    
+
     // Check if voucher exists
     const existingVoucher = await this.voucherRepository.findById(id);
     if (!existingVoucher) {
-      throw notFoundError(`Voucher with ID ${id} not found`);
+      throw ErrorTypes.NOT_FOUND('Voucher');
     }
-    
-    const result = await this.voucherRepository.delete(id);
-    if (!result) {
-      throw notFoundError(`Failed to delete voucher with ID ${id}`);
+
+    const deletedVoucher = await this.voucherRepository.delete(id);
+    if (!deletedVoucher) {
+      throw ErrorTypes.INTERNAL('Failed to delete voucher');
     }
-    
-    return result;
+
+    return deletedVoucher;
   }
 
   /**
@@ -201,12 +191,16 @@ export class VoucherService {
    */
   async redeemVoucher(code: string): Promise<IVoucher> {
     logger.info(`Redeeming voucher with code ${code}`);
-    
-    const redeemedVoucher = await this.voucherRepository.redeem(code);
-    if (!redeemedVoucher) {
-      throw notFoundError(`Voucher with code ${code} not found, already redeemed, or expired`);
+
+    const voucher = await this.voucherRepository.redeem(code);
+    if (!voucher) {
+      throw ErrorTypes.NOT_FOUND('Voucher not found, already redeemed, or expired');
     }
-    
-    return redeemedVoucher;
+
+    return voucher;
   }
-} 
+
+  async generateVoucher(data: IVoucherInput): Promise<IVoucher> {
+    return this.voucherRepository.generateVoucher(data);
+  }
+}

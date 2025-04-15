@@ -1,5 +1,4 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { IVoucher } from './voucher.interface';
 
 // Explicitly define our document interface with correct types
 export interface IVoucherDocument extends Document {
@@ -25,94 +24,110 @@ export interface IVoucherDocument extends Document {
 
 const VoucherSchema = new Schema<IVoucherDocument>(
   {
-    storeId: { 
-      type: Schema.Types.ObjectId, 
+    storeId: {
+      type: Schema.Types.ObjectId,
       ref: 'Store',
-      required: [true, 'Store ID is required']
+      required: [true, 'Store ID is required'],
     },
-    productId: { 
-      type: Schema.Types.ObjectId, 
+    productId: {
+      type: Schema.Types.ObjectId,
       ref: 'Product',
-      required: [true, 'Product ID is required']
+      required: [true, 'Product ID is required'],
     },
-    customerId: { 
-      type: Schema.Types.ObjectId, 
+    customerId: {
+      type: Schema.Types.ObjectId,
       ref: 'User',
-      default: null
+      default: null,
     },
-    code: { 
-      type: String, 
+    code: {
+      type: String,
       required: [true, 'Voucher code is required'],
       unique: true,
-      trim: true
+      trim: true,
     },
-    status: { 
-      type: String, 
+    status: {
+      type: String,
       enum: ['active', 'redeemed', 'expired'],
       required: true,
-      default: 'active'
+      default: 'active',
     },
     isRedeemed: {
       type: Boolean,
-      default: false
+      default: false,
     },
     redeemedAt: {
       type: Date,
-      default: null
+      default: null,
     },
     amount: {
       type: Number,
       required: [true, 'Amount is required'],
-      min: [0, 'Amount must be a positive number']
+      min: [0, 'Amount must be a positive number'],
     },
-    expirationDate: { 
-      type: Date, 
+    expirationDate: {
+      type: Date,
       required: [true, 'Expiration date is required'],
       validate: {
-        validator: function(value: Date) {
+        validator: function (value: Date) {
           return value > new Date();
         },
-        message: 'Expiration date must be in the future'
-      }
+        message: 'Expiration date must be in the future',
+      },
     },
-    qrCode: { 
-      type: String, 
-      required: [true, 'QR code is required']
+    qrCode: {
+      type: String,
+      required: [true, 'QR code is required'],
     },
     senderName: {
       type: String,
       required: [true, 'Sender name is required'],
-      trim: true
+      trim: true,
     },
     senderEmail: {
       type: String,
       required: [true, 'Sender email is required'],
       trim: true,
-      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email address']
+      match: [
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+        'Please provide a valid email address',
+      ],
     },
     receiverName: {
       type: String,
       required: [true, 'Receiver name is required'],
-      trim: true
+      trim: true,
     },
     receiverEmail: {
       type: String,
       required: [true, 'Receiver email is required'],
       trim: true,
-      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email address']
+      match: [
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+        'Please provide a valid email address',
+      ],
     },
     message: {
       type: String,
       required: [true, 'Message is required'],
       trim: true,
-      maxlength: [500, 'Message cannot be more than 500 characters']
+      maxlength: [500, 'Message cannot be more than 500 characters'],
     },
     template: {
       type: String,
       required: [true, 'Template is required'],
-      enum: ['template1', 'template2', 'template3', 'template4', 'template5', 'birthday', 'christmas', 'valentine', 'general'],
-      default: 'template1'
-    }
+      enum: [
+        'template1',
+        'template2',
+        'template3',
+        'template4',
+        'template5',
+        'birthday',
+        'christmas',
+        'valentine',
+        'general',
+      ],
+      default: 'template1',
+    },
   },
   { timestamps: true }
 );
@@ -130,18 +145,18 @@ VoucherSchema.index({ receiverEmail: 1, status: 1 }); // Fetch vouchers by recei
 VoucherSchema.index({ expirationDate: 1 });
 
 // Add pre-save middleware to validate expirationDate is in the future
-VoucherSchema.pre('save', function(this: IVoucherDocument, next) {
+VoucherSchema.pre('save', function (this: IVoucherDocument, next) {
   // Skip validation if the voucher is already redeemed or expired
   if (this.status === 'redeemed' || this.status === 'expired') {
     return next();
   }
-  
+
   // Check if expiration date is in the past
   if (this.expirationDate < new Date()) {
     this.status = 'expired';
   }
-  
+
   next();
 });
 
-export const Voucher = mongoose.model<IVoucherDocument>('Voucher', VoucherSchema); 
+export const Voucher = mongoose.model<IVoucherDocument>('Voucher', VoucherSchema);

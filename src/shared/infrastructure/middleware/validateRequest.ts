@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Schema } from 'joi';
-import { validationError } from '@shared/types/appError';
+import { ErrorTypes } from '../../types/appError';
 
 /**
  * Middleware to validate request data against a Joi schema
@@ -8,22 +8,17 @@ import { validationError } from '@shared/types/appError';
  * @returns Express middleware function
  */
 const validateRequest = (schema: Schema) => {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    const { error } = schema.validate(req.body, {
-      abortEarly: false,
-      stripUnknown: true
-    });
+  return (req: Request, res: Response, next: NextFunction) => {
+    const { error } = schema.validate(req.body, { abortEarly: false });
 
     if (error) {
-      const errorMessage = error.details
-        .map(detail => detail.message)
-        .join(', ');
-      
-      return next(validationError(errorMessage));
+      const errorMessage = error.details.map((detail) => detail.message).join(', ');
+
+      return next(ErrorTypes.VALIDATION(errorMessage));
     }
 
     next();
   };
 };
 
-export default validateRequest; 
+export { validateRequest };

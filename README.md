@@ -53,8 +53,8 @@ The API documentation is organized by resource type in the `docs` folder:
 - [Users Documentation](docs/users.md) - Customer management endpoints
 - [Vouchers Documentation](docs/vouchers.md) - Customer management endpoints
 
-
 Each documentation file includes:
+
 - Endpoint descriptions
 - Authentication requirements
 - Request/Response examples
@@ -71,38 +71,42 @@ Each documentation file includes:
 ### Installation
 
 1. Clone the repository:
+
    ```bash
-   git clone https://github.com/yourusername/gifty-api.git
+   git clone https://github.com/estudioequis/gifty-api.git
    cd gifty-api
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Create a `.env` file in the root directory with the following variables:
+
    ```
    PORT=3000
    MONGODB_URI=mongodb://localhost:27017/gifty
    JWT_SECRET=your_jwt_secret_key
    NODE_ENV=development
-   
+
    # Email configuration
    EMAIL_HOST=smtp.example.com
    EMAIL_PORT=587
    EMAIL_USER=your_email@example.com
    EMAIL_PASSWORD=your_email_password
    EMAIL_FROM=Gifty <noreply@gifty.com>
-   
+
    # Frontend URL (used for QR code generation)
    FRONTEND_URL=http://localhost:3000
-   
+
    # PDF storage path
    UPLOAD_DIR=uploads
    ```
 
 4. Create the uploads directory for storing PDFs:
+
    ```bash
    mkdir -p uploads/vouchers
    ```

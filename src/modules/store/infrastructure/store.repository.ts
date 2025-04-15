@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { IStore } from '../domain/store.entity';
-import Store from '../domain/store.schema';
-import logger from '@shared/infrastructure/logging/logger';
+import { Store } from '../domain/store.schema';
+import { logger } from '@shared/infrastructure/logging/logger';
 
 export class StoreRepository {
   async findAll(): Promise<IStore[]> {
@@ -27,11 +27,7 @@ export class StoreRepository {
 
   async update(id: string, storeData: Partial<IStore>): Promise<IStore | null> {
     logger.debug(`Updating store ${id}`, storeData);
-    return Store.findByIdAndUpdate(
-      id,
-      { ...storeData, updatedAt: new Date() },
-      { new: true }
-    );
+    return Store.findByIdAndUpdate(id, { ...storeData, updatedAt: new Date() }, { new: true });
   }
 
   async delete(id: string): Promise<IStore | null> {
@@ -48,11 +44,11 @@ export class StoreRepository {
     logger.debug(`Updating logo for store ${id}`);
     return Store.findByIdAndUpdate(
       id,
-      { 
+      {
         logo: logoPath,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       { new: true }
     );
   }
-} 
+}

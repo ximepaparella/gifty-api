@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import { UserModel } from '../../../../src/modules/user/infrastructure/user.model';
 import { UserRole } from '../../../../src/modules/user/domain/user.entity';
@@ -7,7 +6,7 @@ import { UserRole } from '../../../../src/modules/user/domain/user.entity';
 jest.mock('bcrypt', () => ({
   genSalt: jest.fn().mockResolvedValue('salt'),
   hash: jest.fn().mockResolvedValue('hashedPassword'),
-  compare: jest.fn().mockResolvedValue(true)
+  compare: jest.fn().mockResolvedValue(true),
 }));
 
 describe('User Model', () => {
@@ -29,7 +28,7 @@ describe('User Model', () => {
       name: 'Test User',
       email: 'test@example.com',
       password: 'password123',
-      role: UserRole.CUSTOMER
+      role: UserRole.CUSTOMER,
     };
 
     const user = await UserModel.create(userData);
@@ -48,7 +47,7 @@ describe('User Model', () => {
       name: 'Test User',
       email: 'test@example.com',
       password: 'password123',
-      role: UserRole.CUSTOMER
+      role: UserRole.CUSTOMER,
     };
 
     await UserModel.create(userData);
@@ -62,15 +61,15 @@ describe('User Model', () => {
       name: 'Test User',
       email: 'test@example.com',
       password: 'password123',
-      role: UserRole.CUSTOMER
+      role: UserRole.CUSTOMER,
     };
 
     const user = await UserModel.create(userData);
-    
+
     // Clear mock calls
     (bcrypt.genSalt as jest.Mock).mockClear();
     (bcrypt.hash as jest.Mock).mockClear();
-    
+
     user.name = 'Updated Name';
     await user.save();
 
@@ -83,7 +82,7 @@ describe('User Model', () => {
       name: 'Test User',
       email: 'test@example.com',
       password: 'password123',
-      role: UserRole.CUSTOMER
+      role: UserRole.CUSTOMER,
     };
 
     const user = await UserModel.create(userData);
@@ -98,7 +97,7 @@ describe('User Model', () => {
       name: 'Test User',
       email: 'test@example.com',
       password: 'password123',
-      role: UserRole.CUSTOMER
+      role: UserRole.CUSTOMER,
     };
 
     const user = await UserModel.create(userData);
@@ -109,7 +108,7 @@ describe('User Model', () => {
     expect(user.passwordResetToken).toBeDefined();
     expect(user.passwordResetExpires).toBeDefined();
     expect(user.passwordResetExpires).toBeInstanceOf(Date);
-    
+
     // Check that the expiry is in the future (1 hour)
     const now = new Date();
     const oneHourFromNow = new Date(now.getTime() + 3600000);
@@ -122,7 +121,7 @@ describe('User Model', () => {
       name: 'Test User',
       email: 'test@example.com',
       password: 'password123',
-      role: UserRole.CUSTOMER
+      role: UserRole.CUSTOMER,
     };
 
     const user = await UserModel.create(userData);
@@ -149,7 +148,7 @@ describe('User Model', () => {
       name: 'Test User',
       email: 'invalid-email',
       password: 'password123',
-      role: UserRole.CUSTOMER
+      role: UserRole.CUSTOMER,
     });
 
     await expect(invalidUser.validate()).rejects.toThrow();
@@ -160,9 +159,9 @@ describe('User Model', () => {
       name: 'Test User',
       email: 'test@example.com',
       password: 'password123',
-      role: 'invalid_role'
+      role: 'invalid_role',
     });
 
     await expect(invalidUser.validate()).rejects.toThrow();
   });
-}); 
+});

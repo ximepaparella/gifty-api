@@ -1,125 +1,128 @@
 // Import bootstrap file to set up module aliases
 import './bootstrap';
 
-import express, { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
+import express, { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
 import path from 'path';
 import fs from 'fs';
+import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import morgan from 'morgan';
 
-import { connectDatabase } from '@shared/infrastructure/database/connection';
-import logger from '@shared/infrastructure/logging/logger';
+import { connectDB } from '@shared/infrastructure/database/connection';
+import { logger } from '@shared/infrastructure/logging/logger';
 import { initCloudinary } from '@shared/infrastructure/services/cloudinary.config';
-import { AppError } from '@shared/types/appError';
-import { errorHandler as globalErrorHandler } from '@shared/infrastructure/errors/errorHandler';
+import { ErrorTypes } from '@shared/types/appError';
+import { errorHandler as globalErrorHandler, notFoundHandler } from '@shared/infrastructure/errors/errorHandler';
 import { setupSwagger } from '@shared/infrastructure/swagger/swagger';
+import { applySecurityMiddleware } from '@shared/infrastructure/middleware/security';
+import { setupRoutes } from '@modules/routes';
 
-// Import routes
-import userRoutes from '@modules/user/interface/user.routes';
-import passwordResetRoutes from '@modules/user/interface/passwordReset.routes';
-import { storeRoutes } from '@modules/store/interface/store.routes';
-import { productRoutes } from '@modules/product/interface/product.routes';
-import voucherRoutes from '@modules/voucher/interface/voucher.routes';
-import orderRoutes from '@modules/order/interface/order.routes';
-const customerRoutes = require('@modules/customer/interface/customer.routes');
+// Import controllers
 import { UserController } from '@modules/user/interface/user.controller';
 import { UserService } from '@modules/user/application/user.service';
 import { MongoUserRepository } from '@modules/user/infrastructure/user.repository';
+
+import { CustomerController } from '@modules/customer/interface/customer.controller';
+import { CustomerService } from '@modules/customer/application/customer.service';
+import { CustomerRepository } from '@modules/customer/domain/customer.repository';
 
 dotenv.config();
 
 const app = express();
 
-// Initialize user controller for login route
+// Initialize controllers
 const userRepository = new MongoUserRepository();
 const userService = new UserService(userRepository);
 const userController = new UserController(userService);
 
-// Middleware
+const customerRepository = new CustomerRepository();
+const customerService = new CustomerService(customerRepository);
+const customerController = new CustomerController(customerService);
+
+// Apply security middleware
+applySecurityMiddleware(app);
+
+// Apply basic middleware
 app.use(cors());
 app.use(helmet());
+app.use(compression());
+app.use(morgan('dev'));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
 // Create uploads directory for voucher PDFs
 const uploadsDir = path.join(__dirname, '../uploads');
 const vouchersDir = path.join(uploadsDir, 'vouchers');
 
-if (!fs.existsSync(uploadsDir)) {
-  logger.info(`Creating uploads directory: ${uploadsDir}`);
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    logger.info(`Creating uploads directory: ${uploadsDir}`);
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
 
-if (!fs.existsSync(vouchersDir)) {
-  logger.info(`Creating vouchers directory: ${vouchersDir}`);
-  fs.mkdirSync(vouchersDir, { recursive: true });
+  if (!fs.existsSync(vouchersDir)) {
+    logger.info(`Creating vouchers directory: ${vouchersDir}`);
+    fs.mkdirSync(vouchersDir, { recursive: true });
+  }
+} catch (error) {
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+  logger.error('Failed to create directories:', { error: errorMessage });
+  throw ErrorTypes.INTERNAL(`Failed to create required directories: ${errorMessage}`);
 }
 
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Public routes
-app.post('/api/v1/login', (req: Request, res: Response) => userController.login(req, res));
-app.use('/api/v1/auth', passwordResetRoutes);
-app.use('/api/v1/customers', customerRoutes);
+// Initialize services and start server
+const startServer = async () => {
+  try {
+    await connectDB();
+    logger.info('Connected to MongoDB');
 
-// Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
-});
+    initCloudinary();
+    logger.info('Cloudinary initialized');
 
-// Protected routes
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/stores', storeRoutes);
-app.use('/api/v1/products', productRoutes);
-app.use('/api/v1/vouchers', voucherRoutes);
-app.use('/api/v1/orders', orderRoutes);
+    // Public routes
+    app.post('/api/v1/auth/login', (req: Request, res: Response, next: NextFunction) => userController.login(req, res, next));
 
-// Setup Swagger documentation
-setupSwagger(app);
-
-// Error handling middleware
-const errorHandler: ErrorRequestHandler = (err: AppError, req: Request, res: Response, next: NextFunction): void => {
-  logger.error('Error:', err);
-  
-  if (err.isOperational) {
-    res.status(err.statusCode || 500).json({
-      status: err.status || 'error',
-      message: err.message
+    // Health check endpoint
+    app.get('/api/v1/health', (req: Request, res: Response) => {
+      res.status(200).json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+      });
     });
-    return;
-  }
 
-  // Programming or other unknown error
-  res.status(500).json({
-    status: 'error',
-    message: 'Something went wrong!'
-  });
-};
+    // Configure all routes
+    setupRoutes(app);
 
-app.use(globalErrorHandler);
+    // Setup Swagger documentation
+    setupSwagger(app);
 
-// Database connection
-const MONGO_URI = process.env.MONGO_URI;
-if (!MONGO_URI) {
-  throw new Error('MONGO_URI environment variable is not defined');
-}
+    // Add 404 handler - must be after all routes
+    app.use(notFoundHandler);
 
-mongoose
-  .connect(MONGO_URI)
-  .then(() => {
-    console.log('Connected to MongoDB');
+    // Global error handler - must be last
+    app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+      globalErrorHandler(err, req, res, next);
+    });
+
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+      logger.info(`Server is running on port ${PORT}`);
     });
-  })
-  .catch((error) => {
-    console.error('Error connecting to MongoDB:', error);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.error('Failed to start server:', { error: errorMessage });
     process.exit(1);
-  });
+  }
+};
 
-export default app; 
+startServer();
+
+export { app };
