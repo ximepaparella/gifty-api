@@ -53,4 +53,4 @@ const userSchemas = {
   }),
 };
 
-export default userSchemas;
+export { userSchemas };

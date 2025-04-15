@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 
 // Define types for Cloudinary responses
 interface UploadApiResponse {
@@ -124,6 +124,4 @@ const generateImageUrl = (publicId: string, preset: string = 'medium'): string =
   });
 };
 
-export default cloudinary;
-
-export { generateImageUrl, IMAGE_PRESETS, ALLOWED_FORMATS, MAX_FILE_SIZE };
+export { cloudinary, generateImageUrl, IMAGE_PRESETS, ALLOWED_FORMATS, MAX_FILE_SIZE };

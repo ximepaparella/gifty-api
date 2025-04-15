@@ -68,7 +68,7 @@ export interface IOrderInput {
 }
 
 export interface IOrderRepository {
-  create(order: IOrder): Promise<IOrder>;
+  create(order: IOrderInput): Promise<IOrder>;
   findAll(): Promise<IOrder[]>;
   findById(id: string): Promise<IOrder | null>;
   findByCustomerId(customerId: string): Promise<IOrder[]>;

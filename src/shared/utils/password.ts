@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { ErrorTypes } from '../types/appError';
-import logger from '../infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 
 const SALT_ROUNDS = 10;
 

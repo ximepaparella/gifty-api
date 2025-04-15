@@ -4,7 +4,7 @@ import { validateStore } from '../domain/store.schema';
 import { IStore } from '../domain/store.entity';
 import { handleAsync } from '@shared/infrastructure/middleware/asyncHandler';
 import { deleteFile } from '@shared/infrastructure/services/fileUpload';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 import { v2 as cloudinary } from 'cloudinary';
 import { ErrorTypes } from '@shared/types/appError';
 import { StoreRepository } from '../infrastructure/store.repository';

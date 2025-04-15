@@ -10,28 +10,26 @@ const userRepository = new MongoUserRepository();
 const userService = new UserService(userRepository);
 const userController = new UserController(userService);
 
-const router = Router();
+export const userRouter = Router();
 
 // Public routes
-router.post('/login', (req: Request, res: Response, next: NextFunction) => userController.login(req, res, next));
+userRouter.post('/login', (req: Request, res: Response, next: NextFunction) => userController.login(req, res, next));
 
 // Special endpoint to create the first admin user (no authentication required)
-router.post('/setup-admin', (req: Request, res: Response, next: NextFunction) => userController.createFirstAdmin(req, res, next));
+userRouter.post('/setup-admin', (req: Request, res: Response, next: NextFunction) => userController.createFirstAdmin(req, res, next));
 
 // Protected routes
-router.use(authenticate);
+userRouter.use(authenticate);
 
 // User management routes - require admin role
-router.get('/', authorize(['admin']), (req: Request, res: Response, next: NextFunction) => userController.getAllUsers(req, res, next));
+userRouter.get('/', authorize(['admin']), (req: Request, res: Response, next: NextFunction) => userController.getAllUsers(req, res, next));
 
-router.get('/:id', authorize(['admin', 'store_manager']), (req: Request, res: Response, next: NextFunction) =>
+userRouter.get('/:id', authorize(['admin', 'store_manager']), (req: Request, res: Response, next: NextFunction) =>
   userController.getUserById(req, res, next)
 );
 
-router.post('/', authorize(['admin']), (req: Request, res: Response, next: NextFunction) => userController.createUser(req, res, next));
+userRouter.post('/', authorize(['admin']), (req: Request, res: Response, next: NextFunction) => userController.createUser(req, res, next));
 
-router.put('/:id', authorize(['admin']), (req: Request, res: Response, next: NextFunction) => userController.updateUser(req, res, next));
+userRouter.put('/:id', authorize(['admin']), (req: Request, res: Response, next: NextFunction) => userController.updateUser(req, res, next));
 
-router.delete('/:id', authorize(['admin']), (req: Request, res: Response, next: NextFunction) => userController.deleteUser(req, res, next));
-
-export default router;
+userRouter.delete('/:id', authorize(['admin']), (req: Request, res: Response, next: NextFunction) => userController.deleteUser(req, res, next));

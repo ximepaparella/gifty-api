@@ -1,7 +1,7 @@
 import { v2 as cloudinary } from 'cloudinary';
 import multer from 'multer';
 import { Request } from 'express';
-import logger from '../logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import dotenv from 'dotenv';
 

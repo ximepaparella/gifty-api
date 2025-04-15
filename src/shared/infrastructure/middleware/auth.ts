@@ -3,12 +3,12 @@ import { Secret, SignOptions, verify, sign } from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { AppError, ErrorTypes } from '@shared/types/appError';
 import { RequestWithUser } from '@shared/types';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 import { StringValue } from '@shared/types/stringValue';
 
 // Environment variables
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1d';
+const JWT_EXPIRES_IN = 24 * 60 * 60; // 24 hours in seconds
 
 // JWT payload interface
 export interface JwtPayload {
@@ -39,7 +39,7 @@ export const comparePassword = async (password: string, hash: string): Promise<b
  */
 export const generateToken = (payload: JwtPayload): string => {
   const options: SignOptions = {
-    expiresIn: JWT_EXPIRES_IN as StringValue,
+    expiresIn: JWT_EXPIRES_IN,
   };
   return sign(payload, JWT_SECRET as Secret, options);
 };

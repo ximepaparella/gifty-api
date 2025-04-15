@@ -1,8 +1,60 @@
 import dotenv from 'dotenv';
+import { ErrorTypes } from '@shared/types/appError';
 
 dotenv.config();
 
-export const securityConfig = {
+interface RateLimitConfig {
+  windowMs: number;
+  max: number;
+}
+
+interface CorsConfig {
+  allowedOrigins: string[];
+  maxAge: number;
+}
+
+interface RequestLimits {
+  json: string;
+  urlencoded: string;
+}
+
+interface IpBlacklistConfig {
+  maxViolations: number;
+  blacklistDuration: number;
+}
+
+interface SecurityConfig {
+  rateLimits: {
+    general: RateLimitConfig;
+    login: RateLimitConfig;
+  };
+  cors: CorsConfig;
+  requestLimits: RequestLimits;
+  apiKeys: string[];
+  ipBlacklist: IpBlacklistConfig;
+}
+
+const validateConfig = (config: SecurityConfig): void => {
+  if (!config.rateLimits.general.windowMs || !config.rateLimits.general.max) {
+    throw ErrorTypes.INTERNAL('Invalid rate limit configuration');
+  }
+
+  if (!config.rateLimits.login.windowMs || !config.rateLimits.login.max) {
+    throw ErrorTypes.INTERNAL('Invalid login rate limit configuration');
+  }
+
+  if (!config.cors.allowedOrigins.length) {
+    throw ErrorTypes.INTERNAL('No allowed CORS origins configured');
+  }
+};
+
+const allowedOrigins = [
+  'http://localhost:3001',
+  'http://localhost:8080',
+  process.env.PRODUCTION_FRONTEND_URL,
+].filter((origin): origin is string => origin !== undefined);
+
+export const securityConfig: SecurityConfig = {
   // Rate limiting
   rateLimits: {
     general: {
@@ -17,11 +69,7 @@ export const securityConfig = {
 
   // CORS
   cors: {
-    allowedOrigins: [
-      'http://localhost:3001',
-      'http://localhost:8080',
-      process.env.PRODUCTION_FRONTEND_URL,
-    ].filter(Boolean),
+    allowedOrigins,
     maxAge: Number(process.env.CORS_MAX_AGE) || 86400,
   },
 
@@ -40,3 +88,6 @@ export const securityConfig = {
     blacklistDuration: Number(process.env.IP_BLACKLIST_DURATION_HOURS) || 24, // hours
   },
 };
+
+// Validate configuration on startup
+validateConfig(securityConfig);

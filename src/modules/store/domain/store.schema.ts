@@ -55,4 +55,3 @@ export const validateStore = (store: any) => {
 };
 
 export const Store = mongoose.model<IStore>('Store', StoreSchema);
-export default Store;

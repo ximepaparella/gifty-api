@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { ApiResponse, PaginatedApiResponse, ApiErrorResponse } from '../types/response.types';
 import { AppError } from '../types/appError';
-import logger from '../infrastructure/logging/logger';
+import { logger } from '../infrastructure/logging/logger';
 
 /**
  * Creates a success response

@@ -1,16 +1,16 @@
 import { Express } from 'express';
-import userRoutes from './user/interface/user.routes';
-import storeRoutes from './store/interface/store.routes';
-import productRoutes from './product/interface/product.routes';
-import orderRoutes from './order/interface/order.routes';
-import voucherRoutes from './voucher/interface/voucher.routes';
-import customerRoutes from './customer/interface/customer.routes';
+import { storeRouter } from './store/interface/store.routes';
+import { productRouter } from './product/interface/product.routes';
+import { userRouter } from './user/interface/user.routes';
+import { orderRouter } from './order/interface/order.routes';
+import { voucherRouter } from './voucher/interface/voucher.routes';
+import { customerRouter } from './customer/interface/customer.routes';
 
-export function setupRoutes(app: Express): void {
-  app.use('/api/v1/users', userRoutes);
-  app.use('/api/v1/stores', storeRoutes);
-  app.use('/api/v1/products', productRoutes);
-  app.use('/api/v1/orders', orderRoutes);
-  app.use('/api/v1/vouchers', voucherRoutes);
-  app.use('/api/v1/customers', customerRoutes);
-} 
+export const setupRoutes = (app: Express): void => {
+  app.use('/api/v1/stores', storeRouter);
+  app.use('/api/v1/products', productRouter);
+  app.use('/api/v1/users', userRouter);
+  app.use('/api/v1/orders', orderRouter);
+  app.use('/api/v1/vouchers', voucherRouter);
+  app.use('/api/v1/customers', customerRouter);
+}; 

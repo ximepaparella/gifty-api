@@ -90,9 +90,6 @@ export const helmetConfig = {
 
 // Main security setup function
 export const applySecurityMiddleware = (app: Express): void => {
-  // API key validation
-  app.use(validateApiKey);
-
   // Request size limits
   app.use(express.json({ limit: securityConfig.requestLimits.json }));
   app.use(express.urlencoded({ extended: true, limit: securityConfig.requestLimits.urlencoded }));
@@ -115,5 +112,18 @@ export const applySecurityMiddleware = (app: Express): void => {
 
   fileUploadPaths.forEach((path) => {
     app.use(path, monitorFileUpload);
+  });
+
+  // Apply API key validation only to protected routes
+  const protectedRoutes = [
+    '/api/v1/stores',
+    '/api/v1/products',
+    '/api/v1/orders',
+    '/api/v1/vouchers',
+    '/api/v1/customers',
+  ];
+
+  protectedRoutes.forEach((path) => {
+    app.use(path, validateApiKey);
   });
 };

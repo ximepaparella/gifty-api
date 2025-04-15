@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ProductService } from '../application/product.service';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 import { deleteFile } from '@shared/infrastructure/services/fileUpload';
 import { ErrorTypes } from '@shared/types/appError';
 

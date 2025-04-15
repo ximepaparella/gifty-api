@@ -1,10 +1,8 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { IVoucher } from '../domain/voucher.interface';
+import { Schema, model } from 'mongoose';
+import { IVoucher, IVoucherDocument } from '../domain/voucher.entity';
 import { generateVoucherCode } from '@shared/utils/codeGenerator';
 
-export interface IVoucherDocument extends Omit<IVoucher, '_id'>, Document {}
-
-const VoucherSchema: Schema = new Schema(
+export const VoucherSchema: Schema = new Schema(
   {
     code: {
       type: String,
@@ -83,4 +81,10 @@ const VoucherSchema: Schema = new Schema(
   }
 );
 
-export default mongoose.model<IVoucherDocument>('Voucher', VoucherSchema);
+// Add indexes
+VoucherSchema.index({ code: 1 });
+VoucherSchema.index({ storeId: 1 });
+VoucherSchema.index({ customerId: 1 });
+VoucherSchema.index({ status: 1 });
+
+export const VoucherModel = model<IVoucherDocument>('Voucher', VoucherSchema);

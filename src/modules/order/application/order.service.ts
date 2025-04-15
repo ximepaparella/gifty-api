@@ -1,7 +1,7 @@
 import { IOrder, IOrderInput } from '../domain/order.interface';
 import { ErrorTypes } from '@shared/types/appError';
 import { validateOrder } from './order.validator';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 import path from 'path';
 import puppeteer from 'puppeteer';
 import fs from 'fs';

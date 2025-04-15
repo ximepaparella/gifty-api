@@ -1,7 +1,7 @@
 import { UserRepository } from '../domain/user.repository';
-import { AppError, ErrorTypes } from '@shared/types/appError';
+import { ErrorTypes } from '@shared/types/appError';
 import { generateToken } from '@shared/infrastructure/middleware/auth';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 import { sendEmail } from '@shared/utils/email';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { hashPassword } from '@shared/utils/password';

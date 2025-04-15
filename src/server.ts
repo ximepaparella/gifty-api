@@ -1,7 +1,7 @@
 // Import bootstrap file to set up module aliases
 import './bootstrap';
 
-import express, { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -12,14 +12,13 @@ import compression from 'compression';
 import morgan from 'morgan';
 
 import { connectDB } from '@shared/infrastructure/database/connection';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 import { initCloudinary } from '@shared/infrastructure/services/cloudinary.config';
-import { AppError, ErrorTypes } from '@shared/types/appError';
+import { ErrorTypes } from '@shared/types/appError';
 import { errorHandler as globalErrorHandler, notFoundHandler } from '@shared/infrastructure/errors/errorHandler';
 import { setupSwagger } from '@shared/infrastructure/swagger/swagger';
 import { applySecurityMiddleware } from '@shared/infrastructure/middleware/security';
 import { setupRoutes } from '@modules/routes';
-import { authenticate } from '@shared/infrastructure/middleware/auth';
 
 // Import controllers
 import { UserController } from '@modules/user/interface/user.controller';
@@ -43,7 +42,10 @@ const customerRepository = new CustomerRepository();
 const customerService = new CustomerService(customerRepository);
 const customerController = new CustomerController(customerService);
 
-// Apply middleware
+// Apply security middleware
+applySecurityMiddleware(app);
+
+// Apply basic middleware
 app.use(cors());
 app.use(helmet());
 app.use(compression());
@@ -56,55 +58,71 @@ app.use(passport.initialize());
 const uploadsDir = path.join(__dirname, '../uploads');
 const vouchersDir = path.join(uploadsDir, 'vouchers');
 
-if (!fs.existsSync(uploadsDir)) {
-  logger.info(`Creating uploads directory: ${uploadsDir}`);
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    logger.info(`Creating uploads directory: ${uploadsDir}`);
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
 
-if (!fs.existsSync(vouchersDir)) {
-  logger.info(`Creating vouchers directory: ${vouchersDir}`);
-  fs.mkdirSync(vouchersDir, { recursive: true });
+  if (!fs.existsSync(vouchersDir)) {
+    logger.info(`Creating vouchers directory: ${vouchersDir}`);
+    fs.mkdirSync(vouchersDir, { recursive: true });
+  }
+} catch (error) {
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+  logger.error('Failed to create directories:', { error: errorMessage });
+  throw ErrorTypes.INTERNAL(`Failed to create required directories: ${errorMessage}`);
 }
 
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Initialize services
-connectDB()
-  .then(() => {
+// Initialize services and start server
+const startServer = async () => {
+  try {
+    await connectDB();
     logger.info('Connected to MongoDB');
+
     initCloudinary();
     logger.info('Cloudinary initialized');
-  })
-  .catch((error) => {
-    logger.error('Failed to connect to MongoDB:', error);
+
+    // Public routes
+    app.post('/api/v1/auth/login', (req: Request, res: Response, next: NextFunction) => userController.login(req, res, next));
+
+    // Health check endpoint
+    app.get('/api/v1/health', (req: Request, res: Response) => {
+      res.status(200).json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+      });
+    });
+
+    // Configure all routes
+    setupRoutes(app);
+
+    // Setup Swagger documentation
+    setupSwagger(app);
+
+    // Add 404 handler - must be after all routes
+    app.use(notFoundHandler);
+
+    // Global error handler - must be last
+    app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+      globalErrorHandler(err, req, res, next);
+    });
+
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      logger.info(`Server is running on port ${PORT}`);
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.error('Failed to start server:', { error: errorMessage });
     process.exit(1);
-  });
+  }
+};
 
-// Public routes
-app.post('/api/v1/login', (req: Request, res: Response, next: NextFunction) => userController.login(req, res, next));
+startServer();
 
-// Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
-});
-
-// Configure all routes
-setupRoutes(app);
-
-// Setup Swagger documentation
-setupSwagger(app);
-
-// Add 404 handler
-app.use(notFoundHandler);
-
-// Global error handler
-app.use(globalErrorHandler);
-
-// Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  logger.info(`Server is running on port ${PORT}`);
-});
-
-export default app;
+export { app };

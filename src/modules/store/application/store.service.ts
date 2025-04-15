@@ -1,8 +1,8 @@
 import { IStore } from '../domain/store.entity';
 import { StoreRepository } from '../infrastructure/store.repository';
 import { validateStore } from '../domain/store.schema';
-import { AppError, ErrorTypes } from '@shared/types/appError';
-import logger from '@shared/infrastructure/logging/logger';
+import { ErrorTypes } from '@shared/types/appError';
+import { logger } from '@shared/infrastructure/logging/logger';
 import mongoose from 'mongoose';
 
 export class StoreService {

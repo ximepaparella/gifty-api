@@ -5,7 +5,7 @@ import {
   updateCustomerValidationSchema,
 } from '../domain/customer.validation';
 import { ErrorTypes } from '@shared/types/appError';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger }	 from '@shared/infrastructure/logging/logger';
 import mongoose from 'mongoose';
 
 export class CustomerService {

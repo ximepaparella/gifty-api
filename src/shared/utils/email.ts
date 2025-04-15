@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import { AppError, ErrorTypes } from '@shared/types/appError';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 
 /**
  * Email options interface
@@ -21,15 +21,25 @@ export interface EmailOptions {
 /**
  * Creates a nodemailer transporter using environment variables
  * @returns Nodemailer transporter
+ * @throws AppError if email configuration is invalid
  */
 export const createTransporter = (): nodemailer.Transporter => {
+  const host = process.env.EMAIL_HOST;
+  const port = process.env.EMAIL_PORT;
+  const user = process.env.EMAIL_USER;
+  const pass = process.env.EMAIL_PASSWORD;
+
+  if (!host || !port || !user || !pass) {
+    throw ErrorTypes.INTERNAL('Email configuration is incomplete');
+  }
+
   return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: parseInt(process.env.EMAIL_PORT || '587'),
+    host,
+    port: parseInt(port),
     secure: process.env.EMAIL_SECURE === 'true',
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD,
+      user,
+      pass,
     },
   });
 };
@@ -69,15 +79,19 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
 
     // Send email
     logger.info(`Sending email to ${options.to} with subject "${options.subject}"`);
-    await transporter.sendMail(mailOptions);
-    logger.info(`Email sent successfully to ${options.to}`);
-  } catch (error: any) {
+    const info = await transporter.sendMail(mailOptions);
+    logger.info(`Email sent successfully to ${options.to}`, { messageId: info.messageId });
+  } catch (error: unknown) {
     logger.error('Error sending email:', error);
 
     if (error instanceof AppError) {
       throw error;
     }
 
-    throw ErrorTypes.INTERNAL(`Error sending email: ${error.message}`);
+    if (error instanceof Error) {
+      throw ErrorTypes.INTERNAL(`Error sending email: ${error.message}`);
+    }
+
+    throw ErrorTypes.INTERNAL('Unknown error occurred while sending email');
   }
 };

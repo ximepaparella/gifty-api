@@ -1,7 +1,7 @@
 import { IOrder, IOrderInput, IOrderRepository } from '../domain/order.interface';
 import { OrderModel } from '../domain/order.schema';
 import { ErrorTypes } from '@shared/types/appError';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 import mongoose from 'mongoose';
 
 export class OrderRepository implements IOrderRepository {
@@ -32,7 +32,26 @@ export class OrderRepository implements IOrderRepository {
     }
   }
 
-  async create(order: IOrderInput): Promise<IOrder> {
+  async create(orderInput: IOrderInput): Promise<IOrder> {
+    const order: IOrder = {
+      ...orderInput,
+      voucher: {
+        ...orderInput.voucher,
+        status: 'active',
+        isRedeemed: false,
+        redeemedAt: null,
+      },
+      paymentDetails: {
+        ...orderInput.paymentDetails,
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      emailsSent: false,
+      pdfGenerated: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     const newOrder = new OrderModel(order);
     return newOrder.save();
   }

@@ -37,4 +37,4 @@ router.put('/:id', (req, res, next) => customerController.updateCustomer(req, re
 router.delete('/:id', (req, res, next) => customerController.deleteCustomer(req, res, next));
 
 // Export the router
-export default router;
+export { router as customerRouter };

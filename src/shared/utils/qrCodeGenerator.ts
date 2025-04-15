@@ -1,6 +1,6 @@
 import QRCode from 'qrcode';
 import { ErrorTypes } from '@shared/types/appError';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 
 /**
  * Generate a QR code from text

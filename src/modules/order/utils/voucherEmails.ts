@@ -3,8 +3,7 @@
 
 import { IOrder } from '../domain/order.interface';
 import { sendEmail } from '@shared/utils/email';
-import logger from '@shared/infrastructure/logging/logger';
-import mongoose from 'mongoose';
+import { logger } from '@shared/infrastructure/logging/logger';
 import { Store } from '../../store/domain/store.schema';
 import { IStore } from '../../store/domain/store.entity';
 import path from 'path';

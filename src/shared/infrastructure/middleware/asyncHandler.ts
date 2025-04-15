@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import logger from '@shared/infrastructure/logging/logger';
+import { logger } from '@shared/infrastructure/logging/logger';
 
 type AsyncFunction = (req: Request, res: Response, next: NextFunction) => Promise<unknown>;
 

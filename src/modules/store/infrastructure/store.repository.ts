@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { IStore } from '../domain/store.entity';
-import Store from '../domain/store.schema';
-import logger from '@shared/infrastructure/logging/logger';
+import { Store } from '../domain/store.schema';
+import { logger } from '@shared/infrastructure/logging/logger';
 
 export class StoreRepository {
   async findAll(): Promise<IStore[]> {
