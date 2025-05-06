@@ -30,6 +30,31 @@ productRouter.get('/store/:storeId', (req, res, next) =>
 // Protected routes
 productRouter.use(authenticate);
 
+// Upload product image
+productRouter.post(
+  '/:id/image',
+  uploadProductImage,
+  (req, res, next) => productController.uploadImage(req, res, next)
+);
+
+// Create new product with image
+productRouter.post('/', (req, res, next) => {
+  logger.info('Product creation request received:', {
+    body: req.body,
+    files: req.files,
+    file: req.file,
+    headers: req.headers,
+  });
+
+  handleProductUpload(req, res, next, (req: Request, res: Response, next: NextFunction) => {
+    logger.info('Product upload handler completed, calling controller:', {
+      body: req.body,
+      file: req.file,
+    });
+    return productController.createProduct(req, res, next);
+  });
+});
+
 // Helper function to handle file upload and product data
 const handleProductUpload = async (
   req: Request,
@@ -43,16 +68,21 @@ const handleProductUpload = async (
       body: req.body,
       files: req.files,
       file: req.file,
+      contentType: req.headers['content-type'],
     });
 
     // Handle file upload first
     await new Promise((resolve, reject) => {
+      logger.info('Starting file upload middleware');
       uploadProductImage(req, res, (err) => {
         if (err) {
           logger.error('File upload error:', err);
           reject(err);
         } else {
-          logger.info('File upload middleware completed');
+          logger.info('File upload middleware completed:', {
+            file: req.file,
+            body: req.body,
+          });
           resolve(true);
         }
       });
@@ -116,13 +146,6 @@ const handleProductUpload = async (
     });
   }
 };
-
-// Create new product with image
-productRouter.post('/', (req, res, next) =>
-  handleProductUpload(req, res, next, (req: Request, res: Response, next: NextFunction) =>
-    productController.createProduct(req, res, next)
-  )
-);
 
 // Update product with image
 productRouter.put('/:id', (req, res, next) =>

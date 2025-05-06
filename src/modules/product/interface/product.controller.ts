@@ -3,6 +3,7 @@ import { ProductService } from '../application/product.service';
 import { logger } from '@shared/infrastructure/logging/logger';
 import { deleteFile } from '@shared/infrastructure/services/fileUpload';
 import { ErrorTypes } from '@shared/types/appError';
+import { handleAsync } from '@shared/infrastructure/middleware/asyncHandler';
 
 // Extended Request type to include file from multer
 interface RequestWithFile extends Request {
@@ -31,12 +32,16 @@ export class ProductController {
     };
 
     try {
-      logger.info('Starting product creation');
+      logger.info('Starting product creation in controller');
+      logger.info('Request body:', req.body);
+      logger.info('Request file:', req.file);
 
       if (req.body.data) {
+        logger.info('Found data in request body, attempting to parse JSON');
         productData = JSON.parse(req.body.data);
         logger.info('Parsed product data from JSON:', productData);
       } else {
+        logger.info('No data field found, using form fields');
         productData = {
           name: req.body.name,
           description: req.body.description,
@@ -48,6 +53,7 @@ export class ProductController {
       }
 
       if (!productData.name || !productData.storeId || isNaN(productData.price)) {
+        logger.error('Invalid product data:', productData);
         return next(ErrorTypes.VALIDATION('Invalid product data'));
       }
 
@@ -59,10 +65,16 @@ export class ProductController {
           size: req.file.size,
         });
         productData.image = req.file.path;
+        logger.info('Added image path to product data:', productData.image);
+      } else {
+        logger.info('No image file detected in request');
       }
 
+      logger.info('Creating product with data:', productData);
       const product = await this.productService.createProduct(productData);
+      
       if (!product) {
+        logger.error('Failed to create product');
         return next(ErrorTypes.INTERNAL('Failed to create product'));
       }
 
@@ -75,8 +87,9 @@ export class ProductController {
       logger.error('Error creating product:', error);
       if (req.file?.path) {
         try {
+          logger.info('Attempting to clean up uploaded file:', req.file.path);
           await deleteFile(req.file.path);
-          logger.info('Cleaned up image file:', req.file.path);
+          logger.info('Successfully cleaned up image file');
         } catch (cleanupError) {
           logger.error('Error cleaning up image:', cleanupError);
         }
@@ -262,4 +275,40 @@ export class ProductController {
       next(error);
     }
   };
+
+  uploadImage = handleAsync(async (req: RequestWithFile, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+
+    if (!req.file || !req.file.path) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'No file uploaded',
+      });
+    }
+
+    try {
+      // Get the product to check if it has an existing image
+      const product = await this.productService.getProductById(id);
+      if (product?.image) {
+        // Delete the old image from Cloudinary
+        await deleteFile(product.image);
+      }
+
+      // Update product with new Cloudinary URL
+      const updatedProduct = await this.productService.updateProduct(id, {
+        image: req.file.path,
+      });
+
+      res.status(200).json({
+        status: 'success',
+        data: updatedProduct,
+      });
+    } catch (error: any) {
+      // If there's an error, try to delete the uploaded file from Cloudinary
+      if (req.file?.path) {
+        await deleteFile(req.file.path);
+      }
+      throw error;
+    }
+  });
 }
