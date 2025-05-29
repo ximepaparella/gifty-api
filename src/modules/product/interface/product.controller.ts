@@ -64,8 +64,9 @@ export class ProductController {
           mimetype: req.file.mimetype,
           size: req.file.size,
         });
+        // Ensure we're using the secure URL from Cloudinary
         productData.image = req.file.path;
-        logger.info('Added image path to product data:', productData.image);
+        logger.info('Added image URL to product data:', productData.image);
       } else {
         logger.info('No image file detected in request');
       }
@@ -79,9 +80,13 @@ export class ProductController {
       }
 
       logger.info('Product created successfully:', product);
+      // Ensure we're sending the complete product data including the image URL
       res.status(201).json({
         success: true,
-        data: product,
+        data: {
+          ...product,
+          image: product.image || null
+        },
       });
     } catch (error) {
       logger.error('Error creating product:', error);
@@ -187,8 +192,9 @@ export class ProductController {
           }
         }
 
+        // Ensure we're using the secure URL from Cloudinary
         productData.image = req.file.path;
-        logger.info('Added new image path:', req.file.path);
+        logger.info('Added new image URL:', req.file.path);
       } else if ('image' in productData && !productData.image) {
         logger.info('Image removal requested');
         if (existingProduct.image) {
@@ -212,7 +218,10 @@ export class ProductController {
       logger.info('Product update completed:', updatedProduct);
       res.status(200).json({
         success: true,
-        data: updatedProduct,
+        data: {
+          ...updatedProduct,
+          image: updatedProduct.image || null
+        },
       });
     } catch (error) {
       logger.error('Error updating product:', error);
