@@ -38,6 +38,17 @@ productRouter.post(
 );
 
 // Create new product with image
+// Helper function to handle file upload and product data
+const handleProductUpload = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  controllerMethod: Function
+) => {
+  // ... function implementation
+};
+
+// Create new product with image
 productRouter.post('/', (req, res, next) => {
   logger.info('Product creation request received:', {
     body: req.body,
@@ -54,6 +65,8 @@ productRouter.post('/', (req, res, next) => {
     return productController.createProduct(req, res, next);
   });
 });
+
+// (The original, now-moved handleProductUpload definition below should be removed.)
 
 // Helper function to handle file upload and product data
 const handleProductUpload = async (
