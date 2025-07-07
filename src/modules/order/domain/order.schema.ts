@@ -106,20 +106,6 @@ const CashInfoSchema = new Schema(
   { _id: false }
 );
 
-// Payment Info Sub-Schema
-const PaymentInfoSchema = new Schema(
-  {
-    mp_payment_id: { type: String, required: true, index: true },
-    status: { type: String, required: true },
-    status_detail: { type: String, required: true },
-    payment_method_id: { type: String, required: true },
-    transaction_amount: { type: Number, required: true },
-    installments: { type: Number, required: true },
-    payer_email: { type: String, required: true },
-  },
-  { _id: false }
-);
-
 // Define the Mongoose Document interface
 export interface IOrderDocument extends Omit<IOrder, '_id'>, Document {}
 
@@ -140,12 +126,11 @@ const OrderSchema = new Schema<IOrderDocument>(
       type: PaymentDetailsSchema,
       required: [true, 'Payment details are required'],
     },
-    paymentInfo: { type: PaymentInfoSchema, required: false },
     emailsSent: { type: Boolean, default: false },
     pdfGenerated: { type: Boolean, default: false },
     pdfUrl: { type: String },
-    mercadoPagoInfo: { type: MercadoPagoInfoSchema, required: false },
     paypalInfo: { type: PaypalInfoSchema, required: false },
+    mercadoPagoInfo: { type: MercadoPagoInfoSchema, required: false },
     bankTransferInfo: { type: BankTransferInfoSchema, required: false },
     cashInfo: { type: CashInfoSchema, required: false },
   },

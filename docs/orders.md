@@ -518,22 +518,22 @@ The order status can have the following values:
 - `failed`: Order failed due to payment or other issues
 - `cancelled`: Order cancelled by customer or admin
 
-## Integración con Mercado Pago
+## Mercado Pago Integration
 
-El flujo de pago con Mercado Pago es el siguiente:
+The payment flow with Mercado Pago is as follows:
 
-1. Se crea la orden con estado `pending` y sin voucher generado.
-2. El usuario realiza el pago usando el endpoint `/payment/process_payment`.
-3. El backend procesa el pago y actualiza la orden:
-   - Si el pago es aprobado, la orden pasa a estado `completed`, se genera el voucher y se envía al cliente.
-   - Si el pago es rechazado o pendiente, la orden se mantiene en `pending` o pasa a `failed`, y se notifica al Store Manager.
+1. The order is created with status `pending` and no voucher generated.
+2. The user makes the payment using the `/payment/process_payment` endpoint.
+3. The backend processes the payment and updates the order:
+   - If the payment is approved, the order status changes to `completed`, the voucher is generated, and sent to the customer.
+   - If the payment is rejected or pending, the order remains `pending` or changes to `failed`, and the Store Manager is notified.
 
-### Ejemplo de request POST /payment/process_payment
+### Example request: POST /payment/process_payment
 
 ```json
 {
-  "orderId": "<ID de la orden>",
-  "token": "<token de tarjeta>",
+  "orderId": "<Order ID>",
+  "token": "<card token>",
   "issuer_id": "default",
   "payment_method_id": "visa",
   "transaction_amount": 100,
@@ -544,7 +544,7 @@ El flujo de pago con Mercado Pago es el siguiente:
 }
 ```
 
-### Ejemplo de respuesta exitosa
+### Example successful response
 
 ```json
 {
@@ -554,15 +554,15 @@ El flujo de pago con Mercado Pago es el siguiente:
 }
 ```
 
-### Estados de la orden
+### Order Statuses
 
-- `pending`: Orden creada, esperando pago.
-- `completed`: Pago aprobado, voucher generado y enviado.
-- `failed`: Pago rechazado.
+- `pending`: Order created, awaiting payment.
+- `completed`: Payment approved, voucher generated and sent.
+- `failed`: Payment rejected.
 
-### Casos de prueba
+### Test Cases
 
-- **Pago aprobado:** Orden pasa a `completed`, se genera y envía el voucher.
-- **Pago rechazado:** Orden pasa a `failed`, se notifica al Store Manager.
-- **Pago pendiente/cancelado:** Orden permanece en `pending`, se notifica al Store Manager.
-- **Campos inválidos:** El endpoint responde con error 400.
+- **Approved payment:** Order moves to `completed`, voucher is generated and sent.
+- **Rejected payment:** Order moves to `failed`, Store Manager is notified.
+- **Pending/cancelled payment:** Order remains `pending`, Store Manager is notified.
+- **Invalid fields:** Endpoint responds with 400 error.

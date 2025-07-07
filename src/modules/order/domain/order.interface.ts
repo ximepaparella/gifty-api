@@ -86,16 +86,6 @@ export interface ICashInfo {
   currency: string;
 }
 
-export interface IPaymentInfo {
-  mp_payment_id: string;
-  status: string;
-  status_detail: string;
-  payment_method_id: string;
-  transaction_amount: number;
-  installments: number;
-  payer_email: string;
-}
-
 export interface IOrder {
   _id?: Types.ObjectId;
   customerId: string | Types.ObjectId;
@@ -108,7 +98,6 @@ export interface IOrder {
   emailsSent: boolean;
   pdfGenerated: boolean;
   pdfUrl?: string;
-  paymentInfo?: IPaymentInfo;
   createdAt?: Date;
   updatedAt?: Date;
 }

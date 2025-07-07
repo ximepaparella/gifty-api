@@ -5,6 +5,7 @@ import { OrderModel } from '@modules/order/domain/order.schema';
 import { OrderStatus } from '@modules/order/domain/order.entity';
 import { sendEmail } from '@shared/utils/email';
 import { logger } from '@shared/infrastructure/logging/logger';
+import { Store } from '@modules/store/domain/store.schema';
 
 export const processPayment = async (req: Request, res: Response) => {
   try {
@@ -33,6 +34,18 @@ export const processPayment = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Order not found' });
     }
 
+    // Obtener el email del store manager
+    let storeManagerEmail: string = '';
+    if (order.voucher && order.voucher.storeId) {
+      const store = await Store.findById(order.voucher.storeId);
+      if (store && typeof store.email === 'string') {
+        storeManagerEmail = store.email;
+      }
+    }
+    if (!storeManagerEmail) {
+      storeManagerEmail = process.env.DEFAULT_STORE_MANAGER_EMAIL || '';
+    }
+
     // Procesar el pago con Mercado Pago
     const payment = new Payment(mercadopagoClient);
     const paymentData: any = {
@@ -58,7 +71,7 @@ export const processPayment = async (req: Request, res: Response) => {
       paymentEmail: String(payer.email),
       amount: Number(transaction_amount),
       provider: 'mercadopago',
-      currency: 'ARS', // O la que corresponda
+      currency: order.paymentDetails?.currency || 'ARS',
       paymentMethod: String(payment_method_id),
       transactionId: String(mp_payment_id),
       createdAt: new Date(),
@@ -84,7 +97,7 @@ export const processPayment = async (req: Request, res: Response) => {
         order.status = 'failed';
         // Notificar al Store Manager sobre el pago rechazado
         await sendEmail({
-          to: 'storemanager@example.com', // Reemplazar por el email real del store
+          to: storeManagerEmail,
           subject: 'Orden rechazada en Gifty',
           text: `La orden ${order._id} fue rechazada por Mercado Pago.`,
         });
@@ -92,7 +105,7 @@ export const processPayment = async (req: Request, res: Response) => {
         order.status = 'pending';
         // Notificar al Store Manager sobre la orden pendiente de pago
         await sendEmail({
-          to: 'storemanager@example.com', // Reemplazar por el email real del store
+          to: storeManagerEmail,
           subject: 'Orden pendiente de pago en Gifty',
           text: `La orden ${order._id} está pendiente de pago.`,
         });
