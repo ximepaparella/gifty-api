@@ -1,606 +1,339 @@
 {
   "info": {
     "name": "Gifty API",
-    "description": "API for the Gifty gift vouchers platform",
+    "description": "API for the Gifty gift vouchers platform. All endpoints are organized by resource. Set the global variables and Bearer token for easy testing.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:3000/api/v1" },
+    { "key": "token", "value": "your-jwt-token-here" },
+    { "key": "test_email", "value": "test_user_123456@testuser.com" },
+    { "key": "test_product_id", "value": "your-product-id-here" },
+    { "key": "test_store_id", "value": "your-store-id-here" },
+    { "key": "test_order_id", "value": "your-order-id-here" },
+    { "key": "mp_token", "value": "your-mp-token-here" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [ { "key": "token", "value": "{{token}}", "type": "string" } ]
   },
   "item": [
     {
-      "name": "Customers",
-      "description": "Customer management endpoints",
+      "name": "Auth",
       "item": [
         {
-          "name": "Get All Customers",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/customers",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "customers"]
-            },
-            "description": "Retrieve all customers (Requires authentication)"
-          },
-          "response": []
-        },
-        {
-          "name": "Get Customer By ID",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/customers/:id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "customers", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{customer_id}}",
-                  "description": "ID of the customer to retrieve"
-                }
-              ]
-            },
-            "description": "Retrieve a customer by their ID (Requires authentication)"
-          },
-          "response": []
-        },
-        {
-          "name": "Create Customer",
+          "name": "Login",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"fullName\": \"John Doe (New Customer)\",\n    \"email\": \"john.new.customer@example.com\",\n    \"phoneNumber\": \"+1987654321\",\n    \"address\": \"123 Customer Ln\",\n    \"city\": \"Custoville\",\n    \"zipCode\": \"CUST01\",\n    \"country\": \"Customerland\",\n    \"userId\": null \n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/customers",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "customers"]
-            },
-            "description": "Create a new customer (Requires authentication)"
-          },
-          "response": []
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"yourPassword\"\n}" },
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
+            "description": "Login to get JWT token."
+          }
         },
         {
-          "name": "Update Customer",
+          "name": "Register",
           "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"fullName\": \"John Doe (Updated\",\n    \"phoneNumber\": \"+11122233344\",\n    \"city\": \"Updated City\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/customers/:id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "customers", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{customer_id}}",
-                  "description": "ID of the customer to update"
-                }
-              ]
-            },
-            "description": "Update an existing customer (Requires authentication)"
-          },
-          "response": []
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"{{test_email}}\",\n  \"password\": \"yourPassword\"\n}" },
+            "url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"] },
+            "description": "Register a new user."
+          }
         },
         {
-          "name": "Delete Customer",
+          "name": "Forgot Password",
           "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/customers/:id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "customers", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{customer_id}}",
-                  "description": "ID of the customer to delete"
-                }
-              ]
-            },
-            "description": "Delete a customer (Requires authentication)"
-          },
-          "response": []
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{test_email}}\"\n}" },
+            "url": { "raw": "{{base_url}}/auth/forgot-password", "host": ["{{base_url}}"], "path": ["auth", "forgot-password"] },
+            "description": "Request password reset."
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"reset-token-here\",\n  \"password\": \"newPassword\",\n  \"passwordConfirm\": \"newPassword\",\n  \"email\": \"{{test_email}}\"\n}" },
+            "url": { "raw": "{{base_url}}/auth/reset-password", "host": ["{{base_url}}"], "path": ["auth", "reset-password"] },
+            "description": "Reset password with token."
+          }
         }
       ]
     },
     {
-      "name": "Orders",
-      "description": "Order management endpoints",
+      "name": "Users",
       "item": [
         {
-          "name": "Get All Orders",
+          "name": "Get All Users",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "orders"]
-            },
-            "description": "Retrieve all orders"
-          },
-          "response": []
+            "url": { "raw": "{{base_url}}/users", "host": ["{{base_url}}"], "path": ["users"] },
+            "description": "Get all users (admin only)."
+          }
         },
         {
-          "name": "Get Order By ID",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders/:id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "orders", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{order_id}}",
-                  "description": "ID of the order to retrieve"
-                }
-              ]
-            },
-            "description": "Retrieve an order by its ID"
-          },
-          "response": []
-        },
-        {
-          "name": "Get Orders By Customer ID",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders/customer/:customerId",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "orders", "customer", ":customerId"],
-              "variable": [
-                {
-                  "key": "customerId",
-                  "value": "{{customer_id}}",
-                  "description": "ID of the customer"
-                }
-              ]
-            },
-            "description": "Retrieve orders by customer ID"
-          },
-          "response": []
-        },
-        {
-          "name": "Get Order By Voucher Code",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders/voucher/:code",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "orders", "voucher", ":code"],
-              "variable": [
-                {
-                  "key": "code",
-                  "value": "{{voucher_code}}",
-                  "description": "Voucher code"
-                }
-              ]
-            },
-            "description": "Retrieve an order by voucher code"
-          },
-          "response": []
-        },
-        {
-          "name": "Create Order",
+          "name": "Create User",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"customerId\": \"{{customer_id}}\",\n    \"paymentDetails\": {\n        \"paymentId\": \"pay_123456789\",\n        \"paymentStatus\": \"completed\",\n        \"paymentEmail\": \"customer@example.com\",\n        \"amount\": 50,\n        \"provider\": \"stripe\"\n    },\n    \"voucher\": {\n        \"storeId\": \"{{store_id}}\",\n        \"productId\": \"{{product_id}}\",\n        \"expirationDate\": \"2023-12-31T23:59:59Z\",\n        \"senderName\": \"John Doe\",\n        \"senderEmail\": \"john.doe@example.com\",\n        \"receiverName\": \"Jane Smith\",\n        \"receiverEmail\": \"jane.smith@example.com\",\n        \"message\": \"Happy Birthday! Enjoy your gift!\",\n        \"template\": \"birthday\"\n    }\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "orders"]
-            },
-            "description": "Create a new order"
-          },
-          "response": []
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"New User\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password\",\n  \"role\": \"customer\"\n}" },
+            "url": { "raw": "{{base_url}}/users", "host": ["{{base_url}}"], "path": ["users"] },
+            "description": "Create a new user (admin only)."
+          }
         },
         {
-          "name": "Update Order",
+          "name": "Get User By ID",
           "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"customerId\": \"{{customer_id}}\",\n    \"paymentDetails\": {\n        \"paymentId\": \"pay_updated123456\",\n        \"paymentStatus\": \"completed\",\n        \"paymentEmail\": \"updated@example.com\",\n        \"amount\": 75,\n        \"provider\": \"stripe\"\n    },\n    \"voucher\": {\n        \"storeId\": \"{{store_id}}\",\n        \"productId\": \"{{product_id}}\",\n        \"expirationDate\": \"2024-06-30T23:59:59Z\",\n        \"senderName\": \"Updated Sender\",\n        \"senderEmail\": \"updated.sender@example.com\",\n        \"receiverName\": \"Updated Receiver\",\n        \"receiverEmail\": \"updated.receiver@example.com\",\n        \"message\": \"Updated message for the gift voucher\",\n        \"template\": \"general\"\n    }\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders/:id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "orders", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{order_id}}",
-                  "description": "ID of the order to update"
-                }
-              ]
-            },
-            "description": "Update an existing order"
-          },
-          "response": []
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["users", "{{user_id}}"] },
+            "description": "Get user by ID."
+          }
         },
         {
-          "name": "Delete Order",
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Name\"\n}" },
+            "url": { "raw": "{{base_url}}/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["users", "{{user_id}}"] },
+            "description": "Update user by ID."
+          }
+        },
+        {
+          "name": "Delete User",
           "request": {
             "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders/:id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "orders", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{order_id}}",
-                  "description": "ID of the order to delete"
-                }
-              ]
-            },
-            "description": "Delete an order"
-          },
-          "response": []
+            "url": { "raw": "{{base_url}}/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["users", "{{user_id}}"] },
+            "description": "Delete user by ID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stores",
+      "item": [
+        {
+          "name": "Get All Stores",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/stores", "host": ["{{base_url}}"], "path": ["stores"] },
+            "description": "Get all stores."
+          }
+        },
+        {
+          "name": "Create Store",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test Store\",\n  \"ownerId\": \"{{user_id}}\",\n  \"email\": \"store@example.com\",\n  \"phone\": \"+1234567890\",\n  \"address\": \"123 Store St\"\n}" },
+            "url": { "raw": "{{base_url}}/stores", "host": ["{{base_url}}"], "path": ["stores"] },
+            "description": "Create a new store."
+          }
+        },
+        {
+          "name": "Get Store By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/stores/{{store_id}}", "host": ["{{base_url}}"], "path": ["stores", "{{store_id}}"] },
+            "description": "Get store by ID."
+          }
+        },
+        {
+          "name": "Update Store",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Store\"\n}" },
+            "url": { "raw": "{{base_url}}/stores/{{store_id}}", "host": ["{{base_url}}"], "path": ["stores", "{{store_id}}"] },
+            "description": "Update store by ID."
+          }
+        },
+        {
+          "name": "Delete Store",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url}}/stores/{{store_id}}", "host": ["{{base_url}}"], "path": ["stores", "{{store_id}}"] },
+            "description": "Delete store by ID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Get All Products",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/products", "host": ["{{base_url}}"], "path": ["products"] },
+            "description": "Get all products."
+          }
+        },
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"storeId\": \"{{store_id}}\",\n  \"name\": \"Test Product\",\n  \"description\": \"A product\",\n  \"price\": 100.0,\n  \"isActive\": true\n}" },
+            "url": { "raw": "{{base_url}}/products", "host": ["{{base_url}}"], "path": ["products"] },
+            "description": "Create a new product."
+          }
+        },
+        {
+          "name": "Get Product By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/products/{{product_id}}", "host": ["{{base_url}}"], "path": ["products", "{{product_id}}"] },
+            "description": "Get product by ID."
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Product\"\n}" },
+            "url": { "raw": "{{base_url}}/products/{{product_id}}", "host": ["{{base_url}}"], "path": ["products", "{{product_id}}"] },
+            "description": "Update product by ID."
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url}}/products/{{product_id}}", "host": ["{{base_url}}"], "path": ["products", "{{product_id}}"] },
+            "description": "Delete product by ID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vouchers",
+      "item": [
+        {
+          "name": "Get All Vouchers",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/vouchers", "host": ["{{base_url}}"], "path": ["vouchers"] },
+            "description": "Get all vouchers."
+          }
+        },
+        {
+          "name": "Create Voucher",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"storeId\": \"{{store_id}}\",\n  \"productId\": \"{{product_id}}\",\n  \"amount\": 100,\n  \"expirationDate\": \"2025-12-31T23:59:59.000Z\",\n  \"senderName\": \"Sender\",\n  \"senderEmail\": \"sender@example.com\",\n  \"receiverName\": \"Receiver\",\n  \"receiverEmail\": \"receiver@example.com\",\n  \"message\": \"Enjoy!\",\n  \"template\": \"template1\"\n}" },
+            "url": { "raw": "{{base_url}}/vouchers", "host": ["{{base_url}}"], "path": ["vouchers"] },
+            "description": "Create a new voucher."
+          }
+        },
+        {
+          "name": "Get Voucher By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/vouchers/{{voucher_id}}", "host": ["{{base_url}}"], "path": ["vouchers", "{{voucher_id}}"] },
+            "description": "Get voucher by ID."
+          }
         },
         {
           "name": "Redeem Voucher",
           "request": {
             "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders/voucher/:code/redeem",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "orders", "voucher", ":code", "redeem"],
-              "variable": [
-                {
-                  "key": "code",
-                  "value": "{{voucher_code}}",
-                  "description": "Voucher code to redeem"
-                }
-              ]
-            },
-            "description": "Redeem a voucher by its code"
-          },
-          "response": []
+            "url": { "raw": "{{base_url}}/vouchers/code/{{voucher_code}}/redeem", "host": ["{{base_url}}"], "path": ["vouchers", "code", "{{voucher_code}}", "redeem"] },
+            "description": "Redeem voucher by code."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Get All Orders",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/orders", "host": ["{{base_url}}"], "path": ["orders"] },
+            "description": "Get all orders."
+          }
         },
         {
-          "name": "Redeem Voucher by QR Code",
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"customerId\": \"{{user_id}}\",\n  \"voucher\": {\n    \"storeId\": \"{{store_id}}\",\n    \"productId\": \"{{product_id}}\",\n    \"amount\": 100,\n    \"expirationDate\": \"2025-12-31T23:59:59.000Z\",\n    \"senderName\": \"Sender\",\n    \"senderEmail\": \"sender@example.com\",\n    \"receiverName\": \"Receiver\",\n    \"receiverEmail\": \"receiver@example.com\",\n    \"message\": \"Enjoy!\",\n    \"template\": \"template1\"\n  },\n  \"paymentDetails\": {\n    \"paymentId\": \"mock_123456\",\n    \"paymentEmail\": \"{{test_email}}\",\n    \"amount\": 100,\n    \"provider\": \"mercadopago\"\n  }\n}" },
+            "url": { "raw": "{{base_url}}/orders", "host": ["{{base_url}}"], "path": ["orders"] },
+            "description": "Create a new order."
+          }
+        },
+        {
+          "name": "Get Order By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}"] },
+            "description": "Get order by ID."
+          }
+        },
+        {
+          "name": "Get Orders By Customer ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/orders/customer/{{user_id}}", "host": ["{{base_url}}"], "path": ["orders", "customer", "{{user_id}}"] },
+            "description": "Get orders by customer ID."
+          }
+        },
+        {
+          "name": "Get Order By Voucher Code",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/orders/voucher/{{voucher_code}}", "host": ["{{base_url}}"], "path": ["orders", "voucher", "{{voucher_code}}"] },
+            "description": "Get order by voucher code."
+          }
+        },
+        {
+          "name": "Redeem Order Voucher",
           "request": {
             "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders/voucher/:code/redeem",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "orders", "voucher", ":code", "redeem"],
-              "variable": [
-                {
-                  "key": "code",
-                  "value": "{{voucher_code}}",
-                  "description": "Voucher code from QR scan"
-                }
-              ]
-            },
-            "description": "Redeem a voucher by scanning its QR code. The QR code contains a URL with the voucher code, and this endpoint is used to process that redemption."
-          },
-          "response": []
+            "url": { "raw": "{{base_url}}/orders/voucher/{{voucher_code}}/redeem", "host": ["{{base_url}}"], "path": ["orders", "voucher", "{{voucher_code}}", "redeem"] },
+            "description": "Redeem voucher by code."
+          }
         },
         {
           "name": "Resend Voucher Emails",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders/:id/resend-emails",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "orders", ":id", "resend-emails"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{order_id}}",
-                  "description": "ID of the order"
-                }
-              ]
-            },
-            "description": "Resend voucher emails for an order"
-          },
-          "response": []
-        },
-        {
-          "name": "Send Voucher Emails with PDFs",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders/:id/send-voucher-emails",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "orders", ":id", "send-voucher-emails"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{order_id}}",
-                  "description": "ID of the order"
-                }
-              ]
-            },
-            "description": "Send all voucher emails with PDF attachments"
-          },
-          "response": []
-        },
-        {
-          "name": "Resend Customer Email",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders/:id/resend-customer-email",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "orders", ":id", "resend-customer-email"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{order_id}}",
-                  "description": "ID of the order"
-                }
-              ]
-            },
-            "description": "Resend voucher email only to the customer with PDF attachment"
-          },
-          "response": []
-        },
-        {
-          "name": "Resend Receiver Email",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders/:id/resend-receiver-email",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "orders", ":id", "resend-receiver-email"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{order_id}}",
-                  "description": "ID of the order"
-                }
-              ]
-            },
-            "description": "Resend voucher email only to the receiver with PDF attachment"
-          },
-          "response": []
-        },
-        {
-          "name": "Resend Store Email",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders/:id/resend-store-email",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "orders", ":id", "resend-store-email"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{order_id}}",
-                  "description": "ID of the order"
-                }
-              ]
-            },
-            "description": "Resend voucher email only to the store with PDF attachment"
-          },
-          "response": []
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}/resend-emails", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}", "resend-emails"] },
+            "description": "Resend voucher emails for an order."
+          }
         },
         {
           "name": "Download Voucher PDF",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders/:id/download-pdf",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "orders", ":id", "download-pdf"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{order_id}}",
-                  "description": "ID of the order"
-                }
-              ]
-            },
-            "description": "Download a PDF version of the voucher"
-          },
-          "response": []
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}/download-pdf", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}", "download-pdf"] },
+            "description": "Download voucher PDF for an order."
+          }
         }
       ]
-    }
-  ],
-  "variable": [
-    {
-      "key": "base_url",
-      "value": "http://localhost:3000",
-      "type": "string"
     },
     {
-      "key": "token",
-      "value": "your-auth-token-here",
-      "type": "string"
-    },
-    {
-      "key": "order_id",
-      "value": "your-order-id-here",
-      "type": "string"
-    },
-    {
-      "key": "customer_id",
-      "value": "your-customer-id-here",
-      "type": "string"
-    },
-    {
-      "key": "store_id",
-      "value": "your-store-id-here",
-      "type": "string"
-    },
-    {
-      "key": "product_id",
-      "value": "your-product-id-here",
-      "type": "string"
-    },
-    {
-      "key": "voucher_code",
-      "value": "your-voucher-code-here",
-      "type": "string"
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Process Mercado Pago Payment",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"orderId\": \"{{order_id}}\",\n  \"token\": \"{{mp_token}}\",\n  \"issuer_id\": \"default\",\n  \"payment_method_id\": \"visa\",\n  \"transaction_amount\": 100,\n  \"installments\": 1,\n  \"payer\": {\n    \"email\": \"{{test_email}}\"\n  }\n}" },
+            "url": { "raw": "{{base_url}}/payment/process_payment", "host": ["{{base_url}}"], "path": ["payment", "process_payment"] },
+            "description": "Process a Mercado Pago payment for an order."
+          }
+        }
+      ]
     }
   ]
 }

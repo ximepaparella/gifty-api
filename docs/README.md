@@ -79,3 +79,50 @@ The current version of the API is v1. The version is included in the URL path.
 ## Support
 
 For API support, please contact support@gifty-api.com or open an issue in our GitHub repository.
+
+## Mercado Pago Integration
+
+### Variables de entorno
+
+Agrega la siguiente variable en tu archivo `.env`:
+
+```
+MP_ACCESS_TOKEN=tu_access_token_de_mercado_pago
+```
+
+### Endpoint de pago
+
+`POST /payment/process_payment`
+
+#### Body de ejemplo:
+```json
+{
+  "orderId": "<ID de la orden creada>",
+  "token": "<token de tarjeta>",
+  "issuer_id": "default",
+  "payment_method_id": "visa",
+  "transaction_amount": 100,
+  "installments": 1,
+  "payer": {
+    "email": "test_user_123456@testuser.com"
+  }
+}
+```
+
+#### Respuesta exitosa:
+```json
+{
+  "status": "approved",
+  "status_detail": "accredited",
+  "id": "123456789"
+}
+```
+
+### Casos de prueba
+
+- **Pago aprobado:** Usa tarjetas de prueba de Mercado Pago y datos válidos.
+- **Pago rechazado:** Usa un nombre de titular o datos que simulen rechazo (ver docs de Mercado Pago).
+- **Campos inválidos:** Omite campos requeridos para recibir error 400.
+- **Pago cancelado por el usuario:** Simula cancelación desde el frontend, la orden queda pendiente y se notifica al Store Manager.
+
+Para más detalles, consulta la sección de [Órdenes](./orders.md).
