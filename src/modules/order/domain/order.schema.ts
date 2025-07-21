@@ -49,6 +49,64 @@ const VoucherSchema = new Schema<IVoucher>(
   { _id: false }
 );
 
+// Mercado Pago Info Sub-Schema
+const MercadoPagoInfoSchema = new Schema(
+  {
+    mp_payment_id: { type: String, required: true, index: true },
+    status: { type: String, required: true },
+    status_detail: { type: String, required: true },
+    payment_method_id: { type: String, required: true },
+    transaction_amount: { type: Number, required: true },
+    installments: { type: Number, required: true },
+    payer_email: { type: String, required: true },
+  },
+  { _id: false }
+);
+
+// PayPal Info Sub-Schema
+const PaypalInfoSchema = new Schema(
+  {
+    paypal_payment_id: { type: String, required: true, index: true },
+    status: { type: String, required: true },
+    payer_email: { type: String, required: true },
+    amount: { type: Number, required: true },
+    currency: { type: String, required: true },
+    // Agrega aquí otros campos relevantes de PayPal
+  },
+  { _id: false }
+);
+
+// Bank Transfer Info Sub-Schema
+const BankTransferInfoSchema = new Schema(
+  {
+    bank_name: { type: String, required: true },
+    account_number: { type: String, required: true },
+    cbu: { type: String },
+    transaction_id: { type: String, required: true, index: true },
+    payer_name: { type: String, required: true },
+    payer_email: { type: String, required: true },
+    amount: { type: Number, required: true },
+    currency: { type: String, required: true },
+    status: { type: String, required: true },
+    // Agrega aquí otros campos relevantes de transferencias
+  },
+  { _id: false }
+);
+
+// Cash Info Sub-Schema
+const CashInfoSchema = new Schema(
+  {
+    receipt_number: { type: String, required: true, index: true },
+    location: { type: String },
+    payer_name: { type: String, required: true },
+    payer_email: { type: String, required: true },
+    amount: { type: Number, required: true },
+    currency: { type: String, required: true },
+    // Agrega aquí otros campos relevantes de pagos en efectivo
+  },
+  { _id: false }
+);
+
 // Define the Mongoose Document interface
 export interface IOrderDocument extends Omit<IOrder, '_id'>, Document {}
 
@@ -72,6 +130,10 @@ const OrderSchema = new Schema<IOrderDocument>(
     emailsSent: { type: Boolean, default: false },
     pdfGenerated: { type: Boolean, default: false },
     pdfUrl: { type: String },
+    paypalInfo: { type: PaypalInfoSchema, required: false },
+    mercadoPagoInfo: { type: MercadoPagoInfoSchema, required: false },
+    bankTransferInfo: { type: BankTransferInfoSchema, required: false },
+    cashInfo: { type: CashInfoSchema, required: false },
   },
   {
     timestamps: true,
@@ -84,6 +146,10 @@ OrderSchema.index({ customerId: 1 });
 OrderSchema.index({ 'voucher.storeId': 1 });
 OrderSchema.index({ createdAt: 1 });
 OrderSchema.index({ updatedAt: 1 });
+OrderSchema.index({ 'mercadoPagoInfo.mp_payment_id': 1 });
+OrderSchema.index({ 'paypalInfo.paypal_payment_id': 1 });
+OrderSchema.index({ 'bankTransferInfo.transaction_id': 1 });
+OrderSchema.index({ 'cashInfo.receipt_number': 1 });
 
 // Export the model
 export const OrderModel = mongoose.model<IOrderDocument>('Order', OrderSchema);

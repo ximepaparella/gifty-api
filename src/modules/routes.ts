@@ -5,6 +5,7 @@ import { userRouter } from './user/interface/user.routes';
 import { orderRouter } from './order/interface/order.routes';
 import { voucherRouter } from './voucher/interface/voucher.routes';
 import { customerRouter } from './customer/interface/customer.routes';
+import paymentRouter from './payment/interface/payment.routes';
 
 export const setupRoutes = (app: Express): void => {
   app.use('/api/v1/stores', storeRouter);
@@ -13,4 +14,5 @@ export const setupRoutes = (app: Express): void => {
   app.use('/api/v1/orders', orderRouter);
   app.use('/api/v1/vouchers', voucherRouter);
   app.use('/api/v1/customers', customerRouter);
+  app.use('/api/v1/payment', paymentRouter);
 }; 

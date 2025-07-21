@@ -46,7 +46,7 @@ src/
 
 The API documentation is organized by resource type in the `docs` folder:
 
-- [Orders Documentation](docs/orders.md) - Order management endpoints
+- [Orders Documentation](docs/orders.md) - Order management endpoints (includes [Mercado Pago Integration](docs/orders.md#mercado-pago-integration))
 - [Products Documentation](docs/products.md) - Product management endpoints
 - [Stores Documentation](docs/stores.md) - Store management endpoints
 - [Customers Documentation](docs/customers.md) - Customer management endpoints

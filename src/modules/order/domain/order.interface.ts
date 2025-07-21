@@ -5,7 +5,7 @@ export interface IPaymentDetails {
   status: 'pending' | 'completed' | 'failed';
   paymentEmail: string;
   amount: number;
-  provider: 'mercadopago' | 'paypal' | 'stripe';
+  provider: 'mercadopago' | 'paypal' | 'bank_transfer' | 'cash' | 'stripe';
   currency?: string;
   paymentMethod?: string;
   transactionId?: string;
@@ -47,11 +47,54 @@ export interface IVoucher {
   template: 'template1' | 'template2' | 'template3' | 'template4' | 'template5';
 }
 
+export interface IMercadoPagoInfo {
+  mp_payment_id: string;
+  status: string;
+  status_detail: string;
+  payment_method_id: string;
+  transaction_amount: number;
+  installments: number;
+  payer_email: string;
+}
+
+export interface IPaypalInfo {
+  paypal_payment_id: string;
+  status: string;
+  payer_email: string;
+  amount: number;
+  currency: string;
+  // Agrega aquí otros campos relevantes de PayPal
+}
+
+export interface IBankTransferInfo {
+  bank_name: string;
+  account_number: string;
+  cbu?: string;
+  transaction_id: string;
+  payer_name: string;
+  payer_email: string;
+  amount: number;
+  currency: string;
+}
+
+export interface ICashInfo {
+  receipt_number: string;
+  location?: string;
+  payer_name: string;
+  payer_email: string;
+  amount: number;
+  currency: string;
+}
+
 export interface IOrder {
   _id?: Types.ObjectId;
   customerId: string | Types.ObjectId;
   voucher: IVoucher;
   paymentDetails: IPaymentDetails;
+  mercadoPagoInfo?: IMercadoPagoInfo;
+  paypalInfo?: IPaypalInfo;
+  bankTransferInfo?: IBankTransferInfo;
+  cashInfo?: ICashInfo;
   emailsSent: boolean;
   pdfGenerated: boolean;
   pdfUrl?: string;

@@ -97,9 +97,23 @@ Retrieves an order by its ID.
       "receiverEmail": "daniela@daniela.comtes",
       "message": "testets res tw",
       "qrCode": "data:image/png;base64,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",
-      "amount": 65000,
-      "expirationDate": "2026-04-04T02:39:41.113Z",
-      "template": "template3"
+        "amount": 65000,
+        "expirationDate": "2026-04-04T02:39:41.113Z",
+        "template": "template3"
+      },
+      "paymentDetails": {
+        "paymentId": "mock_1743734381113",
+        "status": "completed",
+        "paymentEmail": "ximena@ximena.com",
+        "amount": 65000,
+        "provider": "stripe"
+      },
+      "emailsSent": true,
+      "pdfGenerated": true,
+      "createdAt": "2025-04-04T02:39:41.161Z",
+      "updatedAt": "2025-04-04T02:39:47.045Z",
+      "__v": 0,
+      "pdfUrl": "C:\\Users\\ximen\\OneDrive\\Documentos\\Estudio Equis\\repositorios\\ai4devs\\gifty-api\\uploads\\vouchers\\voucher-T0N8E3UGIE-1743734381447.pdf"
     },
     "paymentDetails": {
       "paymentId": "mock_1743734381113",
@@ -503,3 +517,52 @@ The order status can have the following values:
 - `completed`: Order fully processed and voucher delivered
 - `failed`: Order failed due to payment or other issues
 - `cancelled`: Order cancelled by customer or admin
+
+## Mercado Pago Integration
+
+The payment flow with Mercado Pago is as follows:
+
+1. The order is created with status `pending` and no voucher generated.
+2. The user makes the payment using the `/payment/process_payment` endpoint.
+3. The backend processes the payment and updates the order:
+   - If the payment is approved, the order status changes to `completed`, the voucher is generated, and sent to the customer.
+   - If the payment is rejected or pending, the order remains `pending` or changes to `failed`, and the Store Manager is notified.
+
+### Example request: POST /payment/process_payment
+
+```json
+{
+  "orderId": "<Order ID>",
+  "token": "<card token>",
+  "issuer_id": "default",
+  "payment_method_id": "visa",
+  "transaction_amount": 100,
+  "installments": 1,
+  "payer": {
+    "email": "test_user_123456@testuser.com"
+  }
+}
+```
+
+### Example successful response
+
+```json
+{
+  "status": "approved",
+  "status_detail": "accredited",
+  "id": "123456789"
+}
+```
+
+### Order Statuses
+
+- `pending`: Order created, awaiting payment.
+- `completed`: Payment approved, voucher generated and sent.
+- `failed`: Payment rejected.
+
+### Test Cases
+
+- **Approved payment:** Order moves to `completed`, voucher is generated and sent.
+- **Rejected payment:** Order moves to `failed`, Store Manager is notified.
+- **Pending/cancelled payment:** Order remains `pending`, Store Manager is notified.
+- **Invalid fields:** Endpoint responds with 400 error.
