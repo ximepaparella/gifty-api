@@ -87,6 +87,7 @@ const BankTransferInfoSchema = new Schema(
     payer_email: { type: String, required: true },
     amount: { type: Number, required: true },
     currency: { type: String, required: true },
+    status: { type: String, required: true },
     // Agrega aquí otros campos relevantes de transferencias
   },
   { _id: false }
