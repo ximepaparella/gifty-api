@@ -104,6 +104,20 @@ const startServer = async () => {
     // Setup Swagger documentation
     setupSwagger(app);
 
+    // Root route handler
+    app.get('/', (req: Request, res: Response) => {
+      res.status(200).json({
+        message: 'Welcome to Gifty API',
+        version: '1.0.0',
+        documentation: '/api-docs'
+      });
+    });
+
+    // Favicon handler
+    app.get('/favicon.ico', (req: Request, res: Response) => {
+      res.status(204).end(); // No content response for favicon
+    });
+
     // Add 404 handler - must be after all routes
     app.use(notFoundHandler);
 
